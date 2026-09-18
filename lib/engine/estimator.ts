@@ -428,7 +428,7 @@ export function runEstimationEngine(
   const structM  = ds.structMultipliers[sys];
   const seismicM = ds.seismicMultipliers[seismic];
 
-  const { floorTier, roomCounts: rc, totalBuaSqft, totalBuaSqm,
+  const { floorTier, roomCounts: rc, totalBuaSqft,
           wallAreaSqft, facadeAreaSqft, terraceArea, perimeterFt, buaPerFloor } = dim;
   const footprintSqm = buaPerFloor / 10.764;
   const numFloors = bi.numFloors;
@@ -500,23 +500,28 @@ export function runEstimationEngine(
 
   // ── CAT_02: Superstructure ───────────────────────────────────────────────
   const isPEB = sys === 'Steel';
+  // Wind lateral load factor per IS 875 (Part 3)
+  const wind = bi.windLoadZone ?? 'Not_sure';
+  const windMult = wind === 'Cyclone_prone' ? 1.08 : wind === 'High' ? 1.04 : 1.0;
+
   if (isPEB) {
     // PEB structural steel: ~4.6 - 6.0 kg/sqft for complete portal frames, crane girders, purlins, bracings
-    const pebSteelKgPerSqft = isIndustrial ? (numFloors > 1 ? 5.2 : 4.6) : 6.0;
+    const pebSteelKgPerSqft = (isIndustrial ? (numFloors > 1 ? 5.2 : 4.6) : 6.0) * windMult;
     addItem('MAT_STEEL_STRUCT', totalBuaSqft * pebSteelKgPerSqft, 'kg', true, 'Structural PEB Steel (Portals, Purlins, Sag Rods)');
     if (numFloors > 1) {
       const mezzSqft = buaPerFloor * (numFloors - 1);
       addItem('MAT_RCC_CEMENT', mezzSqft * 0.35, 'bags (50kg)');
-      addItem('MAT_RCC_STEEL',  mezzSqft * 3.6,  'kg');
+      addItem('MAT_RCC_STEEL',  mezzSqft * 3.6 * windMult,  'kg');
     }
   } else {
     const cRate = ds.floorCementCoeff[floorTier];
     const sRate = ds.floorSteelCoeff[floorTier];
     const isHighRise = numFloors >= 8;
     const indLiveLoadMult = (isIndustrial && sys === 'RCC_Frame') ? 1.20 : 1.0;
+    const sWindMult = isHighRise ? windMult : 1.0;
 
     const cQty    = Math.round(cRate * totalBuaSqft * structM.cm * indLiveLoadMult * 100) / 100;
-    const sQty    = Math.round(sRate * totalBuaSqft * structM.sm * seismicM * indLiveLoadMult * 100) / 100;
+    const sQty    = Math.round(sRate * totalBuaSqft * structM.sm * seismicM * indLiveLoadMult * sWindMult * 100) / 100;
     const sandQty = Math.round(cQty * 1.42 * 100) / 100;
     const aggQty  = Math.round(cQty * 2.85 * 100) / 100;
 

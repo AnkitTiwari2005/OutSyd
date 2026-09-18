@@ -92,7 +92,7 @@ export function Step2Building() {
                 <option value="High">High wind zone (47–50 m/s)</option>
                 <option value="Cyclone_prone">Cyclone-prone coast (&gt; 50 m/s)</option>
               </select>
-              <InfoTooltip content="Conservative default assumes Moderate wind speed (39 m/s). Coastal or high zones increase structural steel bracing and glass thickness." />
+              <InfoTooltip content="Per IS 875 Part 3: High or Cyclone-prone wind zones (>47 m/s) apply lateral load multipliers to structural framing and high-rise cores." />
             </div>
           </FormField>
         </div>
