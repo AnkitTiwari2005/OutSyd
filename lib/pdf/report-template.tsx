@@ -18,7 +18,7 @@ function resolveFontPath(filename: string): string | null {
   ];
   for (const candidate of candidates) {
     try {
-      if (fs.existsSync(candidate)) return candidate;
+      if (fs.existsSync(/*turbopackIgnore: true*/ candidate)) return candidate;
     } catch {
       // ignore
     }
