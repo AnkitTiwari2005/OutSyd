@@ -14,6 +14,7 @@ export type AccuracyBand = 'Preliminary_15_20' | 'Standard_10_15' | 'Advanced_5_
 export type ClassificationTier = 1 | 2 | 3;
 export type BuildingCategory =
   | 'Small_Residential'
+  | 'Mid_Rise_Residential'
   | 'Mid_Rise_Commercial'
   | 'Institutional_Facility'
   | 'Industrial_Facility'

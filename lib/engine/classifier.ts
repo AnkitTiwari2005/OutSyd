@@ -5,10 +5,10 @@
 import type { ClassificationResult, ClassificationTier, BuildingCategory } from './types';
 
 interface ClassifierInput {
-  numFloors       : number;
-  typology        : string;
-  structuralSystem: string;
-  seismicZone     : string;
+  numFloors        : number;
+  typology         : string;
+  structuralSystem?: string;
+  seismicZone      ?: string;
 }
 
 /**
@@ -22,40 +22,48 @@ export function classifyBuilding(input: ClassifierInput): ClassificationResult {
   let category: BuildingCategory = 'Small_Residential';
 
   const isNonResidential = ['Commercial', 'Institutional', 'Industrial'].includes(input.typology);
+  const sys = input.structuralSystem ?? 'Not_sure';
+  const zone = input.seismicZone ?? 'Not_sure';
+
+  // Base classification
+  if (input.typology === 'Commercial') {
+    category = 'Mid_Rise_Commercial';
+  } else if (input.typology === 'Institutional') {
+    category = 'Institutional_Facility';
+  } else if (input.typology === 'Industrial') {
+    category = 'Industrial_Facility';
+  } else if (input.numFloors > 3) {
+    category = 'Mid_Rise_Residential';
+  } else {
+    category = 'Small_Residential';
+  }
 
   // ── BR-1: Tier 2 triggers ─────────────────────────────────────────────────
   const isTier2 = input.numFloors > 3 || isNonResidential;
   if (isTier2) {
     tier = 2;
-    if (input.typology === 'Commercial') {
-      category = 'Mid_Rise_Commercial';
-    } else if (input.typology === 'Institutional') {
-      category = 'Institutional_Facility';
-    } else if (input.typology === 'Industrial') {
-      category = 'Industrial_Facility';
-    } else {
-      category = 'Small_Residential';
-    }
-    if (input.numFloors > 3)  reasons.push(`${input.numFloors} floors exceeds 3-floor Tier 1 threshold`);
-    if (isNonResidential)     reasons.push(`Non-residential typology: ${input.typology}`);
+    if (input.numFloors > 3) reasons.push(`${input.numFloors} floors exceeds 3-floor Tier 1 threshold`);
+    if (isNonResidential)    reasons.push(`Non-residential typology: ${input.typology}`);
+  }
+
+  // ── Complex Specialized / High Rise ──────────────────────────────────────
+  if (['Institutional', 'Industrial'].includes(input.typology) && input.numFloors > 5) {
+    category = 'Complex_Specialized';
+    reasons.push('Multi-storey Institutional/Industrial → Complex Specialized');
+  } else if (input.numFloors > 7) {
+    category = 'High_Rise';
+    reasons.push(`${input.numFloors} floors exceeds 7-floor Tier 2 threshold → High Rise`);
   }
 
   // ── BR-2: Tier 3 triggers ─────────────────────────────────────────────────
-  const isSteelOrShearWall = ['Steel', 'Shear_Wall'].includes(input.structuralSystem);
-  const isHighSeismic       = ['Zone_IV', 'Zone_V'].includes(input.seismicZone);
+  const isSteelOrShearWall = ['Steel', 'Shear_Wall'].includes(sys);
+  const isHighSeismic      = ['Zone_IV', 'Zone_V'].includes(zone);
   const isTier3 = input.numFloors > 7 || isSteelOrShearWall || isHighSeismic;
 
   if (isTier3) {
     tier = 3;
-    if (input.numFloors > 7)  { category = 'High_Rise'; reasons.push(`${input.numFloors} floors exceeds 7-floor Tier 2 threshold`); }
-    if (isSteelOrShearWall)   reasons.push(`Structural system requires specialist detailing: ${input.structuralSystem}`);
-    if (isHighSeismic)        reasons.push(`High seismic zone requires ductile detailing: ${input.seismicZone}`);
-  }
-
-  // ── Complex Specialized override ─────────────────────────────────────────
-  if (['Institutional', 'Industrial'].includes(input.typology) && input.numFloors > 5) {
-    category = 'Complex_Specialized';
-    reasons.push('Multi-storey Institutional/Industrial → Complex Specialized');
+    if (isSteelOrShearWall) reasons.push(`Structural system requires specialist detailing: ${sys}`);
+    if (isHighSeismic)      reasons.push(`High seismic zone requires ductile detailing: ${zone}`);
   }
 
   return { tier, category, reasons };

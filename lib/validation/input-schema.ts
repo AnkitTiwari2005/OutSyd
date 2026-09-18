@@ -4,11 +4,11 @@
 import { z } from 'zod';
 
 export const Tier1BaseSchema = z.object({
-  lengthFt      : z.coerce.number({ required_error: 'Length is required' }).positive('Must be greater than 0').max(2000),
-  breadthFt     : z.coerce.number({ required_error: 'Breadth is required' }).positive('Must be greater than 0').max(2000),
-  heightFt      : z.coerce.number({ required_error: 'Total height is required' }).positive('Must be greater than 0').max(1500),
-  plotAreaSqft  : z.coerce.number({ required_error: 'Plot area is required' }).positive('Must be greater than 0'),
-  numFloors     : z.coerce.number({ required_error: 'Number of floors is required' }).int().min(1, 'Minimum 1 floor').max(150, 'Maximum 150 floors'),
+  lengthFt      : z.coerce.number({ required_error: 'Length is required' }).finite().positive('Must be greater than 0').max(2000),
+  breadthFt     : z.coerce.number({ required_error: 'Breadth is required' }).finite().positive('Must be greater than 0').max(2000),
+  heightFt      : z.coerce.number({ required_error: 'Total height is required' }).finite().positive('Must be greater than 0').max(1500),
+  plotAreaSqft  : z.coerce.number({ required_error: 'Plot area is required' }).finite().positive('Must be greater than 0').max(10_000_000, 'Plot area exceeds maximum 10,000,000 sqft'),
+  numFloors     : z.coerce.number({ required_error: 'Number of floors is required' }).finite().int().min(1, 'Minimum 1 floor').max(150, 'Maximum 150 floors'),
   typology      : z.enum(['Residential', 'Commercial', 'Institutional', 'Industrial'], {
     required_error: 'Building typology is required',
   }),
@@ -22,12 +22,13 @@ export const Tier1BaseSchema = z.object({
   }),
 });
 
-// Helper for optional numeric inputs that may be received as empty string, 0, null, or NaN from form elements
+// Helper for optional numeric inputs that may be received as empty string, null, or NaN from form elements
 const optionalNumber = (schema: z.ZodNumber) =>
   z.preprocess((val) => {
-    if (val === '' || val === null || val === undefined || Number.isNaN(Number(val))) return undefined;
+    if (val === '' || val === null || val === undefined) return undefined;
     const num = Number(val);
-    return num === 0 ? undefined : num;
+    if (Number.isNaN(num)) return undefined;
+    return num;
   }, schema.optional());
 
 // Helper for optional URL inputs that may lack protocol or have leading/trailing whitespace
@@ -47,35 +48,42 @@ const optionalUrl = z.preprocess((val) => {
 export const Tier2BaseSchema = Tier1BaseSchema.extend({
   structuralSystem: z.enum(['RCC_Frame', 'Load_bearing', 'Steel', 'Shear_Wall', 'Not_sure']).default('Not_sure'),
   foundationType  : z.enum(['Isolated', 'Raft', 'Pile', 'Not_sure']).default('Not_sure'),
-  numLifts        : z.coerce.number().int().min(0).max(20).default(0),
-  numStaircases   : z.coerce.number().int().min(1).max(20).default(1),
-  parkingLevels   : z.coerce.number().int().min(0).max(10).default(0),
-  unitsPerFloor   : optionalNumber(z.number().int().min(1).max(100)),
+  numLifts        : z.coerce.number().finite().int().min(0).max(20).default(0),
+  numStaircases   : z.coerce.number().finite().int().min(1).max(20).default(1),
+  parkingLevels   : z.coerce.number().finite().int().min(0).max(10).default(0),
+  unitsPerFloor   : optionalNumber(z.number().finite().int().min(1).max(100)),
   seismicZone     : z.enum(['Zone_II', 'Zone_III', 'Zone_IV', 'Zone_V', 'Not_sure']).default('Not_sure'),
 });
 
 export const Tier3BaseSchema = Tier2BaseSchema.extend({
-  soilBearingCapacity  : optionalNumber(z.number().positive()),
+  soilBearingCapacity  : optionalNumber(z.number().finite().positive()),
   windLoadZone         : z.enum(['Low', 'Moderate', 'High', 'Cyclone_prone', 'Not_sure']).default('Not_sure'),
-  serviceFloors        : z.coerce.number().int().min(0).max(10).default(0),
-  podiumLevels         : z.coerce.number().int().min(0).max(5).default(0),
+  serviceFloors        : z.coerce.number().finite().int().min(0).max(10).default(0),
+  podiumLevels         : z.coerce.number().finite().int().min(0).max(5).default(0),
   facadeType           : z.enum(['Curtain_Wall', 'ACP_Cladding', 'Conventional', 'Not_sure']).default('Not_sure'),
   fireHvacScope        : z.enum(['Basic', 'Full_Central', 'Not_sure']).default('Not_sure'),
   structuralDrawingUrl : optionalUrl,
 });
 
 export const FullInputBaseSchema = Tier3BaseSchema.extend({
-  targetTimelineMonths: optionalNumber(z.number().int().positive()),
+  targetTimelineMonths: optionalNumber(z.number().finite().int().positive()),
   greenCertTarget     : z.enum(['None', 'IGBC', 'GRIHA']).optional(),
   localRateOverrides  : z.array(z.object({
     materialItemCode: z.string(),
-    rate            : z.number().positive(),
+    rate            : z.number().finite().positive(),
   })).optional(),
 });
 
-// Cross-field validation: building footprint vs plot area & ground coverage ratio
-const validateFootprintAndCoverage = (
-  data: { lengthFt?: number; breadthFt?: number; plotAreaSqft?: number },
+// Cross-field validation: building footprint vs plot area & ground coverage ratio and floor height
+const validateBuildingConstraints = (
+  data: {
+    lengthFt?: number;
+    breadthFt?: number;
+    plotAreaSqft?: number;
+    heightFt?: number;
+    numFloors?: number;
+    typology?: string;
+  },
   ctx: z.RefinementCtx
 ) => {
   if (data.lengthFt && data.breadthFt && data.plotAreaSqft) {
@@ -94,12 +102,25 @@ const validateFootprintAndCoverage = (
       });
     }
   }
+
+  // H-5: Floor-to-floor height validation (8–20 ft for typical buildings, up to 40 ft for industrial sheds/warehouses)
+  if (data.heightFt && data.numFloors && data.numFloors > 0) {
+    const floorToFloor = data.heightFt / data.numFloors;
+    const maxHeight = data.typology === 'Industrial' ? 40 : 20;
+    if (floorToFloor < 8 || floorToFloor > maxHeight) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Average floor-to-floor height (${floorToFloor.toFixed(1)} ft) must be between 8 ft and ${maxHeight} ft (NBC 2016 norms).`,
+        path: ['heightFt'],
+      });
+    }
+  }
 };
 
-export const Tier1Schema = Tier1BaseSchema.superRefine(validateFootprintAndCoverage);
-export const Tier2Schema = Tier2BaseSchema.superRefine(validateFootprintAndCoverage);
-export const Tier3Schema = Tier3BaseSchema.superRefine(validateFootprintAndCoverage);
-export const FullInputSchema = FullInputBaseSchema.superRefine(validateFootprintAndCoverage);
+export const Tier1Schema = Tier1BaseSchema.superRefine(validateBuildingConstraints);
+export const Tier2Schema = Tier2BaseSchema.superRefine(validateBuildingConstraints);
+export const Tier3Schema = Tier3BaseSchema.superRefine(validateBuildingConstraints);
+export const FullInputSchema = FullInputBaseSchema.superRefine(validateBuildingConstraints);
 
 export type Tier1Input  = z.infer<typeof Tier1Schema>;
 export type Tier2Input  = z.infer<typeof Tier2Schema>;
