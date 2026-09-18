@@ -7,7 +7,7 @@ import { asc } from 'drizzle-orm';
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user || (session.user as any).role !== 'admin') {
+  if (!session?.user || session.user.role !== 'admin') {
     return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   }
   const rates = await db.select().from(regionalRateIndex).orderBy(asc(regionalRateIndex.regionName));

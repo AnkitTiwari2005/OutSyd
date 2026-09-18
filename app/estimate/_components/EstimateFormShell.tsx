@@ -2,7 +2,7 @@
 
 // app/estimate/_components/EstimateFormShell.tsx
 // Unified deterministic 3-step controller (Basics → Structure → Review)
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -198,7 +198,7 @@ export function EstimateFormShell() {
     }
   };
 
-  const onInvalid = (fieldErrors: any) => {
+  const onInvalid = (fieldErrors: FieldErrors<FullInput>) => {
     console.warn('Form validation failed on calculate click:', fieldErrors);
     setLoading(false);
 

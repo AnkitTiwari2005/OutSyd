@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { estimates, buildingInputs } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import type { EstimateResult } from '@/lib/engine/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -18,9 +19,9 @@ export async function GET(
     return NextResponse.json({ error: 'Estimate not found' }, { status: 404 });
   }
 
-  const result = typeof estimate.resultJson === 'string'
+  const result = (typeof estimate.resultJson === 'string'
     ? JSON.parse(estimate.resultJson)
-    : estimate.resultJson as any;
+    : estimate.resultJson) as unknown as EstimateResult;
 
   const [input] = await db.select().from(buildingInputs)
     .where(eq(buildingInputs.id, estimate.buildingInputId)).limit(1);

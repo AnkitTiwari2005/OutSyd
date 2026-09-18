@@ -11,6 +11,7 @@ import { formatINR, formatINRFull, estimateTimeline, computeLabourBreakdown, com
 import { Gauge, Info, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { ShareResultClient } from './_components/ShareResultClient';
 import { getCategoryColor, BAND_CONFIG, PHASE_COLORS } from '@/lib/constants';
+import type { EstimateResult, CategoryTotal, EstimateLineItem } from '@/lib/engine/types';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,7 +28,9 @@ export default async function SharedEstimatePage({ params }: { params: Promise<{
   const [estimate] = await db.select().from(estimates).where(eq(estimates.id, id)).limit(1);
   if (!estimate) notFound();
 
-  const result  = JSON.parse(estimate.resultJson as string) as any;
+  const result = (typeof estimate.resultJson === 'string'
+    ? JSON.parse(estimate.resultJson)
+    : estimate.resultJson) as unknown as EstimateResult;
   const [input] = await db.select().from(buildingInputs).where(eq(buildingInputs.id, estimate.buildingInputId)).limit(1);
 
   const band        = BAND_CONFIG[estimate.accuracyBand] ?? BAND_CONFIG['Preliminary_15_20'];
@@ -126,7 +129,7 @@ export default async function SharedEstimatePage({ params }: { params: Promise<{
             <span className="text-xs text-slate-400">{result.categoryTotals?.length} categories</span>
           </div>
           <div className="divide-y divide-slate-50">
-            {result.categoryTotals?.map((cat: any) => {
+            {result.categoryTotals?.map((cat: CategoryTotal) => {
               const pct = (cat.subtotal / (estimate.grandTotalMaterialCost ?? 1) * 100);
               return (
                 <div key={cat.categoryCode} className="px-5 py-3 flex items-center gap-4">
@@ -205,7 +208,7 @@ export default async function SharedEstimatePage({ params }: { params: Promise<{
                 <th className="px-5 py-2.5 text-right font-medium">Amount</th>
               </tr></thead>
               <tbody className="divide-y divide-slate-50">
-                {result.lineItems?.map((item: any) => (
+                {result.lineItems?.map((item: EstimateLineItem) => (
                   <tr key={item.materialItemCode} className="hover:bg-slate-50">
                     <td className="px-5 py-2.5">
                       <p className="font-medium text-slate-700">{item.name}</p>

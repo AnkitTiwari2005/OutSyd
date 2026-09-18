@@ -4,7 +4,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { coefficientDatasets, regionalRateIndex, estimates, users } from '@/lib/db/schema';
-import { desc, count, eq } from 'drizzle-orm';
+import { desc, count } from 'drizzle-orm';
 import Link from 'next/link';
 import { Shield, Database, MapPin, BarChart3, Users, TrendingUp, Info } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
@@ -14,7 +14,7 @@ export const metadata = { title: 'Admin — OUTSYD' };
 export default async function AdminPage() {
   const session = await auth();
   if (!session?.user) redirect('/login');
-  if ((session.user as any).role !== 'admin') redirect('/dashboard');
+  if (session.user.role !== 'admin') redirect('/dashboard');
 
   // Stats
   const [totalEstimates] = await db.select({ c: count() }).from(estimates);

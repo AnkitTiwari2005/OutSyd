@@ -25,9 +25,9 @@ export default function RegisterPage() {
         body   : JSON.stringify(form),
       });
 
-      let json: any = {};
+      let json: { error?: string } = {};
       try {
-        json = await res.json();
+        json = await res.json() as { error?: string };
       } catch {
         json = { error: `Server error (${res.status})` };
       }

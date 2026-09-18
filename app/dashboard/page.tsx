@@ -13,7 +13,7 @@ export const metadata = { title: 'Projects Dashboard — OUTSYD' };
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect('/login');
-  const userId = (session.user as any).id as string;
+  const userId = (session.user.id ?? '') as string;
 
   const userProjects = await db
     .select().from(projects)

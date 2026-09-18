@@ -11,6 +11,7 @@ import {
   ExternalLink, AlertTriangle, Info, CheckCircle2,
 } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
+import type { EstimateResult, CategoryTotal } from '@/lib/engine/types';
 
 const BAND: Record<string, { cls: string; label: string; icon: typeof Info }> = {
   Preliminary_15_20: { cls: 'badge-amber', label: '±15–20% Preliminary', icon: AlertTriangle },
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) redirect('/login');
-  const userId = (session.user as any).id as string;
+  const userId = (session.user.id ?? '') as string;
   const { id } = await params;
 
   const [project] = await db.select().from(projects)
@@ -44,34 +45,35 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* Nav */}
+      {/* Top nav */}
       <nav className="bg-white border-b border-slate-200 px-4 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            <Link href="/dashboard" className="btn-ghost py-1.5 px-2 text-xs shrink-0">
-              <ArrowLeft size={13} /> Dashboard
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard" className="text-slate-400 hover:text-slate-600 transition-colors">
+              <ArrowLeft size={16} />
             </Link>
-            <span className="text-slate-200 text-sm">/</span>
-            <span className="text-sm font-medium text-slate-700 truncate">{project.name}</span>
+            <Link href="/">
+              <Image src="/outsyd-logo.png" alt="OUTSYD" width={90} height={26} className="h-6 w-auto object-contain" priority />
+            </Link>
+            <span className="text-slate-300">/</span>
+            <span className="text-sm font-semibold text-slate-700 truncate max-w-xs">{project.name}</span>
           </div>
-          <Link href="/">
-            <Image src="/outsyd-logo.png" alt="OUTSYD" width={90} height={26} className="h-7 w-auto" />
+          <Link href="/estimate" className="btn-primary py-2 px-3.5 text-xs">
+            <PlusCircle size={14} /> New Estimate
           </Link>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        {/* Header */}
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+        {/* Project header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold" style={{ color: '#1e2d4e' }}>{project.name}</h1>
-            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
-              <Clock size={11} aria-hidden />
-              {projectEstimates.length} estimate{projectEstimates.length !== 1 ? 's' : ''} ·
-              Created {new Date(project.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+            <h1 className="text-xl font-bold text-slate-900">{project.name}</h1>
+            <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
+              <Clock size={11} /> Created {new Date(project.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
             </p>
           </div>
-          <Link href="/estimate" className="btn-primary shrink-0">
+          <Link href="/estimate" className="btn-secondary py-2 px-3.5 text-xs">
             <PlusCircle size={14} /> New Estimate
           </Link>
         </div>
@@ -80,7 +82,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         {latest && (() => {
           const band = BAND[latest.accuracyBand] ?? { cls: 'badge-slate', label: latest.accuracyBand, icon: Info };
           const BandIcon = band.icon;
-          const result = typeof latest.resultJson === 'string' ? JSON.parse(latest.resultJson) : latest.resultJson as any;
+          const result = (typeof latest.resultJson === 'string' ? JSON.parse(latest.resultJson) : latest.resultJson) as unknown as EstimateResult;
           const bua = result?.derivedDimensions?.totalBuaSqft ?? 0;
           return (
             <div className="card-md p-6">
@@ -137,8 +139,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               {projectEstimates.map((est, i) => {
                 const band = BAND[est.accuracyBand] ?? { cls: 'badge-slate', label: est.accuracyBand, icon: Info };
                 const BandIcon = band.icon;
-                const resultData = typeof est.resultJson === 'string'
-                  ? JSON.parse(est.resultJson) : est.resultJson as any;
+                const resultData = (typeof est.resultJson === 'string'
+                  ? JSON.parse(est.resultJson) : est.resultJson) as unknown as EstimateResult;
 
                 return (
                   <div key={est.id} className="card p-5">
@@ -195,8 +197,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                         <p className="text-[10px] text-slate-400 mb-1.5">Category distribution</p>
                         <div className="flex h-1.5 rounded-full overflow-hidden gap-px">
                           {resultData.categoryTotals
-                            .filter((c: any) => c.subtotal > 0)
-                            .map((c: any, ci: number) => {
+                            .filter((c: CategoryTotal) => c.subtotal > 0)
+                            .map((c: CategoryTotal, ci: number) => {
                               const pct = (c.subtotal / (est.grandTotalMaterialCost ?? 1)) * 100;
                               return (
                                 <div key={c.categoryCode}

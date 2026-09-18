@@ -18,7 +18,7 @@ import { randomUUID } from 'crypto';
 export async function POST(req: NextRequest) {
   // ── Rate limiting ──────────────────────────────────────────────────────────
   const session    = await auth();
-  const userId     = (session?.user as any)?.id as string | undefined;
+  const userId     = session?.user?.id;
   const ip         = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
   const identifier = userId ?? ip;
 
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
   // ── Auto-fill seismic zone from location if Not_sure ──────────────────────
   if (!bi.seismicZone || bi.seismicZone === 'Not_sure') {
     const detectedZone = lookupSeismicZone(bi.locationRegion);
-    if (detectedZone) (bi as any).seismicZone = detectedZone;
+    if (detectedZone) bi.seismicZone = detectedZone;
   }
 
   // ── Regional index ─────────────────────────────────────────────────────────
