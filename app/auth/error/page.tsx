@@ -1,0 +1,95 @@
+'use client';
+
+// app/auth/error/page.tsx — Authentication Error Handler
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { AlertTriangle, ArrowLeft, LogIn } from 'lucide-react';
+
+const ERROR_MESSAGES: Record<string, { title: string; description: string }> = {
+  Configuration: {
+    title: 'Server Configuration Error',
+    description: 'There is a problem with the server authentication configuration. Please contact the administrator.',
+  },
+  AccessDenied: {
+    title: 'Access Denied',
+    description: 'You do not have permission to access this resource.',
+  },
+  Verification: {
+    title: 'Verification Link Expired',
+    description: 'The verification token has expired or has already been used. Please request a new sign-in link.',
+  },
+  CredentialsSignin: {
+    title: 'Invalid Credentials',
+    description: 'The email or password you entered is incorrect. Please verify your credentials and try again.',
+  },
+  Default: {
+    title: 'Authentication Error',
+    description: 'An unexpected authentication error occurred. Please try signing in again.',
+  },
+};
+
+function AuthErrorContent() {
+  const searchParams = useSearchParams();
+  const errorKey = searchParams?.get('error') ?? 'Default';
+  const errorInfo = ERROR_MESSAGES[errorKey] ?? ERROR_MESSAGES.Default;
+
+  return (
+    <div className="w-full max-w-md">
+      <div className="text-center mb-6">
+        <Link href="/" className="inline-block mb-4">
+          <Image
+            src="/outsyd-logo.png"
+            alt="OUTSYD"
+            width={120}
+            height={30}
+            className="h-7 w-auto mx-auto"
+            priority
+          />
+        </Link>
+      </div>
+
+      <div className="card-standard p-6 sm:p-8 bg-white border border-[#E2E8F0] text-center">
+        <div className="w-12 h-12 rounded-full bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center mx-auto mb-4 text-[#B91C1C]">
+          <AlertTriangle size={24} />
+        </div>
+
+        <h1 className="text-xl font-bold text-[#0F172A] mb-2">{errorInfo.title}</h1>
+        <p className="text-xs text-[#64748B] mb-6 leading-relaxed">{errorInfo.description}</p>
+
+        <div className="space-y-3">
+          <Link
+            href="/login"
+            className="btn-primary w-full py-2.5 flex items-center justify-center gap-2"
+          >
+            <LogIn size={15} />
+            <span>Return to Sign In</span>
+          </Link>
+
+          <Link
+            href="/"
+            className="btn-secondary w-full py-2 flex items-center justify-center gap-2"
+          >
+            <ArrowLeft size={14} />
+            <span>Back to Home</span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <main className="min-h-screen bg-[#F7F8FA] text-[#0F172A] flex flex-col items-center justify-center px-4">
+      <Suspense
+        fallback={
+          <div className="text-xs text-[#64748B]">Loading authentication status…</div>
+        }
+      >
+        <AuthErrorContent />
+      </Suspense>
+    </main>
+  );
+}
