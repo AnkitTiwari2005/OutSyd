@@ -1,6 +1,6 @@
-// lib/db/index.ts — PostgreSQL DB client via Supabase
 import { Pool } from 'pg';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { PgDatabase } from 'drizzle-orm/pg-core';
 import * as schema from './schema';
 
 let pool: Pool | null = null;
@@ -40,6 +40,9 @@ export const db = new Proxy({} as NodePgDatabase<typeof schema>, {
   get(_target, prop, receiver) {
     const instance = getDb();
     return Reflect.get(instance, prop, receiver);
+  },
+  getPrototypeOf(_target) {
+    return PgDatabase.prototype;
   },
 });
 
