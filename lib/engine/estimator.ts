@@ -363,7 +363,7 @@ function round2(n: number) { return Math.round(n * 100) / 100; }
 function li(
   code: string, quantity: number, unit: string,
   ds: CoefficientDataset, quality: QualityTier, ri: number,
-  isApprox = false, note?: string,
+  isApprox = false, note?: string, displayName?: string,
 ): EstimateLineItem {
   // Primary structural commodities and already tier-specific items don't compound with qMult
   const isFixedSpecification =
@@ -401,7 +401,7 @@ function li(
 
   return {
     materialItemCode : code,
-    name             : meta.name,
+    name             : displayName ?? meta.name,
     categoryCode     : meta.category,
     quantity         : qty,
     unit,
@@ -448,9 +448,9 @@ export function runEstimationEngine(
 
   const addItem = (
     code: string, qty: number, unit: string,
-    isApprox = false, note?: string,
+    isApprox = false, note?: string, displayName?: string,
   ) => {
-    items.push(li(code, qty, unit, ds, qt, ri, isApprox, note));
+    items.push(li(code, qty, unit, ds, qt, ri, isApprox, note, displayName));
   };
 
   // ── CAT_01: Substructure & Excavation ─────────────────────────────────────
@@ -507,7 +507,7 @@ export function runEstimationEngine(
   if (isPEB) {
     // PEB structural steel: ~4.6 - 6.0 kg/sqft for complete portal frames, crane girders, purlins, bracings
     const pebSteelKgPerSqft = (isIndustrial ? (numFloors > 1 ? 5.2 : 4.6) : 6.0) * windMult;
-    addItem('MAT_STEEL_STRUCT', totalBuaSqft * pebSteelKgPerSqft, 'kg', true, 'Structural PEB Steel (Portals, Purlins, Sag Rods)');
+    addItem('MAT_STEEL_STRUCT', totalBuaSqft * pebSteelKgPerSqft, 'kg', true, 'Structural PEB Steel', 'Structural PEB Steel (Portals, Purlins, Sag Rods)');
     if (numFloors > 1) {
       const mezzSqft = buaPerFloor * (numFloors - 1);
       addItem('MAT_RCC_CEMENT', mezzSqft * 0.35, 'bags (50kg)');
@@ -584,7 +584,7 @@ export function runEstimationEngine(
 
   // ── CAT_05: Roofing & False Ceiling ───────────────────────────────────────
   if (isPEB || isIndustrial) {
-    addItem('MAT_ROOF_GI_SHEET', terraceArea * 1.05, 'sqft', false, 'Galvalume Trapezoidal Roof Sheeting (0.50mm)');
+    addItem('MAT_ROOF_GI_SHEET', terraceArea * 1.05, 'sqft', false, 'Roof sheeting', 'Galvalume Trapezoidal Roof Sheeting (0.50mm)');
   } else {
     addItem('MAT_ROOF_TERRACE',  terraceArea * 1.05, 'sqft');
   }
@@ -713,9 +713,9 @@ export function runEstimationEngine(
   // ── CAT_09: Flooring & Tiling ─────────────────────────────────────────────
   if (isIndustrial) {
     // Heavy-duty VDF / Tremix RCC floor slab (150mm thick M25 + hardener)
-    addItem('MAT_FLOOR_IPS', totalBuaSqft, 'sqft', true, 'Heavy-duty Trimix / VDF Concrete Floor');
+    addItem('MAT_FLOOR_IPS', totalBuaSqft, 'sqft', true, 'Floor slab', 'Heavy-duty Trimix / VDF Concrete Floor');
     if (qt === 'Premium' || u.includes('pharma') || u.includes('clean') || u.includes('cold')) {
-      addItem('MAT_FLOOR_EPOXY', totalBuaSqft * 0.70, 'sqft', true, 'Epoxy Floor Coating');
+      addItem('MAT_FLOOR_EPOXY', totalBuaSqft * 0.70, 'sqft', true, 'Epoxy floor coating', 'Epoxy Floor Coating (Industrial Screed)');
     }
   } else {
     const mainFloorCode =
@@ -737,16 +737,16 @@ export function runEstimationEngine(
   // Industrial manufacturing / Pharma cleanroom additions
   if (isIndustrial) {
     if (u.includes('auto') || u.includes('manufacturing') || u.includes('factory')) {
-      addItem('MAT_FOUND_CONC', (totalBuaSqft / 10.764) * 0.04, 'cu.m', true, 'Heavy equipment machinery foundations');
-      addItem('MAT_STEEL_STRUCT', totalBuaSqft * 1.8, 'kg', true, 'EOT crane runway beams & brackets');
+      addItem('MAT_FOUND_CONC', (totalBuaSqft / 10.764) * 0.04, 'cu.m', true, 'Heavy equipment machinery foundations', 'Heavy Equipment Machinery Foundation Concrete');
+      addItem('MAT_STEEL_STRUCT', totalBuaSqft * 1.8, 'kg', true, 'EOT crane runway beams & brackets', 'EOT Crane Runway Beams & Brackets (Structural Steel)');
     }
     if (u.includes('pharma') || u.includes('electronics') || u.includes('assembly') || u.includes('clean')) {
       addItem('MAT_CEIL_GRID', totalBuaSqft * 0.50, 'sqft', true, 'Cleanroom modular walk-on ceiling grid');
-      addItem('MAT_FLOOR_EPOXY', totalBuaSqft * 0.50, 'sqft', true, 'Anti-static ESD Epoxy flooring');
+      addItem('MAT_FLOOR_EPOXY', totalBuaSqft * 0.50, 'sqft', true, 'Anti-static ESD Epoxy flooring', 'Anti-static ESD Epoxy Flooring');
     }
     // Loading bay / apron RCC slab for warehouses and agro facilities
     if (u.includes('warehouse') || u.includes('storage') || u.includes('agro') || u.includes('logistics')) {
-      addItem('MAT_FLOOR_IPS', buaPerFloor * 0.15, 'sqft', true, 'External loading bay & dock apron');
+      addItem('MAT_FLOOR_IPS', buaPerFloor * 0.15, 'sqft', true, 'Dock apron', 'External Loading Bay & Dock Apron Concrete');
     }
   }
 
@@ -803,7 +803,7 @@ export function runEstimationEngine(
     }
   } else {
     // PEB Industrial shed wall cladding for upper 65% (lower 35% is masonry dado)
-    addItem('MAT_ROOF_GI_SHEET', facadeAreaSqft * 0.65, 'sqft', false, 'Color-coated Wall Cladding Sheeting (0.50mm)');
+    addItem('MAT_ROOF_GI_SHEET', facadeAreaSqft * 0.65, 'sqft', false, 'Wall cladding sheeting', 'Color-coated Wall Cladding Sheeting (0.50mm)');
     addItem('MAT_EXT_PLAST', facadeAreaSqft * 0.35, 'sqft');
     addItem('MAT_EXT_PAINT', facadeAreaSqft * 0.35, 'sqft');
   }

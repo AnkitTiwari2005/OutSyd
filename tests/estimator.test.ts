@@ -186,4 +186,52 @@ describe('Quantification Engine (runEstimationEngine)', () => {
       assert.equal(run1[i].lineCost, run2[i].lineCost);
     }
   });
+
+  it('guarantees no duplicate (materialItemCode, name) pairs within an estimate for any scenario (N-2)', () => {
+    const testInputs: FullInput[] = [
+      // Scenario A: Standard Villa
+      {
+        lengthFt: 40, breadthFt: 30, heightFt: 22, plotAreaSqft: 2400, numFloors: 2,
+        typology: 'Residential', buildingUse: 'Villa / Individual House',
+        soilType: 'Normal', locationRegion: 'Bengaluru', qualityTier: 'Standard',
+      },
+      // Scenario D: Commercial Office
+      {
+        lengthFt: 100, breadthFt: 80, heightFt: 120, plotAreaSqft: 15000, numFloors: 10,
+        typology: 'Commercial', buildingUse: 'Office',
+        soilType: 'Normal', locationRegion: 'Mumbai', qualityTier: 'Standard',
+        foundationType: 'Raft', seismicZone: 'Zone_III', facadeType: 'Curtain_Wall',
+        parkingLevels: 2, fireHvacScope: 'Full_Central',
+      },
+      // Scenario E: Industrial Warehouse (generates roof sheeting, wall cladding, floor slab, dock apron)
+      {
+        lengthFt: 200, breadthFt: 150, heightFt: 30, plotAreaSqft: 35000, numFloors: 1,
+        typology: 'Industrial', buildingUse: 'Warehouse',
+        soilType: 'Normal', locationRegion: 'Ludhiana', qualityTier: 'Economy',
+        structuralSystem: 'Steel',
+      },
+      // Pharma / cleanroom factory
+      {
+        lengthFt: 120, breadthFt: 80, heightFt: 25, plotAreaSqft: 15000, numFloors: 2,
+        typology: 'Industrial', buildingUse: 'Pharma manufacturing cleanroom',
+        soilType: 'Normal', locationRegion: 'Hyderabad', qualityTier: 'Premium',
+        structuralSystem: 'Steel',
+      },
+    ];
+
+    for (const input of testInputs) {
+      const cls = classifyBuilding(input);
+      const items = runEstimationEngine(input, cls, DEFAULT_DATASET, 1.2);
+      const seen = new Set<string>();
+
+      for (const item of items) {
+        const pairKey = `${item.materialItemCode}::${item.name}`;
+        assert.ok(
+          !seen.has(pairKey),
+          `Duplicate (materialItemCode, name) pair found in typology ${input.typology}: "${pairKey}"`,
+        );
+        seen.add(pairKey);
+      }
+    }
+  });
 });

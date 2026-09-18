@@ -226,8 +226,8 @@ export default async function SharedEstimatePage({ params }: { params: Promise<{
                 <th className="px-5 py-2.5 text-right font-medium">Amount</th>
               </tr></thead>
               <tbody className="divide-y divide-slate-50">
-                {result.lineItems?.map((item: EstimateLineItem) => (
-                  <tr key={item.materialItemCode} className="hover:bg-slate-50">
+                {result.lineItems?.map((item: EstimateLineItem, index: number) => (
+                  <tr key={`${item.materialItemCode}-${index}`} className="hover:bg-slate-50">
                     <td className="px-5 py-2.5">
                       <p className="font-medium text-slate-700">{item.name}</p>
                       <p className="text-[11px] text-slate-500">{item.categoryCode}</p>

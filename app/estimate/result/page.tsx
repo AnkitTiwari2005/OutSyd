@@ -99,7 +99,7 @@ function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false
             <div className="px-4 py-2 bg-[#EFF4FA] border-b border-[#E2E8F0] text-xs text-[#1E3A5F]">
               <span className="font-bold">Primary cost drivers: </span>
               {topDrivers.map((d, i) => (
-                <span key={d.materialItemCode} className="text-[#0F172A]">
+                <span key={`${d.materialItemCode}-${i}`} className="text-[#0F172A]">
                   {d.name} ({formatINR(d.lineCost)}){i < topDrivers.length - 1 ? ' · ' : ''}
                 </span>
               ))}
@@ -125,8 +125,8 @@ function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8F0]">
-                {items.map(item => (
-                  <tr key={item.materialItemCode} className="hover:bg-white transition-colors bg-white/70">
+                {items.map((item, idx) => (
+                  <tr key={`${item.materialItemCode}-${idx}`} className="hover:bg-white transition-colors bg-white/70">
                     <td className="px-4 py-2.5">
                       <p className="font-semibold text-[#0F172A]">{item.name}</p>
                       {item.isApproximate && <p className="text-[10px] text-[#B45309] mt-0.5">~ {item.approximateNote}</p>}
@@ -656,8 +656,8 @@ export default function ResultPage() {
                             .filter(li => li.categoryCode === cat.categoryCode)
                             .sort((a, b) => b.lineCost - a.lineCost)
                             .slice(0, 3)
-                            .map(top => (
-                              <div key={top.materialItemCode} className="flex justify-between text-[#0F172A]">
+                            .map((top, idx) => (
+                              <div key={`${top.materialItemCode}-${idx}`} className="flex justify-between text-[#0F172A]">
                                 <span>{top.name}</span>
                                 <span className="font-bold tabular-nums">{formatINR(top.lineCost)}</span>
                               </div>
