@@ -70,16 +70,28 @@ export function runAll() {
     const plinth = Math.round(result.plinthAreaEstimate / bua);
     const div = Math.abs(result.grandTotalWithLabor - result.plinthAreaEstimate) / result.plinthAreaEstimate;
 
+    const regionalTarget = Array.isArray(targetRange)
+      ? [Math.round(targetRange[0] * ri), Math.round(targetRange[1] * ri)]
+      : targetRange;
+
     const zeroRateItems = result.lineItems.filter(i => i.quantity > 0 && i.unitRate === 0);
     const zeroOrNegItems = result.lineItems.filter(i => i.quantity <= 0);
     const catSum = result.categoryTotals.reduce((acc, c) => acc + c.subtotal, 0);
     const catSumMatches = Math.abs(catSum - result.grandTotalMaterialCost) < 1;
 
     console.log(`Scenario ${key} [${name}]:`);
-    console.log(`  BUA: ${bua} sqft | All-in: Rs ${perSqftAllIn}/sqft | Target: ${JSON.stringify(targetRange)}`);
-    console.log(`  Materials: Rs ${perSqftMat}/sqft | Plinth: Rs ${plinth}/sqft | Divergence: ${(div * 100).toFixed(1)}%`);
+    console.log(`  BUA: ${bua} sqft | All-in: Rs ${perSqftAllIn}/sqft | Plinth: Rs ${plinth}/sqft | Div: ${(div * 100).toFixed(1)}%`);
+    console.log(`  National Target: ${JSON.stringify(targetRange)} | Regional Target (ri=${ri}): ${JSON.stringify(regionalTarget)}`);
     console.log(`  Checks: zeroRate=${zeroRateItems.length}, zeroOrNeg=${zeroOrNegItems.length}, catSumMatches=${catSumMatches}`);
+
+    // Assertions
+    if (zeroRateItems.length > 0) throw new Error(`Scenario ${key} has items with zero rate: ${zeroRateItems.map(i => i.materialItemCode).join(', ')}`);
+    if (zeroOrNegItems.length > 0) throw new Error(`Scenario ${key} has zero or negative quantity items: ${zeroOrNegItems.map(i => i.materialItemCode).join(', ')}`);
+    if (!catSumMatches) throw new Error(`Scenario ${key} category sum mismatch: sum=${catSum}, total=${result.grandTotalMaterialCost}`);
+    if (div >= 0.20) throw new Error(`Scenario ${key} divergence vs plinth estimate ${(div*100).toFixed(1)}% exceeds 20% limit`);
+    if (!Number.isFinite(result.grandTotalWithLabor) || !Number.isFinite(result.grandTotalMaterialCost)) throw new Error(`Scenario ${key} has non-finite totals`);
   }
+  console.log('\nAll 5 benchmark scenarios passed all 7 engine assertions and <20% divergence limit!');
 }
 
 runAll();

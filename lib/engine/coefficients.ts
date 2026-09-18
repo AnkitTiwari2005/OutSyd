@@ -8,7 +8,7 @@
 import type { CoefficientDataset, SeismicZone } from './types';
 
 export const DEFAULT_DATASET: CoefficientDataset = {
-  version: '2026-09-18-v3',
+  version: '2026-09-18-v4',
 
   // ─── Cement coefficients (bags/sqft BUA) — per floor height band ─────────
   // Sources: CPWD DSR Schedule-I, IS 456, standard mix design tables
@@ -146,6 +146,8 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     // ── CAT_06: Doors, Windows & Glazing ────────────────────────────────────
     MAT_DOOR_FLUSH         : 7500,   // ₹/unit — flush door + frame + fitting
     MAT_DOOR_PANEL         : 15000,  // ₹/unit — panel/carved main door
+    MAT_DOOR_TEAK          : 28000,  // ₹/unit — CPWD teak wood panel main door
+    MAT_DOOR_FRP           : 3800,   // ₹/unit — factory-made FRP bathroom door (CPWD DSR 9.120)
     MAT_DOOR_SLIDE         : 20000,  // ₹/unit — sliding/folding door
     MAT_DOOR_SECURITY      : 35000,  // ₹/unit — steel security door
     MAT_DOOR_FIRE_RATED    : 45000,  // ₹/unit — 2-hr fire-rated door (IS 3614)
@@ -383,6 +385,7 @@ export const DEFAULT_DATASET: CoefficientDataset = {
       MAT_ELEC_WIRE_2_5     : 'ISI-Marked FR PVC Wire (2.5 sq.mm)',
       MAT_WP_IPS            : 'IPS Cement Screed (1:3 mix)',
       MAT_DOOR_FLUSH        : 'Commercial Flush Door (30mm block board)',
+      MAT_DOOR_FRP          : 'Moulded FRP Door (Water-Resistant)',
       MAT_FLOOR_SKIRTING    : 'Ceramic Skirting (matching floor)',
       MAT_CEIL_POP          : 'POP False Ceiling (12mm)',
       MAT_HVAC_SPLIT        : 'Window AC / Non-inverter Split',
@@ -400,6 +403,8 @@ export const DEFAULT_DATASET: CoefficientDataset = {
       MAT_ELEC_WIRE_2_5     : 'Finolex / Havells FRLS Wire 2.5 sq.mm',
       MAT_WP_LIQ_PU         : 'Dr. Fixit LW+ / Roff Tile-Mate PU',
       MAT_DOOR_FLUSH        : 'Hardwood Flush Door — Century/Archidply',
+      MAT_DOOR_PANEL        : 'Teak/Sal Wood Panel Door (38mm)',
+      MAT_DOOR_FRP          : 'Factory-made FRP Shutter — Sintex/Rajshri',
       MAT_FLOOR_SKIRTING    : 'Vitrified Skirting 600×100 — Kajaria',
       MAT_CEIL_GYPS         : 'Gypsum Board 12.5mm — Saint-Gobain/Armstrong',
       MAT_HVAC_SPLIT        : 'Inverter Split AC (BEE 5-star) — Daikin/Carrier',
@@ -420,6 +425,8 @@ export const DEFAULT_DATASET: CoefficientDataset = {
       MAT_ELEC_WIRE_2_5     : 'Polycab FRLS Zero Halogen (IS 7098)',
       MAT_WP_CRYS           : 'Kryton KIM / Penetron Crystalline System',
       MAT_DOOR_SECURITY     : 'Godrej / Yale Steel Security Door (3-pt lock)',
+      MAT_DOOR_TEAK         : 'Burma Teak Hand-Carved Panel Door (45mm)',
+      MAT_DOOR_FRP          : 'Heavy-Duty FRP Shutter with PU Core',
       MAT_FLOOR_SKIRTING    : 'Marble Skirting (matching floor, 20mm)',
       MAT_CEIL_GYPS         : 'Gypsum Board with Acoustic Insulation',
       MAT_HVAC_VRF          : 'Daikin VRV / Mitsubishi VRF (COP 4.0+)',
