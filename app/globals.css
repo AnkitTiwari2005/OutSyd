@@ -21,6 +21,18 @@
 
 @theme {
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --color-slate-50: #F7F8FA;
+  --color-slate-100: #F1F5F9;
+  --color-slate-200: #E2E8F0;
+  --color-slate-300: #CBD5E1;
+  --color-slate-400: #94A3B8;
+  --color-slate-500: #64748B;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1E293B;
+  --color-slate-900: #0F172A;
+  --color-navy: #1E3A5F;
+  --color-amber-cta: #D97706;
 }
 
 @layer base {

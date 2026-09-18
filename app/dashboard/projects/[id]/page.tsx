@@ -12,14 +12,7 @@ import {
 } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 import type { EstimateResult, CategoryTotal } from '@/lib/engine/types';
-
-const BAND: Record<string, { cls: string; label: string; icon: typeof Info }> = {
-  Preliminary_15_20: { cls: 'badge-amber', label: '±15–20% Preliminary', icon: AlertTriangle },
-  Standard_10_15   : { cls: 'badge-blue',  label: '±10–15% Standard',    icon: Info         },
-  Advanced_5_10    : { cls: 'badge-green', label: '±5–10% Advanced',      icon: CheckCircle2 },
-};
-
-const COLORS = ['#f97316','#3b82f6','#10b981','#8b5cf6','#f59e0b','#06b6d4','#ec4899','#84cc16','#6366f1','#14b8a6','#f43f5e','#a855f7','#0ea5e9','#22c55e'];
+import { BAND_CONFIG, getCategoryColor } from '@/lib/constants';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -80,8 +73,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
         {/* Latest summary card */}
         {latest && (() => {
-          const band = BAND[latest.accuracyBand] ?? { cls: 'badge-slate', label: latest.accuracyBand, icon: Info };
-          const BandIcon = band.icon;
+          const band = BAND_CONFIG[latest.accuracyBand] ?? BAND_CONFIG.Standard_10_15;
+          const BandIcon = band.icon === 'CheckCircle2' ? CheckCircle2 : band.icon === 'Info' ? Info : AlertTriangle;
           const result = (typeof latest.resultJson === 'string' ? JSON.parse(latest.resultJson) : latest.resultJson) as unknown as EstimateResult;
           const bua = result?.derivedDimensions?.totalBuaSqft ?? 0;
           return (
@@ -137,8 +130,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           ) : (
             <div className="space-y-3">
               {projectEstimates.map((est, i) => {
-                const band = BAND[est.accuracyBand] ?? { cls: 'badge-slate', label: est.accuracyBand, icon: Info };
-                const BandIcon = band.icon;
+                const band = BAND_CONFIG[est.accuracyBand] ?? BAND_CONFIG.Standard_10_15;
+                const BandIcon = band.icon === 'CheckCircle2' ? CheckCircle2 : band.icon === 'Info' ? Info : AlertTriangle;
                 const resultData = (typeof est.resultJson === 'string'
                   ? JSON.parse(est.resultJson) : est.resultJson) as unknown as EstimateResult;
 
@@ -198,11 +191,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                         <div className="flex h-1.5 rounded-full overflow-hidden gap-px">
                           {resultData.categoryTotals
                             .filter((c: CategoryTotal) => c.subtotal > 0)
-                            .map((c: CategoryTotal, ci: number) => {
+                            .map((c: CategoryTotal) => {
                               const pct = (c.subtotal / (est.grandTotalMaterialCost ?? 1)) * 100;
                               return (
                                 <div key={c.categoryCode}
-                                  style={{ width: `${pct}%`, background: COLORS[ci % COLORS.length] }}
+                                  style={{ width: `${pct}%`, background: getCategoryColor(c.categoryCode) }}
                                   title={`${c.name}: ${pct.toFixed(1)}%`}
                                   aria-label={`${c.name} ${pct.toFixed(1)}%`}
                                 />
