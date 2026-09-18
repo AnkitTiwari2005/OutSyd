@@ -1,0 +1,39 @@
+'use client';
+// app/estimate/_components/FormField.tsx
+
+import { cn } from '@/lib/utils';
+import { AlertCircle, Info } from 'lucide-react';
+import type { ReactNode } from 'react';
+
+interface FormFieldProps {
+  label     : string;
+  error?    : string;
+  hint?     : string;
+  required? : boolean;
+  children  : ReactNode;
+  className?: string;
+}
+
+export function FormField({ label, error, hint, required, children, className }: FormFieldProps) {
+  return (
+    <div className={cn('flex flex-col gap-1', className)}>
+      <label className="text-xs font-semibold text-[#0F172A] flex items-center gap-1 select-none">
+        {label}
+        {required && <span className="text-[#B91C1C] text-xs font-bold" aria-label="required">*</span>}
+      </label>
+      {hint && (
+        <p className="text-[11px] text-[#64748B] leading-normal flex items-start gap-1 -mt-0.5">
+          <Info size={11} className="mt-0.5 shrink-0 text-[#94A3B8]" aria-hidden />
+          {hint}
+        </p>
+      )}
+      {children}
+      {error && (
+        <p role="alert" className="text-[11px] text-[#B91C1C] flex items-start gap-1 mt-0.5 font-medium">
+          <AlertCircle size={11} className="mt-0.5 shrink-0" aria-hidden />
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}

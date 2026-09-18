@@ -1,0 +1,236 @@
+/* app/globals.css — OUTSYD Engineering & Finance Design System
+ * 
+ * Palette:
+ *   Background (primary): #FFFFFF
+ *   Background (secondary/section): #F7F8FA
+ *   Background (card): #FFFFFF with 1px border #E2E8F0
+ *   Text (primary): #0F172A
+ *   Text (secondary/muted): #64748B
+ *   Primary Accent (Navy): #1E3A5F
+ *   CTA Accent (Reserved for ONE primary action per screen): #D97706 (Muted Amber)
+ *   Success / High Confidence: #16A34A
+ *   Warning / Preliminary: #B45309 on #FEF3C7
+ *   Borders / Dividers: #E2E8F0
+ * 
+ * Base Grid: 8px (8 / 16 / 24 / 32 / 48 / 64px)
+ * Radius: 8px (inputs, buttons, cards), 12px (large containers)
+ * Elevation: 0 1px 3px rgba(0, 0, 0, 0.08)
+ */
+
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F7F8FA;
+    --bg-card: #FFFFFF;
+    --border-color: #E2E8F0;
+    --text-primary: #0F172A;
+    --text-muted: #64748B;
+    --accent-navy: #1E3A5F;
+    --accent-cta: #D97706;
+    --success: #16A34A;
+    --warning: #B45309;
+    --warning-bg: #FEF3C7;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #FFFFFF;
+    color: #0F172A;
+    font-family: var(--font-inter, system-ui, -apple-system, sans-serif);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Headings scale */
+  h1 {
+    font-size: 32px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: #1E3A5F;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 700;
+    color: #1E3A5F;
+    letter-spacing: -0.015em;
+  }
+
+  h3 {
+    font-size: 18px;
+    line-height: 1.35;
+    font-weight: 600;
+    color: #0F172A;
+  }
+
+  h4 {
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 600;
+    color: #0F172A;
+  }
+
+  /* Accessible, restrained focus ring */
+  :focus-visible {
+    outline: 2px solid #1E3A5F !important;
+    outline-offset: 2px !important;
+    border-radius: 4px;
+  }
+
+  /* Hide native browser spinners for custom steppers */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F7F8FA;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+  }
+}
+
+@layer components {
+  /* ── Form Inputs ─────────────────────────────────────────── */
+  .form-input {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #CBD5E1;
+    background-color: #FFFFFF;
+    padding: 9px 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #0F172A;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .form-input::placeholder {
+    color: #94A3B8;
+  }
+  .form-input:hover:not(:disabled) {
+    border-color: #94A3B8;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: #1E3A5F;
+    box-shadow: 0 0 0 1px #1E3A5F;
+  }
+  .form-input:disabled {
+    background-color: #F8FAFC;
+    color: #94A3B8;
+    cursor: not-allowed;
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────── */
+  /* Primary: Reserved for ONE main CTA action per screen */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    background-color: #D97706;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: #B45309;
+  }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Secondary: Outlined Navy */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: 1px solid #1E3A5F;
+    background-color: #FFFFFF;
+    color: #1E3A5F;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+    user-select: none;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: #EFF4FA;
+  }
+  .btn-secondary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Ghost / Text */
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #1E3A5F;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    background: transparent;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  /* ── Cards ────────────────────────────────────────────────── */
+  .card-standard {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Section Title Label */
+  .section-label {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748B;
+  }
+}
