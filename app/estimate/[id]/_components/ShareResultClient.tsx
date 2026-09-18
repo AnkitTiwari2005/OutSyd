@@ -2,6 +2,7 @@
 // app/estimate/[id]/_components/ShareResultClient.tsx
 // Client-side share, save, and PDF download buttons for the shareable page
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Share2, Download, Save, Loader2 } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function ShareResultClient({ estimateId, grandTotal }: Props) {
+  const router = useRouter();
   const [saving, setSaving]   = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [name, setName]       = useState('');
@@ -43,12 +45,12 @@ export function ShareResultClient({ estimateId, grandTotal }: Props) {
         body   : JSON.stringify({ projectName: name || 'Untitled Project' }),
       });
       if (res.status === 401) {
-        toast.info('Sign in to save', { action: { label: 'Sign In', onClick: () => window.location.href = `/login?redirect=/estimate/${estimateId}` } });
+        toast.info('Sign in to save', { action: { label: 'Sign In', onClick: () => router.push(`/login?redirect=/estimate/${estimateId}`) } });
         setSaveOpen(false);
         return;
       }
       if (!res.ok) throw new Error('Save failed');
-      toast.success('Saved to your dashboard!', { action: { label: 'View Dashboard', onClick: () => window.location.href = '/dashboard' } });
+      toast.success('Saved to your dashboard!', { action: { label: 'View Dashboard', onClick: () => router.push('/dashboard') } });
       setSaveOpen(false);
     } catch {
       toast.error('Could not save estimate. Please try again.');

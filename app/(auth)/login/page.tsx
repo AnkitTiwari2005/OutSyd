@@ -1,18 +1,21 @@
-// app/(auth)/login/page.tsx — Engineering & Finance Login
 'use client';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, Mail, ArrowLeft, Loader2 } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
+
+  const redirect = searchParams?.get('redirect');
+  const safeTarget = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +27,7 @@ export default function LoginPage() {
       setError('Invalid email or password credentials.');
       return;
     }
-    router.push('/dashboard');
+    router.push(safeTarget);
   };
 
   return (
@@ -100,7 +103,7 @@ export default function LoginPage() {
 
         <p className="mt-4 text-center text-xs text-[#64748B]">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="text-[#1E3A5F] font-semibold hover:underline">
+          <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} className="text-[#1E3A5F] font-semibold hover:underline">
             Register free
           </Link>
         </p>
@@ -112,5 +115,17 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#1E3A5F]" size={24} />
+      </main>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

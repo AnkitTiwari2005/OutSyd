@@ -1,17 +1,20 @@
-// app/(auth)/register/page.tsx — Engineering & Finance Register
 'use client';
 import Image from 'next/image';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { User, Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm]       = useState({ name: '', email: '', password: '' });
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
+
+  const redirect = searchParams?.get('redirect');
+  const safeTarget = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,11 +49,11 @@ export default function RegisterPage() {
       });
 
       if (signInRes?.error) {
-        router.push('/login');
+        router.push(redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login');
         return;
       }
 
-      router.push('/dashboard');
+      router.push(safeTarget);
     } catch (err) {
       console.error('Registration fetch error:', err);
       setError('Connection error. Please check your network.');
@@ -148,7 +151,7 @@ export default function RegisterPage() {
 
         <p className="mt-4 text-center text-xs text-[#64748B]">
           Already registered?{' '}
-          <Link href="/login" className="text-[#1E3A5F] font-semibold hover:underline">
+          <Link href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'} className="text-[#1E3A5F] font-semibold hover:underline">
             Sign in
           </Link>
         </p>
@@ -160,5 +163,17 @@ export default function RegisterPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#1E3A5F]" size={24} />
+      </main>
+    }>
+      <RegisterForm />
+    </Suspense>
   );
 }
