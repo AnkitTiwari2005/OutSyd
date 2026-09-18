@@ -36,7 +36,7 @@ export function EstimateFormShell() {
   const stepFromUrl = rawStep ? parseInt(rawStep, 10) - 1 : 0;
   const currentStep = Math.min(Math.max(stepFromUrl, 0), 2);
 
-  const { formData, updateFormData, setResult, resetForm, isLoading, setLoading } = useEstimateStore();
+  const { formData, updateFormData, setResult, resetForm, isLoading, setLoading, _hasHydrated } = useEstimateStore();
   const [error, setError] = useState<string | null>(null);
   const [tier2ToastShown, setTier2ToastShown] = useState(false);
 
@@ -74,6 +74,26 @@ export function EstimateFormShell() {
     },
     mode: 'onChange',
   });
+
+  // Re-populate form once Zustand persist store finishes hydration
+  useEffect(() => {
+    if (_hasHydrated && formData && Object.keys(formData).length > 0) {
+      methods.reset({
+        structuralSystem: 'Not_sure',
+        foundationType: 'Not_sure',
+        seismicZone: 'Not_sure',
+        windLoadZone: 'Not_sure',
+        facadeType: 'Not_sure',
+        fireHvacScope: 'Not_sure',
+        numStaircases: 1,
+        numLifts: 0,
+        parkingLevels: 0,
+        unitsPerFloor: undefined,
+        structuralDrawingUrl: '',
+        ...(formData as Partial<FullInput>),
+      });
+    }
+  }, [_hasHydrated, methods]);
 
   const watched = useWatch({ control: methods.control });
   const isTier2 = (Number(watched.numFloors) || 1) > 3 || ['Commercial', 'Institutional', 'Industrial'].includes(watched.typology ?? '');
@@ -154,6 +174,7 @@ export function EstimateFormShell() {
   };
 
   const onValid = async (data: FullInput) => {
+    if (isLoading) return;
     updateFormData(data);
     setLoading(true);
     setError(null);

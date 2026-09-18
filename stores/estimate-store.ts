@@ -8,6 +8,9 @@ import type { FullInput } from '@/lib/validation/input-schema';
 import type { EstimateResult } from '@/lib/engine/types';
 
 interface EstimateStore {
+  _hasHydrated: boolean;
+  setHasHydrated: (hasHydrated: boolean) => void;
+
   // Multi-step form state
   currentStep: number;
   formData   : Partial<FullInput>;
@@ -30,6 +33,8 @@ interface EstimateStore {
 export const useEstimateStore = create<EstimateStore>()(
   persist(
     (set) => ({
+      _hasHydrated: false,
+      setHasHydrated: (_hasHydrated) => set({ _hasHydrated }),
       currentStep : 0,
       formData    : {},
       result      : null,
@@ -49,6 +54,9 @@ export const useEstimateStore = create<EstimateStore>()(
     {
       name   : 'outsyd-estimate-draft',
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
       partialize: (s) => ({
         currentStep: s.currentStep,
         formData   : s.formData,

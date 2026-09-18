@@ -185,8 +185,9 @@ function ChartCustomTooltip({
 }
 
 export default function ResultPage() {
-  const { result, estimateId, guestToken, formData, setResult, clearResult, resetForm } = useEstimateStore();
+  const { result, estimateId, guestToken, formData, setResult, clearResult, resetForm, _hasHydrated } = useEstimateStore();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [expandedWhyCode, setExpandedWhyCode] = useState<string | null>(null);
   const [saveOpen, setSaveOpen] = useState(false);
@@ -196,21 +197,31 @@ export default function ResultPage() {
   const [xlsxLoading, setXlsxLoading] = useState(false);
 
   useEffect(() => {
-    if (!result) router.replace('/estimate');
-  }, [result, router]);
+    setMounted(true);
+  }, []);
 
-  if (!result) {
+  const isReady = mounted && _hasHydrated;
+
+  useEffect(() => {
+    if (isReady && !result) {
+      router.replace('/estimate');
+    }
+  }, [isReady, result, router]);
+
+  if (!isReady || !result) {
     return (
       <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center p-4">
         <div className="text-center max-w-sm">
           <div className="w-10 h-10 border-2 border-[#1E3A5F] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-[#0F172A] font-semibold text-sm">Loading calculated estimate…</p>
-          <button
-            onClick={() => router.push('/estimate')}
-            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold bg-[#1E3A5F] text-white hover:bg-[#0F172A] transition-colors"
-          >
-            <RotateCcw size={13} /> Return to Form
-          </button>
+          {isReady && (
+            <button
+              onClick={() => router.push('/estimate')}
+              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold bg-[#1E3A5F] text-white hover:bg-[#0F172A] transition-colors"
+            >
+              <RotateCcw size={13} /> Return to Form
+            </button>
+          )}
         </div>
       </div>
     );
@@ -241,33 +252,19 @@ export default function ResultPage() {
   const labourTotal = labourRows.reduce((s, r) => s + r.amount, 0);
   const timeline = estimateTimeline(buaSqft, formData?.numFloors ?? 1, formData?.typology ?? 'Residential');
 
-  // Auto-generate or ensure estimate ID
-  const ensureEstimateId = async (): Promise<string | null> => {
-    const state = useEstimateStore.getState();
-    if (state.estimateId) return state.estimateId;
-
-    if (formData) {
-      try {
-        const res = await fetch('/api/estimate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
-        const json = await res.json();
-        if (json.estimateId) {
-          state.setResult(result, json.estimateId, json.guestToken);
-          return json.estimateId;
-        }
-      } catch (e) {
-        console.error('Auto persist error:', e);
-      }
-    }
+  // Idempotent estimate ID reference check (H-10: prevents duplicate DB records on export/share)
+  const ensureEstimateId = (): string | null => {
+    if (estimateId) return estimateId;
+    toast.error('Could not obtain estimate reference', {
+      description: 'Please click "Modify Inputs" and recalculate to generate a persistent estimate ID.',
+    });
     return null;
   };
 
   const handleShare = async () => {
-    const id = await ensureEstimateId();
-    const url = id ? `${window.location.origin}/estimate/${id}` : window.location.href;
+    const id = ensureEstimateId();
+    if (!id) return;
+    const url = `${window.location.origin}/estimate/${id}`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success('Shareable link copied to clipboard!');
