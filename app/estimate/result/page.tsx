@@ -156,7 +156,7 @@ function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false
 }
 
 export default function ResultPage() {
-  const { result, formData, estimateId, resetForm, clearResult } = useEstimateStore();
+  const { result, estimateId, guestToken, formData, setResult, clearResult, resetForm } = useEstimateStore();
   const router = useRouter();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [expandedWhyCode, setExpandedWhyCode] = useState<string | null>(null);
@@ -299,7 +299,10 @@ export default function ResultPage() {
       const res = await fetch(`/api/estimate/${id}/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectName: saveName || `${formData?.typology || 'Project'} — ${formData?.locationRegion || 'India'}` }),
+        body: JSON.stringify({
+          projectName: saveName || `${formData?.typology || 'Project'} — ${formData?.locationRegion || 'India'}`,
+          guestToken: guestToken || undefined,
+        }),
       });
 
       if (res.status === 401) {
