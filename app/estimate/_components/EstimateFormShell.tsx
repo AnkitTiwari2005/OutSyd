@@ -2,11 +2,11 @@
 
 // app/estimate/_components/EstimateFormShell.tsx
 // Unified deterministic 3-step controller (Basics → Structure → Review)
-import { useForm, FormProvider, type FieldErrors } from 'react-hook-form';
+import { useForm, FormProvider, useWatch, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { FullInputSchema, type FullInput } from '@/lib/validation/input-schema';
+import { FullInputSchema, Tier1Schema, type FullInput } from '@/lib/validation/input-schema';
 import { useEstimateStore } from '@/stores/estimate-store';
 import { Step1Basics } from './Step1Basics';
 import { Step2Building } from './Step2Building';
@@ -32,10 +32,12 @@ export function EstimateFormShell() {
   const rawStep = searchParams?.get('step');
   const mode = searchParams?.get('mode');
 
-  // Derive current step from URL (?step=1 -> 0, ?step=2 -> 1, ?step=3 -> 2)
-  const currentStep = rawStep === '2' ? 1 : rawStep === '3' ? 2 : 0;
+  // URL-driven step navigation (0-indexed internally: 0, 1, 2)
+  const stepFromUrl = rawStep ? parseInt(rawStep, 10) - 1 : 0;
+  const currentStep = Math.min(Math.max(stepFromUrl, 0), 2);
 
-  const { formData, updateFormData, setResult, setLoading, setError, resetForm, isLoading, error } = useEstimateStore();
+  const { formData, updateFormData, setResult, resetForm, isLoading, setLoading } = useEstimateStore();
+  const [error, setError] = useState<string | null>(null);
   const [tier2ToastShown, setTier2ToastShown] = useState(false);
 
   // Guarantee isLoading is always reset when entering or leaving wizard
@@ -73,7 +75,7 @@ export function EstimateFormShell() {
     mode: 'onChange',
   });
 
-  const watched = methods.watch();
+  const watched = useWatch({ control: methods.control });
   const isTier2 = (Number(watched.numFloors) || 1) > 3 || ['Commercial', 'Institutional', 'Industrial'].includes(watched.typology ?? '');
   const isTier3 = Boolean(watched.structuralDrawingUrl || (Number(watched.numFloors) || 1) > 7);
 
@@ -84,23 +86,8 @@ export function EstimateFormShell() {
     }
   }, [isTier2, tier2ToastShown, currentStep]);
 
-  const footprint = (Number(watched.lengthFt) || 0) * (Number(watched.breadthFt) || 0);
-  const plotArea = Number(watched.plotAreaSqft) || 0;
-  const isCoverageValid = footprint > 0 && plotArea > 0 ? (footprint <= plotArea && footprint / plotArea <= 0.85) : true;
-
-  const isStep1Valid = Boolean(
-    watched.typology &&
-    watched.buildingUse &&
-    watched.soilType &&
-    watched.locationRegion &&
-    watched.qualityTier &&
-    Number(watched.lengthFt) > 0 &&
-    Number(watched.breadthFt) > 0 &&
-    Number(watched.heightFt) > 0 &&
-    Number(watched.plotAreaSqft) > 0 &&
-    Number(watched.numFloors) >= 1 &&
-    isCoverageValid
-  );
+  const step1Validation = Tier1Schema.safeParse(watched);
+  const isStep1Valid = step1Validation.success;
 
   const handleNavigateToStep = (stepIdx: number) => {
     if (stepIdx >= 0 && stepIdx <= 2) {
@@ -127,13 +114,13 @@ export function EstimateFormShell() {
         'locationRegion',
         'qualityTier',
       ]);
-      if (!valid || !isCoverageValid) {
-        if (!isCoverageValid) {
-          setError(
-            footprint > plotArea
-              ? `Building footprint (${footprint.toLocaleString('en-IN')} sqft) cannot exceed total plot area (${plotArea.toLocaleString('en-IN')} sqft).`
-              : `Ground coverage ratio (${((footprint / plotArea) * 100).toFixed(0)}%) exceeds standard 85% norm (NBC 2016). Minimum plot area is ${Math.ceil(footprint / 0.85).toLocaleString('en-IN')} sqft.`
-          );
+      const step1Result = Tier1Schema.safeParse(methods.getValues());
+      if (!valid || !step1Result.success) {
+        if (!step1Result.success) {
+          const firstErr = step1Result.error.errors[0]?.message;
+          setError(firstErr || 'Please check the entered dimensions and inputs.');
+        } else {
+          setError('Please complete all required fields correctly before continuing.');
         }
         return;
       }
