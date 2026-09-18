@@ -653,7 +653,7 @@ export function runEstimationEngine(
   // DG Set — common backup for multi-storey, non-residential, or healthcare/hospitals
   const isHealthcare = u.includes('hospital') || u.includes('clinic') || u.includes('medical') || u.includes('pharma');
   if (numFloors >= 4 || isHealthcare || (!isResidential && totalBuaSqft > 12000)) {
-    let kvaPer1000 = isResidential ? (qt === 'Premium' ? 2.5 : 1.8)
+    const kvaPer1000 = isResidential ? (qt === 'Premium' ? 2.5 : 1.8)
                    : isCommercial ? (qt === 'Premium' ? 3.5 : 2.5)
                    : isInstitutional ? 2.2 : 2.5;
     const minKva = isResidential ? 15 : isHealthcare ? 30 : 25;

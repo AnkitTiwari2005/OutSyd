@@ -15,7 +15,8 @@ import {
   AlertTriangle, CheckCircle2, Gauge, Layers, FileSpreadsheet, FileText,
   RotateCcw
 } from 'lucide-react';
-import { getCategoryColor, BAND_CONFIG, PHASE_COLORS, QUALITATIVE_CHART_COLORS } from '@/lib/constants';
+import { getCategoryColor, BAND_CONFIG, PHASE_COLORS } from '@/lib/constants';
+import type { EstimateLineItem } from '@/lib/engine/types';
 
 function SectionCard({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
   return (
@@ -56,7 +57,7 @@ function CollapseSection({ title, badge, children, defaultOpen = true }: {
 
 function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false, isHighCost = false }: {
   code: string; name: string; subtotal: number; pct: string;
-  items: any[]; defaultOpen?: boolean; isHighCost?: boolean;
+  items: EstimateLineItem[]; defaultOpen?: boolean; isHighCost?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const color = getCategoryColor(code);
@@ -153,6 +154,34 @@ function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false
     )}
   </div>
 );
+}
+
+interface TooltipPayloadItem {
+  payload: { full: string };
+  value: number;
+}
+
+function ChartCustomTooltip({
+  active,
+  payload,
+  totalCost,
+}: {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  totalCost?: number;
+}) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0];
+  const pct = totalCost && totalCost > 0 ? ((item.value / totalCost) * 100).toFixed(1) : '0';
+  return (
+    <div className="bg-[#0F172A] text-white p-2.5 rounded-md shadow-lg text-xs">
+      <p className="font-bold mb-0.5">{item.payload.full}</p>
+      <p className="font-mono text-sm font-semibold">{formatINRFull(item.value)}</p>
+      <p className="text-[#94A3B8] text-[11px] mt-0.5">
+        {pct}% of materials
+      </p>
+    </div>
+  );
 }
 
 export default function ResultPage() {
@@ -323,19 +352,6 @@ export default function ResultPage() {
     } finally {
       setSaveLoading(false);
     }
-  };
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div className="bg-[#0F172A] text-white p-2.5 rounded-md shadow-lg text-xs">
-        <p className="font-bold mb-0.5">{payload[0].payload.full}</p>
-        <p className="font-mono text-sm font-semibold">{formatINRFull(payload[0].value)}</p>
-        <p className="text-[#94A3B8] text-[11px] mt-0.5">
-          {((payload[0].value / result.grandTotalMaterialCost) * 100).toFixed(1)}% of materials
-        </p>
-      </div>
-    );
   };
 
   const ICONS = { Gauge, AlertTriangle, Info, CheckCircle2 } as const;
@@ -548,7 +564,7 @@ export default function ResultPage() {
                       />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<ChartCustomTooltip totalCost={result.grandTotalMaterialCost} />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
