@@ -1,44 +1,68 @@
 // proxy.ts — Next.js 16 RBAC proxy (replaces deprecated middleware.ts)
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
 
-  // Protected routes requiring auth
-  const authRequired = ['/dashboard', '/admin'];
-  const adminOnly    = ['/admin'];
-
-  const isProtected = authRequired.some(p => pathname.startsWith(p));
-  if (!isProtected) return NextResponse.next();
-
-  // Read session from cookie (edge-safe)
-  const token = request.cookies.get('authjs.session-token')?.value
-    ?? request.cookies.get('__Secure-authjs.session-token')?.value;
-
-  if (!token) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
+  if (!secret) {
+    console.error('AUTH_SECRET is not configured in proxy');
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Admin route — check role from session
-  const isAdmin = adminOnly.some(p => pathname.startsWith(p));
+  const token = await getToken({
+    req: request,
+    secret,
+    salt: request.cookies.get('__Secure-authjs.session-token')
+      ? '__Secure-authjs.session-token'
+      : 'authjs.session-token',
+  });
+
+  const isApiAdmin = pathname.startsWith('/api/admin');
+  const isApiProjects = pathname.startsWith('/api/projects');
+  const isAdmin = pathname.startsWith('/admin') || isApiAdmin;
+  const isDashboard = pathname.startsWith('/dashboard') || isApiProjects;
+
   if (isAdmin) {
-    // Decode JWT to check role (edge-safe — no DB call)
-    // Role is embedded in token by Auth.js callbacks
-    try {
-      const base64   = token.split('.')[1];
-      const decoded  = JSON.parse(Buffer.from(base64, 'base64url').toString());
-      if (decoded?.role !== 'admin') return NextResponse.redirect(new URL('/dashboard', request.url));
-    } catch {
-      return NextResponse.redirect(new URL('/login', request.url));
+    if (!token) {
+      if (isApiAdmin) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      }
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
     }
+    if (token.role !== 'admin') {
+      if (isApiAdmin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    return NextResponse.next();
+  }
+
+  if (isDashboard) {
+    if (!token) {
+      if (isApiProjects) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      }
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/admin/:path*',
+    '/api/admin/:path*',
+    '/api/projects/:path*',
+  ],
 };
