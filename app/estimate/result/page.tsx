@@ -4,13 +4,13 @@
 import Image from 'next/image';
 import { useEstimateStore } from '@/stores/estimate-store';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatINR, formatINRFull, estimateTimeline, computeLabourBreakdown } from '@/lib/utils';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import {
-  Download, Share2, Save, ArrowLeft,
+  Share2, Save, ArrowLeft,
   ChevronDown, ChevronUp, Info, Loader2,
   AlertTriangle, CheckCircle2, Gauge, Layers, FileSpreadsheet, FileText,
   RotateCcw
@@ -184,10 +184,15 @@ function ChartCustomTooltip({
   );
 }
 
+const emptySubscribe = () => () => {};
+function useIsClient() {
+  return useSyncExternalStore(emptySubscribe, () => true, () => false);
+}
+
 export default function ResultPage() {
-  const { result, estimateId, guestToken, formData, setResult, clearResult, resetForm, _hasHydrated } = useEstimateStore();
+  const { result, estimateId, guestToken, formData, clearResult, resetForm, _hasHydrated } = useEstimateStore();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const isClient = useIsClient();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [expandedWhyCode, setExpandedWhyCode] = useState<string | null>(null);
   const [saveOpen, setSaveOpen] = useState(false);
@@ -196,11 +201,7 @@ export default function ResultPage() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [xlsxLoading, setXlsxLoading] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isReady = mounted && _hasHydrated;
+  const isReady = isClient && _hasHydrated;
 
   useEffect(() => {
     if (isReady && !result) {
@@ -240,7 +241,7 @@ export default function ResultPage() {
 
   const chartData = result.categoryTotals
     .filter(c => c.subtotal > 0)
-    .map((c, i) => ({
+    .map((c) => ({
       name: c.name.split(' / ')[0],
       value: c.subtotal,
       full: c.name,

@@ -4,7 +4,7 @@
 // Unified deterministic 3-step controller (Basics → Structure → Review)
 import { useForm, FormProvider, useWatch, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FullInputSchema, Tier1Schema, type FullInput } from '@/lib/validation/input-schema';
 import { useEstimateStore } from '@/stores/estimate-store';
@@ -12,7 +12,7 @@ import { Step1Basics } from './Step1Basics';
 import { Step2Building } from './Step2Building';
 import { Step4Review } from './Step4Review';
 import { ProgressStepper } from './ProgressStepper';
-import { ArrowLeft, ArrowRight, Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Zap, AlertCircle } from 'lucide-react';
 
 const STEPS = [
   { id: 0, label: 'Basics' },
@@ -38,7 +38,7 @@ export function EstimateFormShell() {
 
   const { formData, updateFormData, setResult, resetForm, isLoading, setLoading, _hasHydrated } = useEstimateStore();
   const [error, setError] = useState<string | null>(null);
-  const [tier2ToastShown, setTier2ToastShown] = useState(false);
+  const tier2ToastShown = useRef(false);
 
   // Guarantee isLoading is always reset when entering or leaving wizard
   useEffect(() => {
@@ -93,7 +93,7 @@ export function EstimateFormShell() {
         ...(formData as Partial<FullInput>),
       });
     }
-  }, [_hasHydrated, methods]);
+  }, [_hasHydrated, formData, methods]);
 
   const watched = useWatch({ control: methods.control });
   const isTier2 = (Number(watched.numFloors) || 1) > 3 || ['Commercial', 'Institutional', 'Industrial'].includes(watched.typology ?? '');
@@ -101,10 +101,10 @@ export function EstimateFormShell() {
 
   // Show tier unlock toast once
   useEffect(() => {
-    if (isTier2 && !tier2ToastShown && currentStep === 0) {
-      setTier2ToastShown(true);
+    if (isTier2 && !tier2ToastShown.current && currentStep === 0) {
+      tier2ToastShown.current = true;
     }
-  }, [isTier2, tier2ToastShown, currentStep]);
+  }, [isTier2, currentStep]);
 
   const step1Validation = Tier1Schema.safeParse(watched);
   const isStep1Valid = step1Validation.success;
