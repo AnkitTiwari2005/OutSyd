@@ -4,11 +4,13 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { ArrowRight, Menu, X, Calculator, User } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { ArrowRight, Menu, X, Calculator, User, LogOut, Shield } from 'lucide-react';
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   const isEstimate = pathname.startsWith('/estimate');
 
@@ -61,14 +63,45 @@ export function Navbar() {
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[#1E3A5F] hover:bg-[#F7F8FA] rounded-md transition-colors"
-          >
-            <User size={15} />
-            Dashboard
-          </Link>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {session?.user ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E3A5F] hover:bg-[#EFF4FA] rounded-md transition-colors border border-[#CBD5E1]"
+              >
+                <User size={13} />
+                <span className="max-w-[120px] truncate">{session.user.name || session.user.email}</span>
+              </Link>
+
+              {session.user.role === 'admin' && (
+                <Link
+                  href="/admin"
+                  className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-200 hover:bg-orange-100 rounded-md transition-colors"
+                >
+                  <Shield size={12} />
+                  <span>Admin</span>
+                </Link>
+              )}
+
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#64748B] hover:text-[#B91C1C] hover:bg-[#FEF2F2] rounded-md transition-colors cursor-pointer"
+                title="Sign out"
+              >
+                <LogOut size={13} />
+                <span>Sign out</span>
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E3A5F] hover:bg-[#F7F8FA] rounded-md transition-colors"
+            >
+              Sign In
+            </Link>
+          )}
 
           {/* Reserved single primary CTA per screen */}
           <Link
@@ -115,20 +148,51 @@ export function Navbar() {
           >
             Methodology & Standards
           </Link>
-          <Link
-            href="/dashboard"
-            onClick={() => setMobileOpen(false)}
-            className="block px-3 py-2 text-sm font-medium text-[#64748B] hover:bg-[#F7F8FA] rounded-md"
-          >
-            Saved Projects Dashboard
-          </Link>
-          <Link
-            href="/login"
-            onClick={() => setMobileOpen(false)}
-            className="block px-3 py-2 text-sm font-medium text-[#64748B] hover:bg-[#F7F8FA] rounded-md"
-          >
-            Sign In / Register
-          </Link>
+          {session?.user ? (
+            <>
+              <div className="px-3 py-2 border-t border-b border-slate-100 my-1 bg-slate-50 rounded-md">
+                <p className="text-xs text-slate-500">Signed in as</p>
+                <p className="text-sm font-semibold text-[#1E3A5F] truncate">{session.user.name || session.user.email}</p>
+              </div>
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#1E3A5F] hover:bg-[#F7F8FA] rounded-md"
+              >
+                <User size={16} />
+                Dashboard
+              </Link>
+              {session.user.role === 'admin' && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-orange-700 hover:bg-orange-50 rounded-md"
+                >
+                  <Shield size={16} />
+                  Admin Console
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  signOut({ callbackUrl: '/' });
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#B91C1C] hover:bg-[#FEF2F2] rounded-md transition-colors text-left cursor-pointer"
+              >
+                <LogOut size={16} />
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-2 text-sm font-medium text-[#1E3A5F] hover:bg-[#F7F8FA] rounded-md"
+            >
+              Sign In / Register
+            </Link>
+          )}
         </div>
       )}
     </header>
