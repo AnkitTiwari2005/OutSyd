@@ -3,29 +3,56 @@
 // FR-7: Branded OUTSYD estimate report
 
 import React from 'react';
+import fs from 'fs';
 import path from 'path';
 import {
   Document, Page, Text, View, StyleSheet, Font,
 } from '@react-pdf/renderer';
 import type { EstimateResult } from '@/lib/engine/types';
 
-// Register Unicode font supporting Indian Rupee sign ₹ (U+20B9)
-const regularFont = path.join(process.cwd(), 'public', 'fonts', 'NotoSans-Regular.ttf');
-const boldFont = path.join(process.cwd(), 'public', 'fonts', 'NotoSans-Bold.ttf');
+function resolveFontPath(filename: string): string | null {
+  const candidates = [
+    path.join(process.cwd(), 'lib', 'pdf', 'fonts', filename),
+    path.join(process.cwd(), 'public', 'fonts', filename),
+    path.join(__dirname, 'fonts', filename),
+  ];
+  for (const candidate of candidates) {
+    try {
+      if (fs.existsSync(candidate)) return candidate;
+    } catch {
+      // ignore
+    }
+  }
+  return null;
+}
 
-Font.register({
-  family: 'Noto Sans',
-  fonts: [
-    { src: regularFont, fontWeight: 'normal' },
-    { src: boldFont, fontWeight: 'bold' },
-  ],
-});
+const regularFont = resolveFontPath('NotoSans-Regular.ttf');
+const boldFont = resolveFontPath('NotoSans-Bold.ttf');
+const hasUnicodeFont = Boolean(regularFont && boldFont);
+
+if (hasUnicodeFont) {
+  try {
+    Font.register({
+      family: 'Noto Sans',
+      fonts: [
+        { src: regularFont!, fontWeight: 'normal' },
+        { src: boldFont!, fontWeight: 'bold' },
+      ],
+    });
+  } catch (err) {
+    console.warn('[PDF] Failed to register Noto Sans, falling back to Helvetica:', err);
+  }
+}
+
+const fontName = hasUnicodeFont ? 'Noto Sans' : 'Helvetica';
 
 const INR = (n: number) =>
-  `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  hasUnicodeFont
+    ? `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+    : `Rs. ${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
 const styles = StyleSheet.create({
-  page         : { padding: 36, paddingBottom: 48, fontFamily: 'Noto Sans', fontSize: 9, color: '#0f172a' },
+  page         : { padding: 36, paddingBottom: 48, fontFamily: fontName, fontSize: 9, color: '#0f172a' },
   header       : { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
   brand        : { fontSize: 18, fontWeight: 'bold', color: '#1e3a5f' },
   tagline      : { fontSize: 7, color: '#64748b', marginTop: 2 },

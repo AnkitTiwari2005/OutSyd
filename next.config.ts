@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   serverExternalPackages: ['@react-pdf/renderer', 'exceljs', 'pg'],
   poweredByHeader: false,
+  outputFileTracingIncludes: {
+    '/api/**/*': ['./lib/pdf/fonts/**/*', './public/fonts/**/*'],
+  },
   async headers() {
     return [
       {
