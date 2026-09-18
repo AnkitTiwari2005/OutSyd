@@ -8,27 +8,17 @@ export const authConfig: NextAuthConfig = {
   },
   providers: [], // credentials provider added in auth.ts (non-edge)
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const role = (auth?.user as any)?.role as string | undefined;
-      const path = nextUrl.pathname;
-
-      if (path.startsWith('/admin'))               return role === 'admin';
-      if (path.startsWith('/dashboard'))           return !!auth?.user;
-      if (path.startsWith('/api/projects'))        return !!auth?.user;
-      if (path.startsWith('/api/admin'))           return role === 'admin';
-      return true; // public routes
-    },
     jwt({ token, user }) {
       if (user) {
-        token.id   = user.id!;
-        token.role = (user as any).role ?? 'registered';
+        token.id = user.id;
+        token.role = (user as { role?: string }).role ?? 'registered';
       }
       return token;
     },
     session({ session, token }) {
       if (token) {
-        (session.user as any).id   = token.id;
-        (session.user as any).role = token.role;
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
       return session;
     },
