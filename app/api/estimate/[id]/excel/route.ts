@@ -1,7 +1,7 @@
 // app/api/estimate/[id]/excel/route.ts — GET Excel download
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { estimates, buildingInputs } from '@/lib/db/schema';
+import { estimates, buildingInputs, reports } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import type { EstimateResult } from '@/lib/engine/types';
 
@@ -52,6 +52,17 @@ export async function GET(
       input?.numFloors ?? 1,
       input?.typology ?? 'Residential',
     );
+
+    try {
+      await db.insert(reports).values({
+        id: crypto.randomUUID(),
+        estimateId: id,
+        fileUrl: null,
+        generatedAt: new Date(),
+      });
+    } catch (insertErr) {
+      console.warn('[Excel] Failed to log report to DB:', insertErr);
+    }
 
     const filename = `OUTSYD-Estimate-${id.slice(0, 8)}.xlsx`;
     return new NextResponse(new Uint8Array(buffer), {

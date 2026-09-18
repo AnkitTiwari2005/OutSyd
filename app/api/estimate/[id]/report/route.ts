@@ -1,7 +1,7 @@
 // app/api/estimate/[id]/report/route.ts — GET PDF download
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { estimates, buildingInputs } from '@/lib/db/schema';
+import { estimates, buildingInputs, reports } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import type { EstimateResult } from '@/lib/engine/types';
 
@@ -57,6 +57,17 @@ export async function GET(
         ? (pdfBuffer as Buffer)
         : Buffer.from(pdfBuffer as ArrayBuffer)
     );
+
+    try {
+      await db.insert(reports).values({
+        id: crypto.randomUUID(),
+        estimateId: id,
+        fileUrl: null,
+        generatedAt: new Date(),
+      });
+    } catch (insertErr) {
+      console.warn('[PDF] Failed to log report to DB:', insertErr);
+    }
 
     const filename = `OUTSYD-Estimate-${id.slice(0, 8)}.pdf`;
     return new NextResponse(bytes, {
