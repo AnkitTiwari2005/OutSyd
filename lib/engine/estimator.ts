@@ -453,7 +453,7 @@ export function runEstimationEngine(
 
   // ── CAT_01: Substructure & Excavation ─────────────────────────────────────
   const fndType = bi.foundationType ?? 'Not_sure';
-  const isRaft  = fndType === 'Raft' || bi.soilType === 'Waterlogged-prone';
+  const isRaft  = fndType === 'Raft' || bi.soilType === 'Waterlogged-prone' || (bi.soilBearingCapacity !== undefined && bi.soilBearingCapacity < 100);
   const isPile  = fndType === 'Pile';
   const isRocky = bi.soilType === 'Rocky';
 
@@ -817,7 +817,7 @@ export function runEstimationEngine(
 
   // ── CAT_13: Staircase, Railings & Lifts ───────────────────────────────────
   const numStairs = bi.numStaircases ?? 1;
-  const stairFloors = numFloors + (bi.parkingLevels ?? 0);
+  const stairFloors = numFloors + (bi.parkingLevels ?? 0) + (bi.podiumLevels ?? 0) + (bi.serviceFloors ?? 0);
   if (!isPEB || numFloors > 1) {
     addItem('MAT_STAIR_CONC', 1.4 * numStairs * stairFloors, 'cu.m');
     addItem('MAT_STAIR_STEEL', 80 * numStairs * stairFloors, 'kg');

@@ -250,5 +250,39 @@ describe('Quantification Engine (runEstimationEngine)', () => {
     assert.ok(codes.includes('MAT_GYM_EQUIP'), 'Expected MAT_GYM_EQUIP');
     assert.ok(codes.includes('MAT_POOL_TILE'), 'Expected MAT_POOL_TILE');
   });
+
+  it('triggers raft foundation when soilBearingCapacity is low (<100 kN/m²) (H-6)', () => {
+    const input: FullInput = {
+      lengthFt: 40, breadthFt: 30, heightFt: 22, plotAreaSqft: 2400, numFloors: 2,
+      typology: 'Residential', buildingUse: 'Villa',
+      soilType: 'Normal', locationRegion: 'Bengaluru', qualityTier: 'Standard',
+      soilBearingCapacity: 80, // soft soil condition
+    };
+    const cls = classifyBuilding(input);
+    const items = runEstimationEngine(input, cls, DEFAULT_DATASET, 1.0);
+    const hasRaft = items.some(i => i.materialItemCode === 'MAT_FOUND_RAFT');
+    assert.ok(hasRaft, 'Expected MAT_FOUND_RAFT when soilBearingCapacity < 100');
+  });
+
+  it('augments stair circulation when podiumLevels or serviceFloors are provided (H-6)', () => {
+    const baseInput: FullInput = {
+      lengthFt: 100, breadthFt: 80, heightFt: 120, plotAreaSqft: 15000, numFloors: 10,
+      typology: 'Commercial', buildingUse: 'Office',
+      soilType: 'Normal', locationRegion: 'Mumbai', qualityTier: 'Standard',
+    };
+    const podiumInput: FullInput = {
+      ...baseInput,
+      podiumLevels: 2,
+      serviceFloors: 1,
+    };
+    const cls = classifyBuilding(baseInput);
+    const baseItems = runEstimationEngine(baseInput, cls, DEFAULT_DATASET, 1.0);
+    const podiumItems = runEstimationEngine(podiumInput, cls, DEFAULT_DATASET, 1.0);
+
+    const baseStairConc = baseItems.find(i => i.materialItemCode === 'MAT_STAIR_CONC')!.quantity;
+    const podiumStairConc = podiumItems.find(i => i.materialItemCode === 'MAT_STAIR_CONC')!.quantity;
+    assert.ok(podiumStairConc > baseStairConc, 'Expected podium/service floors to increase stair concrete volume');
+  });
 });
+
 

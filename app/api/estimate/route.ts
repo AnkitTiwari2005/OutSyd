@@ -59,6 +59,22 @@ export async function POST(req: NextRequest) {
   const { dataset: ds, lookupRegionalIndex: activeLookupRegionalIndex } = await getActiveDatasetAndIndex();
   const { index: ri, matchedCity } = activeLookupRegionalIndex(bi.locationRegion);
 
+  // ── H-6: Apply server-side local rate overrides with hard bounds (±50% max variance) ──
+  let effectiveDs = ds;
+  if (bi.localRateOverrides && bi.localRateOverrides.length > 0) {
+    const overriddenRates = { ...ds.rates };
+    for (const override of bi.localRateOverrides) {
+      const base = ds.rates[override.materialItemCode];
+      if (typeof base === 'number' && base > 0) {
+        // Enforce hard bounds: rate override must remain within 0.50x to 1.50x of base rate
+        const minBound = base * 0.5;
+        const maxBound = base * 1.5;
+        overriddenRates[override.materialItemCode] = Math.max(minBound, Math.min(maxBound, override.rate));
+      }
+    }
+    effectiveDs = { ...ds, rates: overriddenRates };
+  }
+
   // ── Run estimation engine (pure) ───────────────────────────────────────────
   const cls = classifyBuilding({
     numFloors       : bi.numFloors,
@@ -67,8 +83,8 @@ export async function POST(req: NextRequest) {
     seismicZone     : bi.seismicZone      ?? 'Not_sure',
   });
 
-  const lineItems = runEstimationEngine(bi, cls, ds, ri);
-  const result    = aggregateEstimate(lineItems, bi, cls, ds, ri);
+  const lineItems = runEstimationEngine(bi, cls, effectiveDs, ri);
+  const result    = aggregateEstimate(lineItems, bi, cls, effectiveDs, ri);
 
   // ── Persist to DB (PostgreSQL async) ──────────────────────────────────────
   try {
