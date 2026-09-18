@@ -59,7 +59,7 @@ export function runAll() {
   for (const [key, { name, input, targetRange }] of Object.entries(SCENARIOS)) {
     const { index: ri } = lookupRegionalIndex(input.locationRegion);
     const cls = classifyBuilding({
-      numFloors: input.numFloors, typology: input.typology ?? 'Residential', buildingUse: input.buildingUse ?? 'Standard',
+      numFloors: input.numFloors, typology: input.typology ?? 'Residential',
       structuralSystem: input.structuralSystem, seismicZone: input.seismicZone
     });
     const raw = runEstimationEngine(input, cls, DEFAULT_DATASET, ri);
