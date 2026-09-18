@@ -192,6 +192,24 @@ export default async function SharedEstimatePage({ params }: { params: Promise<{
           </div>
         </div>
 
+        {/* Value engineering alternatives */}
+        {alternatives.length > 0 && (
+          <div className="card overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100">
+              <h2 className="font-semibold text-slate-800 text-sm">Value Engineering Alternatives</h2>
+            </div>
+            <div className="p-5 grid sm:grid-cols-3 gap-3">
+              {alternatives.map((alt) => (
+                <div key={alt.from} className="p-3 rounded-lg bg-slate-50 border border-slate-100 text-xs">
+                  <p className="text-slate-500 line-through">{alt.from}</p>
+                  <p className="font-semibold text-slate-800 mt-0.5">{alt.to}</p>
+                  <p className="text-emerald-600 font-medium mt-1">Save ~{formatINR(alt.saving)} ({alt.savingPct}%)</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Full line items */}
         <div className="card overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100">

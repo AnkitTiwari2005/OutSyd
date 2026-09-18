@@ -80,7 +80,7 @@ export function runAll() {
     const catSumMatches = Math.abs(catSum - result.grandTotalMaterialCost) < 1;
 
     console.log(`Scenario ${key} [${name}]:`);
-    console.log(`  BUA: ${bua} sqft | All-in: Rs ${perSqftAllIn}/sqft | Plinth: Rs ${plinth}/sqft | Div: ${(div * 100).toFixed(1)}%`);
+    console.log(`  BUA: ${bua} sqft | All-in: Rs ${perSqftAllIn}/sqft | Mat: Rs ${perSqftMat}/sqft | Plinth: Rs ${plinth}/sqft | Div: ${(div * 100).toFixed(1)}%`);
     console.log(`  National Target: ${JSON.stringify(targetRange)} | Regional Target (ri=${ri}): ${JSON.stringify(regionalTarget)}`);
     console.log(`  Checks: zeroRate=${zeroRateItems.length}, zeroOrNeg=${zeroOrNegItems.length}, catSumMatches=${catSumMatches}`);
 

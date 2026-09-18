@@ -41,7 +41,7 @@ export const db = new Proxy({} as NodePgDatabase<typeof schema>, {
     const instance = getDb();
     return Reflect.get(instance, prop, receiver);
   },
-  getPrototypeOf(_target) {
+  getPrototypeOf() {
     return PgDatabase.prototype;
   },
 });

@@ -59,8 +59,8 @@ const REGIONS = Object.keys(REGIONAL_RATE_INDEX).filter(r => r !== 'default').so
 
 export function Step1Basics() {
   const { register, control, setValue, getValues, formState: { errors } } = useFormContext<FullInput>();
-  const [typology, length, breadth, floors, qualityTier, locationRegion, plotAreaSqft] = useWatch({
-    name: ['typology', 'lengthFt', 'breadthFt', 'numFloors', 'qualityTier', 'locationRegion', 'plotAreaSqft'],
+  const [typology, length, breadth, floors, locationRegion, plotAreaSqft] = useWatch({
+    name: ['typology', 'lengthFt', 'breadthFt', 'numFloors', 'locationRegion', 'plotAreaSqft'],
   });
 
   const handleTypologySelect = (val: Typology) => {

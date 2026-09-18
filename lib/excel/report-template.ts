@@ -9,7 +9,6 @@ import { computeLabourBreakdown, estimateTimeline } from '@/lib/utils';
 const NAVY  = '1E2D4E';
 const ORANGE = 'F97316';
 const LIGHT_ORANGE = 'FFF7ED';
-const ORANGE_BORDER = 'FDBA74';
 const WHITE = 'FFFFFF';
 const GRAY_BG = 'F8FAFC';
 const GRAY_TEXT = '64748B';
@@ -29,10 +28,6 @@ const CAT_COLORS: Record<string, string> = {
 };
 
 const INR_FORMAT = '₹#,##,##0'; // Indian number format
-
-function cell(ws: ExcelJS.Worksheet, col: number, row: number): ExcelJS.Cell {
-  return ws.getCell(row, col);
-}
 
 function setCell(
   ws: ExcelJS.Worksheet,

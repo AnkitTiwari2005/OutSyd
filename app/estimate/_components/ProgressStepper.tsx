@@ -39,7 +39,6 @@ export function ProgressStepper({
         {steps.map((step, idx) => {
           const isCompleted = idx < currentStep;
           const isActive = idx === currentStep;
-          const isUpcoming = idx > currentStep;
 
           return (
             <div

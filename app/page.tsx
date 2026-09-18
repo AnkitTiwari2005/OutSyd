@@ -6,8 +6,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import {
-  ArrowRight, CheckCircle2, Gauge, BarChart3, FileText,
-  Layers, Shield, Building2, Clock, Check, Info
+  ArrowRight, BarChart3, FileText,
 } from 'lucide-react';
 
 function useCountUp(target: number, duration = 1400, start = false) {

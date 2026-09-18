@@ -6,24 +6,6 @@
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || (process.env.SUPABASE_PROJECT_REF ? `https://${process.env.SUPABASE_PROJECT_REF}.supabase.co` : '');
 const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-async function sql(query: string) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/exec_sql`, {
-    method: 'POST',
-    headers: {
-      'Content-Type' : 'application/json',
-      'Authorization': `Bearer ${SERVICE_KEY}`,
-      'apikey'       : SERVICE_KEY,
-      'Prefer'       : 'return=minimal',
-    },
-    body: JSON.stringify({ sql: query }),
-  });
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(`SQL failed: ${res.status} ${txt}`);
-  }
-  return res;
-}
-
 const CREATE_TABLES = `
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
