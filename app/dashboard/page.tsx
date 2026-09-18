@@ -1,6 +1,6 @@
 // app/dashboard/page.tsx — Engineering & Finance Dashboard
 import Image from 'next/image';
-import { auth } from '@/auth';
+import { auth, signOut } from '@/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { projects } from '@/lib/db/schema';
@@ -42,7 +42,12 @@ export default async function DashboardPage() {
               <span>{session.user.name ?? session.user.email}</span>
             </div>
 
-            <form action="/api/auth/signout" method="POST">
+            <form
+              action={async () => {
+                'use server';
+                await signOut({ redirectTo: '/login' });
+              }}
+            >
               <button
                 type="submit"
                 className="flex items-center gap-1 text-xs font-semibold text-[#64748B] hover:text-[#B91C1C] transition-colors cursor-pointer"
