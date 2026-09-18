@@ -1,8 +1,9 @@
 'use client';
 
 // app/estimate/_components/Step1Basics.tsx — Step 1: Project Basics
+import { useEffect } from 'react';
 import { useFormContext, useWatch, Controller } from 'react-hook-form';
-import type { FullInput } from '@/lib/validation/input-schema';
+import type { FullInput, Typology } from '@/lib/validation/input-schema';
 import { BUILDING_USE_OPTIONS } from '@/lib/validation/input-schema';
 import { FormField } from './FormField';
 import { NumberStepperInput } from '@/components/NumberStepperInput';
@@ -57,10 +58,29 @@ const QUALITY_TIERS = [
 const REGIONS = Object.keys(REGIONAL_RATE_INDEX).filter(r => r !== 'default').sort();
 
 export function Step1Basics() {
-  const { register, control, setValue, formState: { errors } } = useFormContext<FullInput>();
+  const { register, control, setValue, getValues, formState: { errors } } = useFormContext<FullInput>();
   const [typology, length, breadth, floors, qualityTier, locationRegion, plotAreaSqft] = useWatch({
     name: ['typology', 'lengthFt', 'breadthFt', 'numFloors', 'qualityTier', 'locationRegion', 'plotAreaSqft'],
   });
+
+  const handleTypologySelect = (val: Typology) => {
+    setValue('typology', val, { shouldValidate: true, shouldDirty: true });
+    const validUses = (BUILDING_USE_OPTIONS[val] ?? []) as readonly string[];
+    const currentBuildingUse = getValues('buildingUse');
+    if (!validUses.includes(currentBuildingUse ?? '')) {
+      setValue('buildingUse', '', { shouldValidate: true, shouldDirty: true });
+    }
+  };
+
+  useEffect(() => {
+    if (typology) {
+      const validUses = (BUILDING_USE_OPTIONS[typology] ?? []) as readonly string[];
+      const currentBuildingUse = getValues('buildingUse');
+      if (currentBuildingUse && !validUses.includes(currentBuildingUse)) {
+        setValue('buildingUse', '', { shouldValidate: true, shouldDirty: true });
+      }
+    }
+  }, [typology, setValue, getValues]);
 
   const useOptions = typology ? BUILDING_USE_OPTIONS[typology] ?? [] : [];
   const bua = (Number(length) || 0) * (Number(breadth) || 0) * (Number(floors) || 1);
@@ -218,11 +238,11 @@ export function Step1Basics() {
                     role="radio"
                     aria-checked={selected}
                     tabIndex={0}
-                    onClick={() => field.onChange(value)}
+                    onClick={() => handleTypologySelect(value)}
                     onKeyDown={(e) => {
                       if (e.key === ' ' || e.key === 'Enter') {
                         e.preventDefault();
-                        field.onChange(value);
+                        handleTypologySelect(value);
                       }
                     }}
                     className={`relative flex flex-col items-start p-3.5 rounded-lg text-left transition-all cursor-pointer ${

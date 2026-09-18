@@ -126,6 +126,7 @@ export type Tier1Input  = z.infer<typeof Tier1Schema>;
 export type Tier2Input  = z.infer<typeof Tier2Schema>;
 export type Tier3Input  = z.infer<typeof Tier3Schema>;
 export type FullInput   = z.infer<typeof FullInputSchema>;
+export type Typology    = z.infer<typeof Tier1BaseSchema>['typology'];
 
 // Step-level schemas for per-step validation in the multi-step form
 export const STEP_SCHEMAS = [
