@@ -1,8 +1,7 @@
 // lib/db/schema.ts — Drizzle ORM schema (PostgreSQL / Supabase)
 import {
-  pgTable, text, integer, doublePrecision, boolean, timestamp, uuid,
+  pgTable, text, integer, doublePrecision, boolean, timestamp, primaryKey,
 } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 export const users = pgTable('users', {
@@ -30,7 +29,9 @@ export const accounts = pgTable('accounts', {
   scope            : text('scope'),
   id_token         : text('id_token'),
   session_state    : text('session_state'),
-});
+}, (account) => [
+  primaryKey({ columns: [account.provider, account.providerAccountId] }),
+]);
 
 export const sessions = pgTable('sessions', {
   sessionToken: text('session_token').primaryKey(),
@@ -42,7 +43,9 @@ export const verificationTokens = pgTable('verification_tokens', {
   identifier: text('identifier').notNull(),
   token     : text('token').notNull(),
   expires   : timestamp('expires', { withTimezone: true }).notNull(),
-});
+}, (vt) => [
+  primaryKey({ columns: [vt.identifier, vt.token] }),
+]);
 
 // ─── Projects ─────────────────────────────────────────────────────────────────
 export const projects = pgTable('projects', {
