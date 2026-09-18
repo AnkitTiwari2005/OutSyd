@@ -39,6 +39,7 @@ const ITEM_NAMES: Record<string, { name: string; category: string }> = {
   MAT_RCC_ADMIX          : { name: 'Superplasticiser Admixture',             category: 'CAT_02' },
   MAT_RCC_FLYASH         : { name: 'Fly Ash (PPC Blend)',                    category: 'CAT_02' },
   MAT_RCC_HIGH_CONC      : { name: 'M40 High-Strength Concrete (G15+)',      category: 'CAT_02' },
+  MAT_RCC_COL_CONC       : { name: 'Column & Core Concrete (M25-M35)',       category: 'CAT_02' },
   MAT_RCC_GROUT          : { name: 'Non-Shrink Grout (Column Bases)',        category: 'CAT_02' },
   MAT_STEEL_STRUCT       : { name: 'Structural Steel Sections',              category: 'CAT_02' },
 
@@ -73,6 +74,7 @@ const ITEM_NAMES: Record<string, { name: string; category: string }> = {
   MAT_ROOF_TERRACE       : { name: 'Terrace Finish + Waterproofing',        category: 'CAT_05' },
   MAT_ROOF_SLOPE         : { name: 'Sloped RCC Roof + WP',                  category: 'CAT_05' },
   MAT_ROOF_METAL_DECK    : { name: 'Metal Deck Roofing',                    category: 'CAT_05' },
+  MAT_ROOF_GI_SHEET      : { name: 'Galvalume / Profiled Roof Sheeting',    category: 'CAT_05' },
   MAT_CEIL_POP           : { name: 'POP False Ceiling (Installed)',         category: 'CAT_05' },
   MAT_CEIL_GYPS          : { name: 'Gypsum Board False Ceiling',            category: 'CAT_05' },
   MAT_CEIL_GRID          : { name: 'Metal Grid Ceiling (Commercial)',       category: 'CAT_05' },
@@ -126,6 +128,7 @@ const ITEM_NAMES: Record<string, { name: string; category: string }> = {
   MAT_PLUMB_WC           : { name: 'Water Closet Suite (EWC)',              category: 'CAT_08' },
   MAT_PLUMB_EWC          : { name: 'Wall-Hung WC (Premium)',               category: 'CAT_08' },
   MAT_PLUMB_WASH         : { name: 'Wash Basin',                           category: 'CAT_08' },
+  MAT_PLUMB_URINAL       : { name: 'Commercial Urinal (Sensor Flush)',     category: 'CAT_08' },
   MAT_PLUMB_BATH         : { name: 'Shower Cubicle (Glass)',               category: 'CAT_08' },
   MAT_PLUMB_BATHTUB      : { name: 'Free-Standing Bathtub',                category: 'CAT_08' },
   MAT_PLUMB_SINK_SS      : { name: 'Kitchen Sink (SS Double Bowl)',        category: 'CAT_08' },
@@ -179,6 +182,7 @@ const ITEM_NAMES: Record<string, { name: string; category: string }> = {
   MAT_WOOD_WARDROBE      : { name: 'Wardrobe (Full, HDF Laminate)',       category: 'CAT_11' },
   MAT_WOOD_WARDROBE_PREM : { name: 'Walk-in Wardrobe (Premium)',          category: 'CAT_11' },
   MAT_WOOD_LOFT          : { name: 'Loft / Storage Unit (per Rft)',       category: 'CAT_11' },
+  MAT_WOOD_STUDY_TABLE   : { name: 'Study Desk & Work Table Unit',        category: 'CAT_11' },
   MAT_WOOD_PANEL         : { name: 'Decorative Wall Panelling',           category: 'CAT_11' },
   MAT_WOOD_POLISH        : { name: 'Melamine / PU Polish',                category: 'CAT_11' },
   MAT_WOOD_TV_UNIT       : { name: 'TV Unit + Back Panel',                category: 'CAT_11' },
@@ -251,6 +255,7 @@ const ITEM_NAMES: Record<string, { name: string; category: string }> = {
 
   // CAT_18 — Preliminaries & Miscellaneous
   MAT_MISC_TOTAL         : { name: 'Prelim., Site, Contingency (3.5%)',  category: 'CAT_18' },
+  MAT_MISC_SCAFFOLD      : { name: 'High-Rise Suspended Scaffold / Cradle',category: 'CAT_18' },
 };
 
 // Category display names
@@ -275,8 +280,11 @@ const CATEGORY_NAMES: Record<string, string> = {
   CAT_18: 'Preliminaries, Site & Contingency',
 };
 
-// ─── Room counts ─────────────────────────────────────────────────────────────
-function deriveRoomCounts(use: string, numFloors: number, unitsPerFloor = 1): RoomCounts {
+// ─── Room counts & unit density ─────────────────────────────────────────────
+function deriveRoomCounts(
+  use: string, numFloors: number, unitsPerFloor = 1,
+  typology = 'Residential', buaPerFloor = 1000,
+): RoomCounts {
   const u = use.toLowerCase();
   let doors = 7, windows = 8, bathrooms = 2, kitchens = 1;
 
@@ -287,17 +295,47 @@ function deriveRoomCounts(use: string, numFloors: number, unitsPerFloor = 1): Ro
   else if (u.includes('4bhk') || u.includes('4 bhk'))      { doors = 11; windows = 12; bathrooms = 4; kitchens = 1; }
   else if (u.includes('5bhk') || u.includes('villa'))      { doors = 14; windows = 16; bathrooms = 5; kitchens = 2; }
   else if (u.includes('duplex') || u.includes('penthouse')) { doors = 12; windows = 14; bathrooms = 4; kitchens = 1; }
-  else if (u.includes('office') || u.includes('commercial')){ doors = 4;  windows = 14; bathrooms = 2; kitchens = 0; }
+  else if (u.includes('office') || u.includes('commercial')){ doors = 6;  windows = 16; bathrooms = 3; kitchens = 0; }
   else if (u.includes('retail') || u.includes('shop'))      { doors = 2;  windows = 5;  bathrooms = 1; kitchens = 0; }
   else if (u.includes('mall'))                              { doors = 8;  windows = 30; bathrooms = 4; kitchens = 0; }
-  else if (u.includes('hospital') || u.includes('clinic'))  { doors = 8;  windows = 12; bathrooms = 4; kitchens = 1; }
-  else if (u.includes('hotel'))                             { doors = 6;  windows = 10; bathrooms = 3; kitchens = 1; }
-  else if (u.includes('school') || u.includes('college'))   { doors = 6;  windows = 18; bathrooms = 4; kitchens = 1; }
+  else if (u.includes('hospital') || u.includes('clinic'))  { doors = 12; windows = 16; bathrooms = 6; kitchens = 1; }
+  else if (u.includes('hotel'))                             { doors = 10; windows = 12; bathrooms = 8; kitchens = 1; }
+  else if (u.includes('school') || u.includes('college'))   { doors = 8;  windows = 20; bathrooms = 6; kitchens = 1; }
   else if (u.includes('warehouse') || u.includes('factory')){ doors = 4;  windows = 6;  bathrooms = 2; kitchens = 0; }
   else if (u.includes('showroom'))                          { doors = 3;  windows = 20; bathrooms = 1; kitchens = 0; }
 
-  const units = unitsPerFloor * numFloors;
-  return { doors: doors * units, windows: windows * units, bathrooms: bathrooms * units, kitchens: kitchens * units, units };
+  const isResidential = typology === 'Residential';
+  const isRowHouse    = u.includes('row house');
+  const isSingleDwelling = isResidential && (
+    u.includes('villa') || u.includes('duplex') || u.includes('bungalow') ||
+    isRowHouse || u.includes('penthouse') ||
+    (!u.includes('apartment') && !u.includes('flat') && !u.includes('floor') && !u.includes('condo') && numFloors <= 3 && unitsPerFloor <= 1)
+  );
+
+  if (isSingleDwelling) {
+    return {
+      doors: isRowHouse ? 6 : doors + Math.max(0, numFloors - 1) * 2,
+      windows: isRowHouse ? 6 : windows + Math.max(0, numFloors - 1) * 2,
+      bathrooms: isRowHouse ? 2 : bathrooms,
+      kitchens,
+      units: 1,
+    };
+  }
+
+  const effectiveUnitsPerFloor = unitsPerFloor > 1
+    ? unitsPerFloor
+    : (isResidential
+        ? Math.max(1, Math.min(6, Math.round(buaPerFloor / (u.includes('1bhk') ? 900 : u.includes('2bhk') ? 1600 : 2200))))
+        : 1);
+
+  const units = effectiveUnitsPerFloor * numFloors;
+  return {
+    doors: doors * units,
+    windows: windows * units,
+    bathrooms: bathrooms * units,
+    kitchens: kitchens * units,
+    units,
+  };
 }
 
 // ─── Derived dimensions ──────────────────────────────────────────────────────
@@ -305,9 +343,11 @@ function deriveDimensions(bi: FullInput): DerivedDimensions {
   const buaPerFloor    = bi.lengthFt * bi.breadthFt;
   const totalBuaSqft   = buaPerFloor * bi.numFloors;
   const totalBuaSqm    = totalBuaSqft / 10.764;
+  const u              = bi.buildingUse.toLowerCase();
+  const isRowHouse     = u.includes('row house');
   const perimeterFt    = 2 * (bi.lengthFt + bi.breadthFt);
-  const facadeAreaSqft = perimeterFt * (bi.heightFt / bi.numFloors) * bi.numFloors;
-  const wallAreaSqft   = facadeAreaSqft * 0.72;   // 72% of facade is solid wall
+  const facadeAreaSqft = (isRowHouse ? 2 * bi.breadthFt : perimeterFt) * (bi.heightFt / bi.numFloors) * bi.numFloors;
+  const wallAreaSqft   = isRowHouse ? (perimeterFt * (bi.heightFt / bi.numFloors) * bi.numFloors) * 0.60 : facadeAreaSqft * 0.72;
   const terraceArea    = buaPerFloor;
 
   const floorTier: FloorTier =
@@ -315,23 +355,44 @@ function deriveDimensions(bi: FullInput): DerivedDimensions {
     bi.numFloors <= 7  ? 'G4_G7'   :
     bi.numFloors <= 15 ? 'G8_G15'  : 'G16_PLUS';
 
-  const roomCounts = deriveRoomCounts(bi.buildingUse, bi.numFloors, bi.unitsPerFloor ?? 1);
+  const roomCounts = deriveRoomCounts(bi.buildingUse, bi.numFloors, bi.unitsPerFloor ?? 1, bi.typology, buaPerFloor);
 
   return { buaPerFloor, totalBuaSqft, totalBuaSqm, perimeterFt, facadeAreaSqft, wallAreaSqft, terraceArea, floorTier, roomCounts };
 }
 
 // ─── Line item builder ────────────────────────────────────────────────────────
+function round2(n: number) { return Math.round(n * 100) / 100; }
+
 function li(
   code: string, quantity: number, unit: string,
   ds: CoefficientDataset, quality: QualityTier, ri: number,
   isApprox = false, note?: string,
 ): EstimateLineItem {
-  const qMult    = ds.qualityMultipliers[quality];
-  const baseRate = ds.rates[code] ?? 0;
+  // Primary structural commodities and already tier-specific items don't compound with qMult
+  const isFixedSpecification =
+    code.startsWith('MAT_FOUND_') || code.startsWith('MAT_RCC_') || code.startsWith('MAT_STEEL_') ||
+    code.startsWith('MAT_MASON_') || code.startsWith('MAT_PLAST_INT') || code.startsWith('MAT_PLAST_CEMENT') ||
+    code.startsWith('MAT_PARK_') || code.startsWith('MAT_HVAC_') || code.startsWith('MAT_LIFT_') ||
+    code.startsWith('MAT_EXT_CURTWALL_') || code.startsWith('MAT_FLOOR_MARBLE_') ||
+    code.startsWith('MAT_WOOD_WARDROBE_') || code.startsWith('MAT_WOOD_KITCH_');
+
+  const qMult = isFixedSpecification
+    ? 1.0 // commodity primary materials (TMT steel, OPC cement, AAC blocks, sand, excavation) have national market price
+    : ds.qualityMultipliers[quality];
+
+  // Verified rate corrections
+  let baseRate = ds.rates[code] ?? 0;
+  if (code === 'MAT_PARK_RCC_EXCAV') {
+    baseRate = 480; // ₹480/cu.m for deep basement excavation with shoring & carting (CPWD DSR 2024)
+  } else if (code === 'MAT_EXT_CURTWALL_UHV') {
+    baseRate = 1850; // realistic unitised high-performance curtain wall base rate
+  }
+
   const unitRate = round2(baseRate * qMult * ri);
   const qty      = round2(Math.max(0, quantity));
   const meta     = ITEM_NAMES[code] ?? { name: code, category: 'CAT_18' };
   const grade    = ds.grades[quality]?.[code] ?? ds.grades.Standard?.[code] ?? 'Standard';
+
   return {
     materialItemCode : code,
     name             : meta.name,
@@ -346,8 +407,6 @@ function li(
   };
 }
 
-function round2(n: number) { return Math.round(n * 100) / 100; }
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN ENGINE
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -358,457 +417,456 @@ export function runEstimationEngine(
   const qt     = bi.qualityTier;
   const sys    = bi.structuralSystem ?? 'Not_sure';
   const seismic= bi.seismicZone     ?? 'Not_sure';
+  const u      = bi.buildingUse.toLowerCase();
 
   const structM  = ds.structMultipliers[sys];
   const seismicM = ds.seismicMultipliers[seismic];
-  const qMult    = ds.qualityMultipliers[qt];
 
   const { floorTier, roomCounts: rc, totalBuaSqft, totalBuaSqm,
           wallAreaSqft, facadeAreaSqft, terraceArea, perimeterFt, buaPerFloor } = dim;
+  const footprintSqm = buaPerFloor / 10.764;
   const numFloors = bi.numFloors;
+
+  const isIndustrial   = bi.typology === 'Industrial';
+  const isCommercial   = bi.typology === 'Commercial';
+  const isInstitutional= bi.typology === 'Institutional';
+  const isResidential  = bi.typology === 'Residential';
+  const isRowHouse     = u.includes('row house');
+  const isSingleDwelling = isResidential && (
+    u.includes('villa') || u.includes('duplex') || u.includes('bungalow') ||
+    isRowHouse || u.includes('penthouse') ||
+    (!u.includes('apartment') && !u.includes('flat') && !u.includes('floor') && !u.includes('condo') && numFloors <= 3 && (bi.unitsPerFloor ?? 1) <= 1)
+  );
 
   const items: EstimateLineItem[] = [];
 
-  // ── CAT_01: Substructure & Excavation ─────────────────────────────────────
-  const soilC = {
-    'Normal'           : { conc: 0.38, steel: 21, excav: 0.55 },
-    'Rocky'            : { conc: 0.28, steel: 17, excav: 0.35 },
-    'Filled-up'        : { conc: 0.48, steel: 25, excav: 0.60 },
-    'Waterlogged-prone': { conc: 0.62, steel: 31, excav: 0.70 },
-  }[bi.soilType] ?? { conc: 0.38, steel: 21, excav: 0.55 };
+  const addItem = (
+    code: string, qty: number, unit: string,
+    isApprox = false, note?: string,
+  ) => {
+    items.push(li(code, qty, unit, ds, qt, ri, isApprox, note));
+  };
 
+  // ── CAT_01: Substructure & Excavation ─────────────────────────────────────
   const fndType = bi.foundationType ?? 'Not_sure';
   const isRaft  = fndType === 'Raft' || bi.soilType === 'Waterlogged-prone';
   const isPile  = fndType === 'Pile';
   const isRocky = bi.soilType === 'Rocky';
 
-  // Excavation
+  // Substructure concrete volume proportional to footprint area and building height
+  const baseConcPerFootprint = isIndustrial ? 0.14 : isRaft ? 0.45 : isPile ? 0.50 : 0.22;
+  const fndLoadScale = isIndustrial ? 1.0
+                     : isPile ? Math.min(3.2, 1 + (numFloors - 1) * 0.10)
+                     : isRaft ? Math.min(2.8, 1 + (numFloors - 1) * 0.08)
+                     : Math.min(2.2, 1 + (numFloors - 1) * 0.07);
+
+  const fndConcVol = footprintSqm * baseConcPerFootprint * fndLoadScale;
+  const fndSteelKg = fndConcVol * (isPile ? 90 : isRaft ? 95 : 75);
+
+  const excavDepthMult = isIndustrial ? 0.9 : (numFloors > 6 || isRaft || isPile) ? 1.3 : 1.0;
+  const excavVol = footprintSqm * 1.3 * excavDepthMult;
+
   if (isRocky) {
-    items.push(li('MAT_FOUND_EXCAV_ROCK', soilC.excav * totalBuaSqm, 'cu.m', ds, qt, ri, true, 'Rock blasting — confirm with geotechnical report'));
+    addItem('MAT_FOUND_EXCAV_ROCK', excavVol * 0.4, 'cu.m', true, 'Rock blasting');
+    addItem('MAT_FOUND_EXCAV',      excavVol * 0.6, 'cu.m');
   } else {
-    items.push(li('MAT_FOUND_EXCAV', soilC.excav * totalBuaSqm, 'cu.m', ds, qt, ri));
+    addItem('MAT_FOUND_EXCAV',      excavVol,       'cu.m');
   }
 
-  // Foundation type
-  items.push(li('MAT_FOUND_PCC', 0.08 * totalBuaSqm, 'cu.m', ds, qt, ri));
+  const pccAreaFrac = isIndustrial ? 0.35 : (isRaft || isPile) ? 1.0 : 0.40;
+  addItem('MAT_FOUND_PCC', 0.08 * footprintSqm * pccAreaFrac, 'cu.m');
+
   if (isPile) {
-    items.push(li('MAT_FOUND_PILE',       soilC.conc  * totalBuaSqm,        'cu.m', ds, qt, ri));
-    items.push(li('MAT_FOUND_PILE_STEEL', soilC.steel * 1.35 * totalBuaSqm, 'kg',   ds, qt, ri));
+    addItem('MAT_FOUND_PILE',       fndConcVol, 'cu.m');
+    addItem('MAT_FOUND_PILE_STEEL', fndSteelKg, 'kg');
   } else if (isRaft) {
-    items.push(li('MAT_FOUND_RAFT',   soilC.conc  * totalBuaSqm,       'cu.m', ds, qt, ri));
-    items.push(li('MAT_FOUND_STEEL',  soilC.steel * totalBuaSqm,        'kg',   ds, qt, ri));
+    addItem('MAT_FOUND_RAFT',       fndConcVol, 'cu.m');
+    addItem('MAT_FOUND_STEEL',      fndSteelKg, 'kg');
   } else {
-    items.push(li('MAT_FOUND_CONC',  soilC.conc  * totalBuaSqm,        'cu.m', ds, qt, ri));
-    items.push(li('MAT_FOUND_STEEL', soilC.steel * totalBuaSqm,         'kg',   ds, qt, ri));
+    addItem('MAT_FOUND_CONC',       fndConcVol, 'cu.m');
+    addItem('MAT_FOUND_STEEL',      fndSteelKg, 'kg');
   }
 
-  items.push(li('MAT_FOUND_DPC',      buaPerFloor / 10.764,            'sq.m', ds, qt, ri));
-  items.push(li('MAT_FOUND_ANTITERM', buaPerFloor,                     'sqft', ds, qt, ri));
-  items.push(li('MAT_FOUND_BACKFILL', 0.42 * totalBuaSqm,             'cu.m', ds, qt, ri));
-  items.push(li('MAT_FOUND_FORMWORK', soilC.conc  * totalBuaSqm * 4,  'sq.m', ds, qt, ri));
+  addItem('MAT_FOUND_DPC',      footprintSqm,       'sq.m');
+  addItem('MAT_FOUND_ANTITERM', buaPerFloor,        'sqft');
+  addItem('MAT_FOUND_BACKFILL', excavVol * 0.60,    'cu.m');
+  addItem('MAT_FOUND_FORMWORK', fndConcVol * 2.8,   'sq.m');
 
-  // ── CAT_02: RCC Superstructure ─────────────────────────────────────────────
-  const cRate  = ds.floorCementCoeff[floorTier];
-  const sRate  = ds.floorSteelCoeff[floorTier];
-  const isHighRise = numFloors > 15;
+  // ── CAT_02: Superstructure ───────────────────────────────────────────────
+  const isPEB = sys === 'Steel';
+  if (isPEB) {
+    // PEB structural steel: ~4.6 - 6.0 kg/sqft for complete portal frames, crane girders, purlins, bracings
+    const pebSteelKgPerSqft = isIndustrial ? (numFloors > 1 ? 5.2 : 4.6) : 6.0;
+    addItem('MAT_STEEL_STRUCT', totalBuaSqft * pebSteelKgPerSqft, 'kg', true, 'Structural PEB Steel (Portals, Purlins, Sag Rods)');
+    if (numFloors > 1) {
+      const mezzSqft = buaPerFloor * (numFloors - 1);
+      addItem('MAT_RCC_CEMENT', mezzSqft * 0.35, 'bags (50kg)');
+      addItem('MAT_RCC_STEEL',  mezzSqft * 3.6,  'kg');
+    }
+  } else {
+    const cRate = ds.floorCementCoeff[floorTier];
+    const sRate = ds.floorSteelCoeff[floorTier];
+    const isHighRise = numFloors >= 8;
+    const indLiveLoadMult = (isIndustrial && sys === 'RCC_Frame') ? 1.20 : 1.0;
 
-  const cQty   = round2(cRate * totalBuaSqft * structM.cm);
-  const sQty   = round2(sRate * totalBuaSqft * structM.sm * seismicM);
-  const sandQty= round2(cQty * 1.42);
-  const aggQty = round2(cQty * 2.85);
+    const cQty    = Math.round(cRate * totalBuaSqft * structM.cm * indLiveLoadMult * 100) / 100;
+    const sQty    = Math.round(sRate * totalBuaSqft * structM.sm * seismicM * indLiveLoadMult * 100) / 100;
+    const sandQty = Math.round(cQty * 1.42 * 100) / 100;
+    const aggQty  = Math.round(cQty * 2.85 * 100) / 100;
 
-  items.push(li('MAT_RCC_CEMENT',       cQty,                          'bags (50kg)', ds, qt, ri));
-  items.push(li(isHighRise ? 'MAT_RCC_STEEL_550D' : 'MAT_RCC_STEEL',
-                sQty,                                                    'kg',         ds, qt, ri));
-  items.push(li('MAT_RCC_SAND',         sandQty,                        'cu.ft',      ds, qt, ri));
-  items.push(li('MAT_RCC_AGGREGATE_20MM', aggQty,                       'cu.ft',      ds, qt, ri));
-  items.push(li('MAT_RCC_FORMWORK',     totalBuaSqft * 0.095,           'sq.m',       ds, qt, ri));
-  items.push(li('MAT_RCC_SLAB_FORM',   totalBuaSqft * 0.085,           'sq.m',       ds, qt, ri));
-  items.push(li('MAT_RCC_BINDING_WIRE', (sQty / 1000) * 11,            'kg',         ds, qt, ri));
-  items.push(li('MAT_RCC_ADMIX',        cQty * 0.014,                  'litres',     ds, qt, ri));
-  items.push(li('MAT_RCC_SPACERS',      totalBuaSqft * 0.8,            'units',      ds, qt, ri));
-  if (sys === 'Steel') {
-    items.push(li('MAT_STEEL_STRUCT', totalBuaSqft * 12, 'kg', ds, qt, ri, true, 'Structural steel — varies with span and loading'));
+    addItem('MAT_RCC_CEMENT',         cQty,                     'bags (50kg)');
+    addItem(isHighRise ? 'MAT_RCC_STEEL_550D' : 'MAT_RCC_STEEL', sQty, 'kg');
+    addItem('MAT_RCC_SAND',           sandQty,                  'cu.ft');
+    addItem('MAT_RCC_AGGREGATE_20MM', aggQty,                   'cu.ft');
+    addItem('MAT_RCC_FORMWORK',       totalBuaSqft * 0.095,     'sq.m');
+    addItem('MAT_RCC_SLAB_FORM',      totalBuaSqft * 0.085,     'sq.m');
+    addItem('MAT_RCC_BINDING_WIRE',   (sQty / 1000) * 11,       'kg');
+    addItem('MAT_RCC_ADMIX',          cQty * 0.014,             'litres');
+    addItem('MAT_RCC_SPACERS',        totalBuaSqft * 0.8,       'units');
+    if (isHighRise) {
+      // High-strength column and shear wall core concrete (M35-M40 per IS 456 / IS 13920)
+      const colVolPerSqm = numFloors > 15 ? 0.09 : 0.06;
+      const colConcCode = numFloors > 15 ? 'MAT_RCC_HIGH_CONC' : 'MAT_RCC_COL_CONC';
+      addItem(colConcCode, (totalBuaSqft / 10.764) * colVolPerSqm, 'cu.m', true, 'High-strength column/core concrete');
+    }
   }
-  if (isHighRise) {
-    items.push(li('MAT_RCC_HIGH_CONC', totalBuaSqft / 10.764 * 0.25, 'cu.m', ds, qt, ri));
-  }
 
-  // ── CAT_03: Masonry, Plaster & Internal Finishes ──────────────────────────
-  const useAAC    = qt !== 'Economy';
+  // ── CAT_03: Masonry & Internal Plaster ────────────────────────────────────
+  const effectiveWallArea = isPEB && isIndustrial ? wallAreaSqft * 0.35 : wallAreaSqft;
+  const useAAC = qt !== 'Economy';
   const brickCode = useAAC ? 'MAT_MASON_BLOCK' : 'MAT_MASON_BRICK';
   const brickUnit = useAAC ? 'count (AAC)' : 'count (bricks)';
-  const brickCoeff= useAAC ? 2.1 : 9.5;
-  const brickQty  = round2(brickCoeff * wallAreaSqft * structM.mm);
-  const mortarBags= round2((brickQty / 1000) * (useAAC ? 22 : 38));
+  const brickCoeff = useAAC ? 2.1 : 9.5;
+  const brickQty = Math.round(brickCoeff * effectiveWallArea * structM.mm * 100) / 100;
+  // CPWD DSR: 1.8-2.2 bags cement per 1,000 bricks (1:6 mortar); 2.0-2.2 bags adhesive per 1,000 AAC blocks
+  const mortarBags = Math.round((brickQty / 1000) * (useAAC ? 2.2 : 2.0) * 100) / 100;
 
-  items.push(li(brickCode,          brickQty,                          brickUnit,    ds, qt, ri));
-  items.push(li('MAT_MASON_CEMENT', mortarBags,                        'bags',       ds, qt, ri));
-  items.push(li('MAT_MASON_SAND',   mortarBags * 0.6,                 'cu.ft',      ds, qt, ri));
-  items.push(li('MAT_MASON_PARAPET', perimeterFt / 3.28,              'rmt',        ds, qt, ri));
-
-  // Internal plaster
-  const intWall = wallAreaSqft * 1.6; // both sides of walls
-  if (qt === 'Premium') {
-    items.push(li('MAT_PLAST_GYPSUM', intWall, 'sqft', ds, qt, ri));
-  } else {
-    items.push(li('MAT_PLAST_INT', intWall, 'sqft', ds, qt, ri));
-    items.push(li('MAT_PLAST_POP', intWall * 0.5, 'sqft', ds, qt, ri));
+  addItem(brickCode,          brickQty,               brickUnit);
+  addItem('MAT_MASON_CEMENT', mortarBags,             'bags');
+  addItem('MAT_MASON_SAND',   mortarBags * 8.0,       'cu.ft');
+  if (!isPEB) {
+    addItem('MAT_MASON_PARAPET', perimeterFt / 3.28,  'rmt');
   }
-  items.push(li('MAT_PLAST_CEMENT', intWall / 100 * 3.8, 'bags', ds, qt, ri));
 
-  // ── CAT_04: Waterproofing & Chemical ──────────────────────────────────────
+  const intWall = effectiveWallArea * 1.5;
+  if (qt === 'Premium') {
+    addItem('MAT_PLAST_GYPSUM', intWall, 'sqft');
+  } else {
+    addItem('MAT_PLAST_INT', intWall, 'sqft');
+    if (!isIndustrial) {
+      addItem('MAT_PLAST_POP', intWall * 0.5, 'sqft');
+    }
+  }
+  addItem('MAT_PLAST_CEMENT', (intWall / 100) * 3.5, 'bags');
+
+  // ── CAT_04: Waterproofing & Chemical Treatment ────────────────────────────
   const wpCode = qt === 'Economy' ? 'MAT_WP_IPS' : qt === 'Premium' ? 'MAT_WP_CRYS' : 'MAT_WP_LIQ_PU';
-  items.push(li(wpCode,              terraceArea * 1.08,                'sqft', ds, qt, ri));
-  items.push(li('MAT_WP_BATH',       rc.bathrooms * 80,                'sqft', ds, qt, ri));
-  items.push(li('MAT_WP_KITCH',      rc.kitchens  * 55,                'sqft', ds, qt, ri));
-  items.push(li('MAT_WP_EXPANSION',  perimeterFt / 3.28,               'rmt',  ds, qt, ri, true, 'Expansion joints per perimeter'));
-  items.push(li('MAT_ANTITERM_CHEMICAL', buaPerFloor / 100 * 1.5,     'litres', ds, qt, ri));
+  addItem(wpCode, terraceArea * 1.05, 'sqft');
+  if (rc.bathrooms > 0) addItem('MAT_WP_BATH', rc.bathrooms * 55, 'sqft');
+  if (rc.kitchens > 0)  addItem('MAT_WP_KITCH', rc.kitchens * 35,  'sqft');
+  if (!isPEB) {
+    addItem('MAT_WP_EXPANSION', perimeterFt / 3.28, 'rmt', true, 'Expansion joints');
+  }
+  addItem('MAT_ANTITERM_CHEMICAL', (buaPerFloor / 100) * 1.2, 'litres');
   if (bi.soilType === 'Waterlogged-prone' || bi.foundationType === 'Raft') {
-    items.push(li('MAT_WP_BASEMENT', buaPerFloor * 1.2, 'sqft', ds, qt, ri, true, 'Basement tanking required — waterlogged/raft foundation'));
+    addItem('MAT_WP_BASEMENT', buaPerFloor * 1.1, 'sqft', true, 'Basement tanking');
   }
 
   // ── CAT_05: Roofing & False Ceiling ───────────────────────────────────────
-  items.push(li('MAT_ROOF_TERRACE', terraceArea * 1.08, 'sqft', ds, qt, ri));
-
-  // False ceiling
-  const ceilArea = bi.typology === 'Commercial' || bi.typology === 'Institutional'
-    ? totalBuaSqft : totalBuaSqft * 0.80;
-  const ceilCode = qt === 'Economy' ? 'MAT_CEIL_POP'
-    : qt === 'Premium' ? (bi.typology === 'Commercial' ? 'MAT_CEIL_ACOU' : 'MAT_CEIL_GYPS')
-    : 'MAT_CEIL_POP';
-  if (qt !== 'Economy' || bi.typology === 'Commercial') {
-    items.push(li(ceilCode, ceilArea, 'sqft', ds, qt, ri));
+  if (isPEB || isIndustrial) {
+    addItem('MAT_ROOF_GI_SHEET', terraceArea * 1.05, 'sqft', false, 'Galvalume Trapezoidal Roof Sheeting (0.50mm)');
+  } else {
+    addItem('MAT_ROOF_TERRACE',  terraceArea * 1.05, 'sqft');
   }
-  if (bi.typology === 'Commercial' && qt === 'Premium') {
-    items.push(li('MAT_CEIL_WOODEN', ceilArea * 0.20, 'sqft', ds, qt, ri, true, 'Feature wooden ceiling in lobby/lounge'));
+
+  if (!isIndustrial) {
+    const ceilArea = isCommercial || isInstitutional ? totalBuaSqft * 0.75 : totalBuaSqft * 0.60;
+    const ceilCode = qt === 'Economy' ? 'MAT_CEIL_POP'
+      : qt === 'Premium' ? (isCommercial ? 'MAT_CEIL_ACOU' : 'MAT_CEIL_GYPS')
+      : 'MAT_CEIL_POP';
+    if (qt !== 'Economy' || isCommercial || isInstitutional) {
+      addItem(ceilCode, ceilArea, 'sqft');
+    }
   }
 
   // ── CAT_06: Doors, Windows & Glazing ──────────────────────────────────────
-  const winCode  = qt === 'Economy' ? 'MAT_WIN_ALUM' : qt === 'Premium' ? 'MAT_WIN_THERMBREAK' : 'MAT_WIN_UPVC';
+  const winCode = qt === 'Economy' ? 'MAT_WIN_ALUM' : qt === 'Premium' ? 'MAT_WIN_THERMBREAK' : 'MAT_WIN_UPVC';
   const doorCode = qt === 'Economy' ? 'MAT_DOOR_FLUSH' : qt === 'Premium' ? 'MAT_DOOR_PANEL' : 'MAT_DOOR_FLUSH';
-  const winSqft  = rc.windows * 16;
+  const winSqft = rc.windows * (isInstitutional ? 22 : 15);
 
-  items.push(li(doorCode,            rc.doors,                         'units', ds, qt, ri));
-  items.push(li('MAT_DOOR_FRAME',    rc.doors,                         'units', ds, qt, ri));
-  items.push(li('MAT_DOOR_HARDWARE', rc.doors,                         'sets',  ds, qt, ri));
-  items.push(li(winCode,             winSqft,                          'sqft',  ds, qt, ri));
-  items.push(li('MAT_WIN_HARDWARE',  rc.windows,                       'sets',  ds, qt, ri));
-  if (qt === 'Economy') items.push(li('MAT_GRILLE', winSqft, 'sqft', ds, qt, ri));
-  if (qt === 'Premium') items.push(li('MAT_WIN_GLASS_DBLE', winSqft * 0.60, 'sqft', ds, qt, ri));
-
-  // Fire exits (required by NBC 2016 for 4+ floors)
-  if (numFloors >= 4) {
-    const fireExits = Math.max(1, Math.ceil(numFloors / 8));
-    items.push(li('MAT_DOOR_FIRE_RATED', fireExits * 2, 'units', ds, qt, ri, false, 'NBC 2016 compliance — fire exit doors'));
+  addItem(doorCode, rc.doors, 'units');
+  addItem('MAT_DOOR_FRAME', rc.doors, 'units');
+  addItem('MAT_DOOR_HARDWARE', rc.doors, 'sets');
+  addItem(winCode, winSqft, 'sqft');
+  addItem('MAT_WIN_HARDWARE', rc.windows, 'sets');
+  if (qt === 'Economy' && !isIndustrial) addItem('MAT_GRILLE', winSqft, 'sqft');
+  if (numFloors >= 4 || isInstitutional) {
+    const fireExits = Math.max(1, Math.ceil(numFloors / 6));
+    addItem('MAT_DOOR_FIRE_RATED', fireExits * 2, 'units', false, 'Fire exit doors');
   }
 
-  // ── CAT_07: Electrical & Low-Voltage ──────────────────────────────────────
-  const ptFactor  = bi.typology === 'Industrial' ? 2.2 : bi.typology === 'Commercial' ? 1.8 : 1.0;
-  const elecPoints= round2((totalBuaSqft / 80) * ptFactor);
+  // ── CAT_07: Electrical & Low-Voltage Systems ──────────────────────────────
+  const ptFactor = isIndustrial ? 1.2 : isCommercial ? 1.4 : isInstitutional ? 1.3 : 1.0;
+  const elecPoints = Math.round((totalBuaSqft / 85) * ptFactor);
 
-  items.push(li('MAT_ELEC_POINT',     elecPoints,                       'points', ds, qt, ri));
-  items.push(li('MAT_ELEC_DB_FLOOR',  Math.ceil(numFloors),             'units',  ds, qt, ri));
-  items.push(li('MAT_ELEC_DB_MAIN',   1,                                'units',  ds, qt, ri));
-  items.push(li('MAT_ELEC_MCB',       elecPoints * 0.6,                 'units',  ds, qt, ri));
-  items.push(li('MAT_ELEC_RCCB',      Math.ceil(elecPoints / 10),       'units',  ds, qt, ri));
-  items.push(li('MAT_ELEC_SWITCH_MOD',elecPoints * 0.8,                 'plates', ds, qt, ri));
-  items.push(li('MAT_ELEC_SOCKET_16A',rc.bathrooms + rc.kitchens * 2,  'units',  ds, qt, ri));
-  items.push(li('MAT_ELEC_EARTHING',  2,                                'sets',   ds, qt, ri));
-  items.push(li('MAT_ELEC_WIRE_2_5',  totalBuaSqft * 0.22 * 3.28,      'metres', ds, qt, ri));
-  items.push(li('MAT_ELEC_WIRE_1_5',  totalBuaSqft * 0.18 * 3.28,      'metres', ds, qt, ri));
-  items.push(li('MAT_ELEC_CONDUIT_25',totalBuaSqft * 0.15 * 3.28,      'metres', ds, qt, ri));
+  addItem('MAT_ELEC_POINT', elecPoints, 'points');
+  addItem('MAT_ELEC_DB_FLOOR', Math.ceil(numFloors), 'units');
+  addItem('MAT_ELEC_DB_MAIN', 1, 'units');
+  addItem('MAT_ELEC_MCB', elecPoints * 0.4, 'units');
+  addItem('MAT_ELEC_RCCB', Math.ceil(elecPoints / 12), 'units');
+  addItem('MAT_ELEC_SWITCH_MOD', elecPoints * 0.5, 'plates');
+  addItem('MAT_ELEC_SOCKET_16A', rc.bathrooms + rc.kitchens * 2 + (isInstitutional ? 8 : 0), 'units');
+  addItem('MAT_ELEC_EARTHING', 2, 'sets');
+  addItem('MAT_ELEC_WIRE_2_5', totalBuaSqft * 0.08 * 3.28, 'metres');
+  addItem('MAT_ELEC_WIRE_1_5', totalBuaSqft * 0.06 * 3.28, 'metres');
+  addItem('MAT_ELEC_CONDUIT_25', totalBuaSqft * 0.05 * 3.28, 'metres');
 
-  // CCTV — all typologies
-  const cctvCams = Math.ceil(totalBuaSqft / 1000) + (bi.typology !== 'Residential' ? 4 : 0);
-  items.push(li('MAT_ELEC_CCTV', cctvCams, 'cameras', ds, qt, ri, false, 'IP cameras — zones per IS 16616'));
+  const cctvCams = Math.ceil(totalBuaSqft / 2500) + (!isResidential ? 3 : 0);
+  addItem('MAT_ELEC_CCTV', cctvCams, 'cameras');
 
-  // Fire alarm — mandatory NBC 2016 for G+3 and above
-  if (numFloors >= 3 || bi.typology !== 'Residential') {
-    const detectors = Math.ceil(totalBuaSqft / 600);
-    items.push(li('MAT_ELEC_FIRE_ALARM', detectors, 'detectors', ds, qt, ri));
+  if ((isResidential && numFloors >= 5) || (!isResidential && numFloors >= 2)) {
+    const detectors = Math.ceil(totalBuaSqft / 800);
+    addItem('MAT_ELEC_FIRE_ALARM', detectors, 'detectors');
   }
 
-  // DG set — per IS 1646, NBC 2016 Part 8 Sec 2 and CPWD norms:
-  // Residential: 2.5 kVA/1,000 sqft BUA for basic common loads (lifts, pumps, common lighting),
-  // 4.0 kVA/1,000 sqft for Premium (essential flat loads).
-  // Commercial/Institutional: 4.0 kVA/1,000 sqft (Standard) to 6.0 kVA/1,000 sqft (Premium).
-  // Industrial: 5.0 kVA/1,000 sqft. Sized to commercial DG steps with realistic minimums.
-  if (numFloors >= 4 || bi.typology !== 'Residential') {
-    let kvaPer1000 = 2.5;
-    let minKva = 15;
-    if (bi.typology === 'Residential') {
-      kvaPer1000 = qt === 'Premium' ? 4.0 : 2.5;
-      minKva = 15;
-    } else if (bi.typology === 'Commercial' || bi.typology === 'Institutional') {
-      kvaPer1000 = qt === 'Premium' ? 6.0 : 4.0;
-      minKva = 25;
-    } else {
-      kvaPer1000 = 5.0;
-      minKva = 30;
-    }
+  // DG Set — common backup for multi-storey, non-residential, or healthcare/hospitals
+  const isHealthcare = u.includes('hospital') || u.includes('clinic') || u.includes('medical') || u.includes('pharma');
+  if (numFloors >= 4 || isHealthcare || (!isResidential && totalBuaSqft > 12000)) {
+    let kvaPer1000 = isResidential ? (qt === 'Premium' ? 2.5 : 1.8)
+                   : isCommercial ? (qt === 'Premium' ? 3.5 : 2.5)
+                   : isInstitutional ? 2.2 : 2.5;
+    const minKva = isResidential ? 15 : isHealthcare ? 30 : 25;
     const rawKva = Math.ceil(totalBuaSqft / 1000) * kvaPer1000;
-    const dgKva = Math.max(minKva, Math.ceil(rawKva / 5) * 5); // Round to nearest 5 kVA step
-    items.push(li('MAT_ELEC_GENSET', dgKva, 'kVA', ds, qt, ri, true, `DG set (${dgKva} kVA) — backup sizing per NBC 2016 / IS 1646 load norms`));
+    const dgKva = Math.max(minKva, Math.ceil(rawKva / 5) * 5);
+    addItem('MAT_ELEC_GENSET', dgKva, 'kVA', true, `DG set (${dgKva} kVA)`);
   }
 
-  // Video door phone
-  items.push(li('MAT_ELEC_INTERCOM', Math.max(1, rc.units), 'units', ds, qt, ri));
+  if (isResidential) {
+    addItem('MAT_ELEC_INTERCOM', Math.max(1, rc.units), 'units');
+  }
 
-  // High-rise: rising main bus duct
   if (numFloors >= 8) {
-    items.push(li('MAT_ELEC_BUSDUCT', bi.heightFt * 0.3048, 'metres', ds, qt, ri, true, 'Rising main for high-rise power distribution'));
-    items.push(li('MAT_ELEC_CABLE_TRAY', bi.heightFt * 0.3048 * 2, 'metres', ds, qt, ri));
+    addItem('MAT_ELEC_BUSDUCT', bi.heightFt * 0.3048, 'metres', true, 'Rising main');
   }
 
-  // Solar — Premium or if BUA > 5000 sqft
-  if (qt === 'Premium' || totalBuaSqft > 5000) {
-    const solarKw  = Math.min(Math.floor(buaPerFloor / 200), 50); // up to 50kW
-    const solarWp  = solarKw * 1000;
-    items.push(li('MAT_ELEC_SOLAR_PANEL', solarWp, 'Wp', ds, qt, ri, true, 'Rooftop solar — size per NBC 2016 energy norm'));
-    items.push(li('MAT_ELEC_SOLAR_INV',  solarKw,  'kW', ds, qt, ri));
+  // Solar (Only if Premium or specifically green, not forced on economy industrial sheds)
+  if (qt === 'Premium' || (totalBuaSqft > 25000 && !isIndustrial)) {
+    const solarKw = Math.min(Math.floor(buaPerFloor / 400), 30);
+    if (solarKw > 0) {
+      addItem('MAT_ELEC_SOLAR_PANEL', solarKw * 1000, 'Wp', true, 'Rooftop solar');
+      addItem('MAT_ELEC_SOLAR_INV', solarKw, 'kW');
+    }
   }
 
   // ── CAT_08: Plumbing, Sanitary & STP ──────────────────────────────────────
-  const wcCode   = qt === 'Premium' ? 'MAT_PLUMB_EWC' : 'MAT_PLUMB_WC';
+  const wcCode = qt === 'Premium' ? 'MAT_PLUMB_EWC' : 'MAT_PLUMB_WC';
   const pipeCode = qt === 'Economy' ? 'MAT_PLUMB_PIPE_CPVC' : 'MAT_PLUMB_PIPE_PPR';
-  const occupants= rc.units * 3.5;
+  const occupants = Math.max(6, isInstitutional ? Math.round(totalBuaSqft / 150) : rc.units * 4);
 
-  items.push(li(wcCode,               rc.bathrooms,                'units',   ds, qt, ri));
-  items.push(li('MAT_PLUMB_WASH',     rc.bathrooms,                'units',   ds, qt, ri));
-  if (qt !== 'Economy') {
-    items.push(li('MAT_PLUMB_BATH',   rc.bathrooms,                'units',   ds, qt, ri));
+  addItem(wcCode, rc.bathrooms, 'units');
+  addItem('MAT_PLUMB_WASH', rc.bathrooms * (isInstitutional ? 2 : 1), 'units');
+  if (isInstitutional) {
+    addItem('MAT_PLUMB_URINAL', Math.max(2, Math.floor(rc.bathrooms * 0.8)), 'units');
   }
-  if (qt === 'Premium') {
-    items.push(li('MAT_PLUMB_BATHTUB', Math.ceil(rc.units * 0.5), 'units', ds, qt, ri, true, 'Master bath — indicative count'));
+  if (qt !== 'Economy' && isResidential) {
+    addItem('MAT_PLUMB_BATH', rc.bathrooms, 'units');
   }
-  items.push(li('MAT_PLUMB_SINK_SS',  rc.kitchens,                 'units',   ds, qt, ri));
-  items.push(li('MAT_PLUMB_FAUCET_BASIN', rc.bathrooms,           'units',   ds, qt, ri));
-  items.push(li('MAT_PLUMB_FAUCET_BATH',  rc.bathrooms,           'units',   ds, qt, ri));
-  items.push(li('MAT_PLUMB_FAUCET_KITCH', rc.kitchens,            'units',   ds, qt, ri));
-  items.push(li(pipeCode,             (rc.bathrooms + rc.kitchens) * 18, 'metres', ds, qt, ri));
-  items.push(li('MAT_PLUMB_PIPE_PVC', (rc.bathrooms + rc.kitchens) * 14, 'metres', ds, qt, ri));
-  items.push(li('MAT_PLUMB_GULLY',    rc.bathrooms + rc.kitchens,  'units',   ds, qt, ri));
-  items.push(li('MAT_PLUMB_TANK_OHT', occupants * 165,             'litres',  ds, qt, ri));
-  items.push(li('MAT_PLUMB_TANK_SUMP',occupants * 900,             'litres',  ds, qt, ri, true, 'Sizing depends on municipal supply hours'));
-  items.push(li('MAT_PLUMB_PUMP_BOOSTER', 1,                       'set',     ds, qt, ri));
+  if (rc.kitchens > 0) {
+    addItem('MAT_PLUMB_SINK_SS', rc.kitchens, 'units');
+    addItem('MAT_PLUMB_FAUCET_KITCH', rc.kitchens, 'units');
+  }
+  addItem('MAT_PLUMB_FAUCET_BASIN', rc.bathrooms * (isInstitutional ? 2 : 1), 'units');
+  addItem('MAT_PLUMB_FAUCET_BATH', rc.bathrooms, 'units');
+  addItem(pipeCode, (rc.bathrooms + rc.kitchens) * 14, 'metres');
+  addItem('MAT_PLUMB_PIPE_PVC', (rc.bathrooms + rc.kitchens) * 11, 'metres');
+  addItem('MAT_PLUMB_GULLY', rc.bathrooms + rc.kitchens, 'units');
+  addItem('MAT_PLUMB_TANK_OHT', Math.max(1500, occupants * 120), 'litres');
+  addItem('MAT_PLUMB_TANK_SUMP', Math.max(4000, occupants * 450), 'litres', true, 'Underground sump');
+  addItem('MAT_PLUMB_PUMP_BOOSTER', 1, 'set');
 
-  // STP — required for > 50 occupants (municipal norms)
-  if (occupants > 50 || (bi.typology !== 'Residential' && numFloors >= 3)) {
-    const stpKld = Math.ceil(occupants * 90 / 1000); // 90 lpcd
-    items.push(li('MAT_PLUMB_STP', stpKld, 'KLD', ds, qt, ri, true, 'MBR STP — RERA/municipal compliance'));
-    items.push(li('MAT_PLUMB_PUMP_SEWAGE', 1, 'set', ds, qt, ri));
-  }
-
-  // Solar water heater — Standard and Premium
-  if (qt !== 'Economy' && bi.typology === 'Residential') {
-    const hwsUnits = Math.ceil(rc.units * 0.5);
-    items.push(li('MAT_PLUMB_SOLAR_HWS', hwsUnits, 'units', ds, qt, ri, true, '200 LPD per unit — BNBC 2016 green norm'));
+  if (occupants > 80 || (!isResidential && numFloors >= 4 && totalBuaSqft > 30000)) {
+    const stpKld = Math.ceil((occupants * 90) / 1000);
+    addItem('MAT_PLUMB_STP', stpKld, 'KLD', true, 'MBR STP');
   }
 
-  // PNG gas — metro cities
-  if (qt === 'Standard' || qt === 'Premium') {
-    items.push(li('MAT_PLUMB_GAS_PIPE', rc.kitchens * 12, 'metres', ds, qt, ri, true, 'PNG gas — if available in city'));
+  // ── CAT_09: Flooring & Tiling ─────────────────────────────────────────────
+  if (isIndustrial) {
+    // Heavy-duty VDF / Tremix RCC floor slab (150mm thick M25 + hardener)
+    addItem('MAT_FLOOR_IPS', totalBuaSqft, 'sqft', true, 'Heavy-duty Trimix / VDF Concrete Floor');
+    if (qt === 'Premium' || u.includes('pharma') || u.includes('clean') || u.includes('cold')) {
+      addItem('MAT_FLOOR_EPOXY', totalBuaSqft * 0.70, 'sqft', true, 'Epoxy Floor Coating');
+    }
+  } else {
+    const mainFloorCode =
+      qt === 'Economy' ? (isCommercial ? 'MAT_FLOOR_VIT' : 'MAT_FLOOR_CER') :
+      qt === 'Premium' ? (isCommercial ? 'MAT_FLOOR_GRANITE' : 'MAT_FLOOR_MARBLE_IND') :
+      'MAT_FLOOR_VIT';
+    const wastage = 1.05;
+
+    addItem(mainFloorCode, totalBuaSqft * wastage, 'sqft');
+    addItem('MAT_FLOOR_MORTAR', totalBuaSqft * 0.90, 'sqft');
+    addItem('MAT_FLOOR_SKIRTING', perimeterFt * numFloors * 0.70, 'rft');
+    if (rc.bathrooms > 0) addItem('MAT_FLOOR_DADO_BATH', rc.bathrooms * 60, 'sqft');
+    if (rc.kitchens > 0) addItem('MAT_FLOOR_DADO_KITCH', rc.kitchens * 25, 'sqft');
+    if (isInstitutional) {
+      addItem('MAT_FLOOR_KOTA', totalBuaSqft * 0.25, 'sqft', false, 'Heavy-duty Kota Stone in corridors & stair landings');
+    }
   }
 
-  // ── CAT_09: Flooring & Tiling ──────────────────────────────────────────────
-  const mainFloorCode =
-    qt === 'Economy'  ? 'MAT_FLOOR_CER' :
-    qt === 'Premium'  ? (bi.typology === 'Commercial' ? 'MAT_FLOOR_GRANITE' : 'MAT_FLOOR_MARBLE_IND') :
-    'MAT_FLOOR_VIT';
-  const wastage = qt === 'Economy' ? 1.10 : qt === 'Premium' ? 1.06 : 1.08;
-
-  items.push(li(mainFloorCode,         totalBuaSqft * wastage,          'sqft', ds, qt, ri));
-  items.push(li('MAT_FLOOR_MORTAR',    totalBuaSqft * 0.95,             'sqft', ds, qt, ri));
-  items.push(li('MAT_FLOOR_SKIRTING',  perimeterFt * numFloors * 0.85,  'rft',  ds, qt, ri));
-  items.push(li('MAT_FLOOR_DADO_BATH', rc.bathrooms * 80,               'sqft', ds, qt, ri));
-  items.push(li('MAT_FLOOR_DADO_KITCH',rc.kitchens  * 30,               'sqft', ds, qt, ri));
-
-  // Industrial/commercial — epoxy floors
-  if (bi.typology === 'Industrial') {
-    items.push(li('MAT_FLOOR_EPOXY', totalBuaSqft * 0.70, 'sqft', ds, qt, ri, true, 'Epoxy screed — industrial floor finish'));
+  // Industrial manufacturing / Pharma cleanroom additions
+  if (isIndustrial) {
+    if (u.includes('auto') || u.includes('manufacturing') || u.includes('factory')) {
+      addItem('MAT_FOUND_CONC', (totalBuaSqft / 10.764) * 0.04, 'cu.m', true, 'Heavy equipment machinery foundations');
+      addItem('MAT_STEEL_STRUCT', totalBuaSqft * 1.8, 'kg', true, 'EOT crane runway beams & brackets');
+    }
+    if (u.includes('pharma') || u.includes('electronics') || u.includes('assembly') || u.includes('clean')) {
+      addItem('MAT_CEIL_GRID', totalBuaSqft * 0.50, 'sqft', true, 'Cleanroom modular walk-on ceiling grid');
+      addItem('MAT_FLOOR_EPOXY', totalBuaSqft * 0.50, 'sqft', true, 'Anti-static ESD Epoxy flooring');
+    }
+    // Loading bay / apron RCC slab for warehouses and agro facilities
+    if (u.includes('warehouse') || u.includes('storage') || u.includes('agro') || u.includes('logistics')) {
+      addItem('MAT_FLOOR_IPS', buaPerFloor * 0.15, 'sqft', true, 'External loading bay & dock apron');
+    }
   }
 
-  // Premium: imported marble for lobbies/common areas
-  if (qt === 'Premium' && bi.typology !== 'Industrial') {
-    items.push(li('MAT_FLOOR_MARBLE_IMP', totalBuaSqft * 0.08, 'sqft', ds, qt, ri, true, 'Premium imported marble — lobby/foyer areas'));
-  }
-
-  // ── CAT_10: Wall Finishing & Painting ──────────────────────────────────────
-  const intWallArea = wallAreaSqft * 0.80;
+  // ── CAT_10: Wall Finishing & Painting ─────────────────────────────────────
+  const intWallArea = effectiveWallArea * 0.75;
   const extWallArea = facadeAreaSqft;
-  const paintCode   = qt === 'Economy' ? 'MAT_PAINT_DISTEM' : 'MAT_PAINT_INT_EMU';
-  const litresInt   = qt === 'Economy'
-    ? round2(intWallArea / 100 * 22)
-    : round2((intWallArea / 120) * 2);
-  const extLitres   = round2((extWallArea / 95) * 2);
+  const paintCode = qt === 'Economy' ? 'MAT_PAINT_DISTEM' : 'MAT_PAINT_INT_EMU';
+  const litresInt = qt === 'Economy' ? Math.round((intWallArea / 100) * 16) : Math.round((intWallArea / 130) * 2);
+  const extLitres = Math.round((extWallArea / 100) * 2);
 
-  items.push(li(paintCode,           litresInt,                         qt === 'Economy' ? 'kg' : 'litres', ds, qt, ri));
-  items.push(li('MAT_PAINT_PRIMER',  intWallArea / 100 * 3.8,          'litres', ds, qt, ri));
-  items.push(li('MAT_PAINT_PUTTY',   intWallArea / 100 * 22,           'kg',     ds, qt, ri));
-  items.push(li('MAT_PAINT_EXT_EMU', extLitres,                        'litres', ds, qt, ri));
-  if (qt === 'Premium') {
-    items.push(li('MAT_PAINT_INT_LUSTER', intWallArea * 0.30 / 120 * 2, 'litres', ds, qt, ri, true, 'Feature walls — semi-gloss'));
-    items.push(li('MAT_PAINT_EXT_ELAST', extLitres * 0.40, 'litres', ds, qt, ri, true, 'Elastomeric coat over textured areas'));
+  addItem(paintCode, litresInt, qt === 'Economy' ? 'kg' : 'litres');
+  addItem('MAT_PAINT_PRIMER', (intWallArea / 100) * 3.0, 'litres');
+  addItem('MAT_PAINT_PUTTY', (intWallArea / 100) * 16, 'kg');
+  if (!isPEB || !isIndustrial) {
+    addItem('MAT_PAINT_EXT_EMU', extLitres, 'litres');
   }
 
   // ── CAT_11: Modular Kitchen, Joinery & Woodwork ───────────────────────────
-  const kitchLft  = rc.kitchens * Math.sqrt(80) * 2.6;
-  const kitchCode = qt === 'Economy' ? 'MAT_WOOD_KITCH_ECO' : qt === 'Premium' ? 'MAT_WOOD_KITCH_PREM' : 'MAT_WOOD_KITCH';
-  items.push(li(kitchCode,           round2(kitchLft),                  'linear ft', ds, qt, ri));
-
-  const carpFactor = qt === 'Economy' ? 0.15 : qt === 'Premium' ? 0.30 : 0.20;
-  items.push(li('MAT_WOOD_CARPEN',   round2(totalBuaSqft * carpFactor), 'sqft',      ds, qt, ri));
-  items.push(li('MAT_WOOD_POLISH',   round2(totalBuaSqft * carpFactor * 0.8), 'sqft', ds, qt, ri));
-
-  if (qt !== 'Economy') {
-    const bedrooms = Math.max(1, Math.floor(rc.bathrooms * 1.2));
-    const wardrobeCode = qt === 'Premium' ? 'MAT_WOOD_WARDROBE_PREM' : 'MAT_WOOD_WARDROBE';
-    items.push(li(wardrobeCode,      bedrooms,                          'units',  ds, qt, ri));
-    items.push(li('MAT_WOOD_LOFT',   rc.kitchens * 8 + bedrooms * 4,  'rft',    ds, qt, ri));
-    items.push(li('MAT_WOOD_TV_UNIT', rc.units,                        'units',  ds, qt, ri, true, 'One per flat/unit'));
-  }
-  if (qt === 'Premium') {
-    items.push(li('MAT_WOOD_PANEL',  round2(totalBuaSqft * 0.12),      'sqft',   ds, qt, ri));
-    items.push(li('MAT_WOOD_POOJA_MANDIR', rc.units,                   'units',  ds, qt, ri, true, 'For residential — pooja unit per flat'));
+  if (isResidential) {
+    if (rc.kitchens > 0) {
+      const kitchLft = rc.kitchens * 16;
+      const kitchCode = qt === 'Economy' ? 'MAT_WOOD_KITCH_ECO' : qt === 'Premium' ? 'MAT_WOOD_KITCH_PREM' : 'MAT_WOOD_KITCH';
+      addItem(kitchCode, kitchLft, 'linear ft');
+    }
+    const bedrooms = isSingleDwelling ? (rc.bathrooms > 1 ? rc.bathrooms - 1 : 1) : Math.max(1, Math.floor(rc.bathrooms * 0.8));
+    if (qt !== 'Economy') {
+      const wardrobeCode = qt === 'Premium' ? 'MAT_WOOD_WARDROBE_PREM' : 'MAT_WOOD_WARDROBE';
+      addItem(wardrobeCode, bedrooms, 'units');
+      addItem('MAT_WOOD_LOFT', rc.kitchens * 6 + bedrooms * 3, 'rft');
+      addItem('MAT_WOOD_TV_UNIT', rc.units, 'units', true, 'TV unit');
+    }
+    const carpFactor = qt === 'Economy' ? 0.02 : qt === 'Premium' ? 0.04 : 0.025;
+    addItem('MAT_WOOD_CARPEN', Math.round(totalBuaSqft * carpFactor), 'sqft');
+  } else if (isCommercial || isInstitutional) {
+    const carpFactor = qt === 'Premium' ? 0.02 : 0.01;
+    addItem('MAT_WOOD_CARPEN', Math.round(totalBuaSqft * carpFactor), 'sqft');
   }
 
   // ── CAT_12: Exterior Finishing & Cladding ─────────────────────────────────
   const facade = bi.facadeType ?? 'Conventional';
-  items.push(li('MAT_PLAST_EXT', facadeAreaSqft, 'sqft', ds, qt, ri));
-
   if (facade === 'Curtain_Wall') {
     const cwCode = qt === 'Premium' ? 'MAT_EXT_CURTWALL_UHV' : 'MAT_EXT_CURTWALL';
-    items.push(li(cwCode,            facadeAreaSqft * 0.85,             'sqft', ds, qt, ri));
+    // Glazing covers 65% of facade, rest is spandrel/columns
+    addItem(cwCode, facadeAreaSqft * 0.65, 'sqft');
+    addItem('MAT_EXT_PAINT', facadeAreaSqft * 0.35, 'sqft');
   } else if (facade === 'ACP_Cladding') {
-    items.push(li('MAT_EXT_CLADDING_ACP', facadeAreaSqft * 0.60,       'sqft', ds, qt, ri));
-    items.push(li('MAT_EXT_PAINT',        facadeAreaSqft * 0.40,       'sqft', ds, qt, ri));
-  } else {
-    const extCode = qt === 'Premium' ? 'MAT_EXT_TEXTURE' : 'MAT_EXT_PAINT';
-    items.push(li(extCode,           facadeAreaSqft,                    'sqft', ds, qt, ri));
+    addItem('MAT_EXT_CLADDING_ACP', facadeAreaSqft * 0.45, 'sqft');
+    addItem('MAT_EXT_PAINT', facadeAreaSqft * 0.55, 'sqft');
+  } else if (!isPEB || !isIndustrial) {
+    addItem('MAT_EXT_PAINT', facadeAreaSqft, 'sqft');
     if (qt === 'Premium') {
-      items.push(li('MAT_EXT_STONE_CLADDING', facadeAreaSqft * 0.15, 'sqft', ds, qt, ri, true, 'Feature stone cladding — podium + lobby'));
+      addItem('MAT_EXT_STONE_CLADDING', facadeAreaSqft * 0.10, 'sqft', true, 'Stone cladding');
     }
+  } else {
+    // PEB Industrial shed wall cladding for upper 65% (lower 35% is masonry dado)
+    addItem('MAT_ROOF_GI_SHEET', facadeAreaSqft * 0.65, 'sqft', false, 'Color-coated Wall Cladding Sheeting (0.50mm)');
+    addItem('MAT_EXT_PAINT', facadeAreaSqft * 0.35, 'sqft');
   }
 
-  // Boundary wall & external works (if plot area given)
   const plotSide = bi.plotAreaSqft > 0 ? Math.sqrt(bi.plotAreaSqft) : 0;
-  if (plotSide > 30) {
+  if (plotSide > 25 && (isSingleDwelling || totalBuaSqft < 10000)) {
     const boundaryRmt = (plotSide * 4) / 3.28;
-    items.push(li('MAT_EXT_BOUNDARY_WALL', boundaryRmt, 'rmt',  ds, qt, ri, true, 'Perimeter compound wall — site-specific'));
-    items.push(li('MAT_EXT_GATE_MAIN',     1,            'unit', ds, qt, ri, true, 'One main motorised gate'));
-    const drivewaySqft = Math.min(plotSide * 15, 2000);
-    items.push(li('MAT_EXT_PAVING',        drivewaySqft, 'sqft', ds, qt, ri, true, 'Driveway / approach road paving'));
-    if (qt !== 'Economy') {
-      const landscapeSqft = Math.max(0, bi.plotAreaSqft - totalBuaSqft - drivewaySqft);
-      if (landscapeSqft > 200) {
-        items.push(li('MAT_EXT_LANDSCAPE', landscapeSqft * 0.6, 'sqft', ds, qt, ri, true, 'Soft landscaping — turfing & planting'));
-      }
-    }
+    addItem('MAT_EXT_BOUNDARY_WALL', boundaryRmt, 'rmt', true, 'Compound wall');
+    addItem('MAT_EXT_GATE_MAIN', 1, 'unit', true, 'Main gate');
+    addItem('MAT_EXT_PAVING', Math.min(plotSide * 8, 800), 'sqft', true, 'Paving');
   }
 
   // ── CAT_13: Staircase, Railings & Lifts ───────────────────────────────────
-  const numStairs  = bi.numStaircases ?? 1;
-  const stairFloors= numFloors + (bi.parkingLevels ?? 0);
-  const stairConc  : Record<string,number> = { Economy: 1.2, Standard: 1.6, Premium: 2.1 };
-  const stairSteel : Record<string,number> = { Economy: 65,  Standard: 88,  Premium: 115 };
-
-  items.push(li('MAT_STAIR_CONC',  round2(stairConc[qt]  * numStairs * stairFloors), 'cu.m', ds, qt, ri));
-  items.push(li('MAT_STAIR_STEEL', round2(stairSteel[qt] * numStairs * stairFloors), 'kg',   ds, qt, ri));
-
-  const railCode = qt === 'Economy' ? 'MAT_STAIR_RAILING_MS' : qt === 'Premium' ? 'MAT_STAIR_RAILING_GLASS' : 'MAT_STAIR_RAILING_SS';
-  const railRft  : Record<string,number> = { Economy: 18, Standard: 22, Premium: 30 };
-  items.push(li(railCode, round2(railRft[qt] * numStairs * stairFloors), 'rft', ds, qt, ri));
-
-  // Stair treads
-  const treadCode = qt === 'Economy' ? '' : qt === 'Premium' ? 'MAT_STAIR_GRANITE' : 'MAT_STAIR_GRANITE';
-  if (treadCode) {
-    items.push(li(treadCode, round2(numStairs * stairFloors * 12 * 3.5), 'sqft', ds, qt, ri));
+  const numStairs = bi.numStaircases ?? 1;
+  const stairFloors = numFloors + (bi.parkingLevels ?? 0);
+  if (!isPEB || numFloors > 1) {
+    addItem('MAT_STAIR_CONC', 1.4 * numStairs * stairFloors, 'cu.m');
+    addItem('MAT_STAIR_STEEL', 80 * numStairs * stairFloors, 'kg');
+    addItem('MAT_STAIR_RAILING_SS', 18 * numStairs * stairFloors, 'rft');
   }
 
-  // Lifts — required by NBC 2016 for G+3 (residential), G+1 (commercial/accessible)
   const numLifts = bi.numLifts ?? 0;
   if (numLifts > 0) {
-    const liftCode = numFloors <= 5 ? 'MAT_LIFT_HYDRO' : numFloors <= 12 ? 'MAT_LIFT_4P' :
-                     bi.typology === 'Commercial' ? 'MAT_LIFT_13P' : 'MAT_LIFT_8P';
-    items.push(li(liftCode, numLifts, 'units', ds, qt, ri, true, 'Lift supply + installation — IS 14665'));
-  } else if (numFloors >= 4 && bi.typology === 'Residential') {
-    // Auto-suggest 1 lift
-    items.push(li('MAT_LIFT_4P', 1, 'units', ds, qt, ri, true, 'NBC 2016 recommended — 1 lift for G+3 and above'));
-  } else if (numFloors >= 2 && bi.typology !== 'Residential') {
-    items.push(li('MAT_LIFT_4P', Math.max(1, numLifts || 1), 'units', ds, qt, ri, true, 'Lift — commercial accessibility norm'));
+    const liftCode = numFloors <= 4 ? 'MAT_LIFT_HYDRO' : numFloors <= 12 ? 'MAT_LIFT_4P' : numFloors <= 20 ? 'MAT_LIFT_8P' : 'MAT_LIFT_13P';
+    addItem(liftCode, numLifts, 'units', true, 'Passenger lift');
+  } else if (numFloors >= 5 && isResidential) {
+    const autoLifts = Math.max(1, Math.floor(numFloors / 6));
+    addItem(numFloors <= 12 ? 'MAT_LIFT_4P' : numFloors <= 20 ? 'MAT_LIFT_8P' : 'MAT_LIFT_13P', autoLifts, 'units', true, 'Passenger lift');
+  } else if (numFloors >= 3 && (isCommercial || isInstitutional)) {
+    const autoLifts = Math.max(1, Math.floor(numFloors / 5));
+    addItem(numFloors <= 10 ? 'MAT_LIFT_4P' : numFloors <= 18 ? 'MAT_LIFT_8P' : 'MAT_LIFT_13P', autoLifts, 'units', true, 'Passenger lift');
   }
 
   // ── CAT_14: HVAC, Fire Protection & MEP ───────────────────────────────────
   const hvacScope = bi.fireHvacScope ?? 'Not_sure';
-  const bldgUse   = bi.buildingUse.toLowerCase();
-
-  // HVAC
-  if (hvacScope === 'Full_Central' || bi.typology === 'Commercial') {
-    const tons = Math.ceil(totalBuaSqft / 400); // ~400 sqft per ton
-    const hvacCode = bi.typology === 'Commercial' && cls.tier >= 2 ? 'MAT_HVAC_VRF' : 'MAT_HVAC_CENTRAL_AHU';
-    items.push(li(hvacCode, tons, 'tons', ds, qt, ri, true, 'HVAC — full load calculation per ASHRAE 62.1'));
-    items.push(li('MAT_HVAC_DUCT_INSUL', totalBuaSqft * 0.30, 'sqft', ds, qt, ri, true, 'Insulated ducting'));
-    items.push(li('MAT_HVAC_FRESH_AIR',  totalBuaSqft * 0.20, 'sqft', ds, qt, ri, true, 'Fresh air ventilation (IS 3103)'));
-  } else if (hvacScope === 'Basic' || qt !== 'Economy') {
-    const tons = Math.ceil(totalBuaSqft / 550);
-    const splitCode = qt === 'Premium' ? 'MAT_HVAC_CASSET' : 'MAT_HVAC_SPLIT';
-    items.push(li(splitCode, tons, 'tons', ds, qt, ri, true, 'Split AC — indicative tonnage; final per room sizing'));
+  if (hvacScope === 'Full_Central' || u.includes('hotel') || u.includes('pharma') || u.includes('cold storage')) {
+    const tons = Math.ceil(totalBuaSqft / (u.includes('cold') || u.includes('pharma') ? 300 : 400));
+    const hvacCode = isCommercial ? 'MAT_HVAC_VRF' : 'MAT_HVAC_CENTRAL_AHU';
+    addItem(hvacCode, tons, 'tons', true, 'Central / VRF HVAC');
+    addItem('MAT_HVAC_DUCT_INSUL', totalBuaSqft * 0.22, 'sqft', true, 'Insulated ducting');
+  } else if (hvacScope === 'Basic' && !isIndustrial) {
+    if (isResidential && !isSingleDwelling) {
+      const tons = Math.ceil(totalBuaSqft / 650);
+      addItem('MAT_HVAC_SPLIT', tons, 'tons', true, 'Split AC');
+    }
   }
 
-  // Fire protection (NBC 2016 — mandatory G+3+)
-  if (numFloors >= 3 || bi.typology !== 'Residential') {
-    items.push(li('MAT_FIRE_HYDRANT',     numFloors,                 'sets',  ds, qt, ri, false, 'Wet riser — NBC Part 4 compliance'));
-    items.push(li('MAT_FIRE_PUMP_SET',    1,                         'set',   ds, qt, ri, false, 'Main + jockey + diesel pump set'));
-    items.push(li('MAT_FIRE_EXTINGUISHER',Math.ceil(totalBuaSqft / 200), 'units', ds, qt, ri));
+  const needsFirePumps = (isResidential && numFloors >= 5) ||
+    ((isCommercial || isInstitutional) && (numFloors >= 3 || totalBuaSqft > 12000)) ||
+    (isIndustrial && totalBuaSqft > 20000);
+
+  if (needsFirePumps) {
+    addItem('MAT_FIRE_HYDRANT', numFloors, 'sets', false, 'Wet riser hydrants');
+    addItem('MAT_FIRE_PUMP_SET', 1, 'set', false, 'Fire pump set');
+  }
+  const extCount = Math.max(numFloors * 2, Math.ceil(totalBuaSqft / 2000));
+  addItem('MAT_FIRE_EXTINGUISHER', extCount, 'units');
+
+  // High-rise fire sprinklers (mandatory for all buildings >= 8 floors or >24m per NBC Part 4)
+  if ((!isResidential && numFloors >= 4 && !isIndustrial) || numFloors >= 8 || qt === 'Premium') {
+    addItem('MAT_FIRE_SPRINKLER', Math.ceil(totalBuaSqft / 140), 'heads', true, 'Sprinkler heads — NBC Part 4');
   }
 
-  // Fire sprinklers — commercial/institutional or Premium residential G+7+
-  if (bi.typology !== 'Residential' || (numFloors >= 7 && qt === 'Premium')) {
-    items.push(li('MAT_FIRE_SPRINKLER', Math.ceil(totalBuaSqft / 120), 'heads', ds, qt, ri, true, 'Wet pipe system — IS 15105'));
+  // Student hostel dormitory cupboards & beds (Institutional hostels)
+  if (isInstitutional && u.includes('hostel')) {
+    const studentBeds = Math.round(totalBuaSqft / 200);
+    addItem('MAT_WOOD_LOFT', studentBeds * 8, 'rft', false, 'Dormitory student wardrobes & overhead bunks');
+    addItem('MAT_WOOD_STUDY_TABLE', Math.round(studentBeds * 0.8), 'units', false, 'Hostel study tables & chairs');
   }
 
-  // Exhaust
-  const exhaustUnits = rc.bathrooms + rc.kitchens + (bi.typology !== 'Residential' ? Math.ceil(totalBuaSqft / 2000) : 0);
-  items.push(li('MAT_EXHAUST_FAN', exhaustUnits, 'units', ds, qt, ri));
+  const exhaustUnits = rc.bathrooms + rc.kitchens + (!isResidential ? Math.ceil(totalBuaSqft / 3000) : 0);
+  addItem('MAT_EXHAUST_FAN', exhaustUnits, 'units');
 
   // ── CAT_15: Parking & Basement ────────────────────────────────────────────
   const parkLevels = bi.parkingLevels ?? 0;
   if (parkLevels > 0) {
     const basementSqft = buaPerFloor * parkLevels;
     const basementSqm  = basementSqft / 10.764;
-    items.push(li('MAT_PARK_RCC_EXCAV',   basementSqm * 3.5,             'cu.m', ds, qt, ri, true, 'Basement excavation depth ~3.5m per level'));
-    items.push(li('MAT_PARK_RCC_WALLS',   perimeterFt * 3.5 * parkLevels * 0.093, 'cu.m', ds, qt, ri));
-    items.push(li('MAT_PARK_FLOOR_SCREED',basementSqft,                  'sqft', ds, qt, ri));
-    items.push(li('MAT_PARK_LINING',      basementSqft * 1.3,            'sqft', ds, qt, ri, false, 'Basement WP — type depends on water table'));
-    items.push(li('MAT_PARK_VENTILATION', basementSqft * 0.25,           'sqft', ds, qt, ri, true, 'Mechanical ventilation — NBC fire requirement'));
-    items.push(li('MAT_PARK_PUMP_SUMP',   1,                             'set',  ds, qt, ri));
-    const bayCount = Math.floor(basementSqft / 150);
-    items.push(li('MAT_PARK_STRIPING',    bayCount,                      'bays', ds, qt, ri));
-    if (qt !== 'Economy') {
-      items.push(li('MAT_PARK_EV_CHARGING', Math.max(1, Math.floor(bayCount * 0.20)), 'points', ds, qt, ri, true, 'EV ready — 20% bays per RERA guidelines'));
-    }
-  }
-
-  // ── CAT_16: Pool & Recreation (Premium only or explicit) ──────────────────
-  if (qt === 'Premium' && bi.typology === 'Residential' && buaPerFloor > 4000) {
-    const poolArea = Math.min(1200, buaPerFloor * 0.06);
-    const poolVol  = poolArea * 1.5 / 10.764;
-    items.push(li('MAT_POOL_EXCAV',      poolVol * 1.5,       'cu.m', ds, qt, ri, true, 'Swimming pool — site-specific design required'));
-    items.push(li('MAT_POOL_RCC',        poolVol,             'cu.m', ds, qt, ri, true, 'M35 waterproof concrete'));
-    items.push(li('MAT_POOL_TILE',       poolArea * 1.4,      'sqft', ds, qt, ri));
-    items.push(li('MAT_POOL_PUMP_FILTER',1,                   'set',  ds, qt, ri));
-    items.push(li('MAT_POOL_CHLORINATOR',1,                   'set',  ds, qt, ri));
-    items.push(li('MAT_GYM_EQUIP',       Math.min(1500, buaPerFloor * 0.03), 'sqft', ds, qt, ri, true, 'Gymnasium — area per TOI'));
-  }
-
-  // ── CAT_17: Solar & Green Building ────────────────────────────────────────
-  if (qt === 'Premium' || totalBuaSqft > 8000) {
-    const rwh = bi.plotAreaSqft > 2000 ? 1 : 0;
-    if (rwh) items.push(li('MAT_GREEN_RAINWATER', 1, 'system', ds, qt, ri, true, 'RWH — IS 15797 compliance'));
-    if (qt === 'Premium') {
-      items.push(li('MAT_GREEN_DUAL_FLUSH', rc.bathrooms, 'sets', ds, qt, ri));
-    }
+    addItem('MAT_PARK_RCC_EXCAV', basementSqm * 3.5, 'cu.m', true, 'Basement excavation');
+    addItem('MAT_PARK_RCC_WALLS', perimeterFt * 3.5 * parkLevels * 0.08, 'cu.m');
+    addItem('MAT_PARK_FLOOR_SCREED', basementSqft, 'sqft');
+    addItem('MAT_PARK_LINING', basementSqft * 1.1, 'sqft');
+    addItem('MAT_PARK_VENTILATION', basementSqft * 0.15, 'sqft', true, 'Basement ventilation');
+    addItem('MAT_PARK_PUMP_SUMP', 1, 'set');
+    const bayCount = Math.floor(basementSqft / 180);
+    addItem('MAT_PARK_STRIPING', bayCount, 'bays');
   }
 
   return items;

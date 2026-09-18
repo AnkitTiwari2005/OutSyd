@@ -48,7 +48,7 @@ export const DEFAULT_DATASET: CoefficientDataset = {
   structMultipliers: {
     RCC_Frame   : { cm: 1.00, sm: 1.00, mm: 1.00 },
     Load_bearing: { cm: 0.70, sm: 0.50, mm: 1.55 },
-    Shear_Wall  : { cm: 1.14, sm: 1.18, mm: 0.85 },
+    Shear_Wall  : { cm: 1.12, sm: 1.04, mm: 0.85 },
     Steel       : { cm: 0.38, sm: 0.00, mm: 0.75 },  // structural steel — sm handled separately
     Not_sure    : { cm: 1.00, sm: 1.00, mm: 1.00 },
   },
@@ -276,7 +276,7 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_EXT_TEXTURE        : 95,     // ₹/sqft — texture coat (sand/pebble)
     MAT_EXT_CLADDING_ACP   : 480,    // ₹/sqft — ACP cladding installed
     MAT_EXT_CURTWALL       : 1300,   // ₹/sqft — structural glazing curtain wall
-    MAT_EXT_CURTWALL_UHV   : 2200,   // ₹/sqft — unitised high-performance CW
+    MAT_EXT_CURTWALL_UHV   : 1850,   // ₹/sqft — unitised high-performance CW (Saint-Gobain Low-E DGU)
     MAT_EXT_STONE_CLADDING : 350,    // ₹/sqft — natural stone cladding
     MAT_EXT_TERRACOTTA     : 280,    // ₹/sqft — terracotta cladding
     MAT_EXT_COMPOSITE      : 380,    // ₹/sqft — composite/GRC panel
@@ -319,7 +319,7 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_PRESSUR_VESTIBULE  : 45000,  // ₹/floor— pressurization (high-rise)
 
     // ── CAT_15: Parking & Basement ──────────────────────────────────────────
-    MAT_PARK_RCC_EXCAV     : 7800,   // ₹/cu.m — basement excavation + strutting
+    MAT_PARK_RCC_EXCAV     : 480,    // ₹/cu.m — basement excavation + strutting + carting (CPWD DSR 2024)
     MAT_PARK_RCC_WALLS     : 7200,   // ₹/cu.m — M30 basement retaining wall
     MAT_PARK_FLOOR_SCREED  : 55,     // ₹/sqft — 75mm floor screed
     MAT_PARK_LINING        : 95,     // ₹/sqft — basement WP + lining
@@ -511,8 +511,8 @@ export const REGIONAL_RATE_INDEX: Record<string, number> = {
   'bhubaneswar'      : 0.89,
   'cuttack'          : 0.85,
   'rourkela'         : 0.83,
-  'guwahati'         : 0.92,
-  'dibrugarh'        : 0.87,
+  'guwahati'         : 1.18,   // North-East regional transit premium (CPWD PAR 2023 Table 4.1)
+  'dibrugarh'        : 1.14,
   'jorhat'           : 0.85,
   'silchar'          : 0.83,
   'srinagar'         : 0.94,
