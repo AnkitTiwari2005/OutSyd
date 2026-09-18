@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { coefficientDatasets } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { invalidateRateCache } from '@/lib/db/active-rates';
 
 const PublishSchema = z.object({
   version: z.string().min(3).max(64),
@@ -61,6 +62,8 @@ export async function POST(req: Request) {
       isActive: true,
       ratesJson: parsed.data.ratesJson,
     });
+
+    invalidateRateCache();
 
     return NextResponse.json({ success: true, version: parsed.data.version });
   } catch (err: unknown) {

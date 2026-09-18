@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { regionalRateIndex } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { invalidateRateCache } from '@/lib/db/active-rates';
 
 const PatchSchema = z.object({
   indexValue: z.number().min(0.5).max(3),
@@ -28,6 +29,8 @@ export async function PATCH(
   await db.update(regionalRateIndex)
     .set({ indexValue: parsed.data.indexValue, notes: parsed.data.notes ?? null, updatedBy: session.user.email ?? 'admin' })
     .where(eq(regionalRateIndex.id, id));
+
+  invalidateRateCache();
 
   return NextResponse.json({ success: true });
 }

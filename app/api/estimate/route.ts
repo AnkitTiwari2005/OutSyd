@@ -7,10 +7,9 @@ import {
   classifyBuilding,
   runEstimationEngine,
   aggregateEstimate,
-  DEFAULT_DATASET,
-  lookupRegionalIndex,
   lookupSeismicZone,
 } from '@/lib/engine';
+import { getActiveDatasetAndIndex } from '@/lib/db/active-rates';
 import { db } from '@/lib/db';
 import { projects, buildingInputs, estimates, coefficientDatasets } from '@/lib/db/schema';
 import { randomUUID } from 'crypto';
@@ -56,11 +55,11 @@ export async function POST(req: NextRequest) {
     if (detectedZone) bi.seismicZone = detectedZone;
   }
 
-  // ── Regional index ─────────────────────────────────────────────────────────
-  const { index: ri, matchedCity } = lookupRegionalIndex(bi.locationRegion);
+  // ── Regional index & active dataset (DB with cached fallback) ─────────────
+  const { dataset: ds, lookupRegionalIndex: activeLookupRegionalIndex } = await getActiveDatasetAndIndex();
+  const { index: ri, matchedCity } = activeLookupRegionalIndex(bi.locationRegion);
 
   // ── Run estimation engine (pure) ───────────────────────────────────────────
-  const ds  = DEFAULT_DATASET;
   const cls = classifyBuilding({
     numFloors       : bi.numFloors,
     typology        : bi.typology,
