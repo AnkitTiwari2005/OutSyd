@@ -14,9 +14,14 @@ const LoginSchema = z.object({
   password: z.string().min(6),
 });
 
+const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+if (!authSecret) {
+  throw new Error('FATAL: AUTH_SECRET or NEXTAUTH_SECRET environment variable is missing.');
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'outsyd-secret-key-prod-2026-fallback-token-jwt',
+  secret: authSecret,
   adapter: DrizzleAdapter(db),
   providers: [
     Credentials({
