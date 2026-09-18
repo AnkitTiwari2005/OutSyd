@@ -12,7 +12,7 @@ import {
   Check, Mountain, Droplets, Layers, CircleDot,
   Coins, Star, Crown, CheckCircle2, MapPin
 } from 'lucide-react';
-import { REGIONAL_RATE_INDEX, lookupRegionalIndex } from '@/lib/engine/coefficients';
+import { REGIONAL_RATE_INDEX, lookupRegionalIndex } from '@/lib/engine/regions';
 
 const TYPOLOGY_OPTIONS = [
   { value: 'Residential',   label: 'Residential',   icon: Home },
@@ -32,7 +32,9 @@ const QUALITY_TIERS = [
   {
     value: 'Economy',
     label: 'Economy Tier',
-    range: '₹1,500 – ₹1,900 / sqft',
+    minRate: 1500,
+    maxRate: 1900,
+    plus: false,
     desc: 'Standard ISI cement & Fe500 steel, ceramic tiles, basic sanitaryware',
     bestFor: 'Rental housing, budget hostels, warehousing',
     icon: Coins,
@@ -40,7 +42,9 @@ const QUALITY_TIERS = [
   {
     value: 'Standard',
     label: 'Standard Tier',
-    range: '₹1,900 – ₹2,900 / sqft',
+    minRate: 1900,
+    maxRate: 2900,
+    plus: false,
     desc: 'Fe500D TMT, vitrified 800x800 tiles, CPVC plumbing, branded modular switches',
     bestFor: 'Urban homes, commercial offices, private villas',
     icon: Star,
@@ -48,7 +52,9 @@ const QUALITY_TIERS = [
   {
     value: 'Premium',
     label: 'Premium Tier',
-    range: '₹2,900 – ₹5,200+ / sqft',
+    minRate: 2900,
+    maxRate: 5200,
+    plus: true,
     desc: 'Fe550D TMT, Italian marble, VRF central air, architectural acoustic glazing',
     bestFor: 'Luxury residences, corporate headquarters, high-end hotels',
     icon: Crown,
@@ -62,6 +68,12 @@ export function Step1Basics() {
   const [typology, length, breadth, floors, locationRegion, plotAreaSqft] = useWatch({
     name: ['typology', 'lengthFt', 'breadthFt', 'numFloors', 'locationRegion', 'plotAreaSqft'],
   });
+
+  const regionalLookup = lookupRegionalIndex(locationRegion ?? '');
+  const currentCityIndex = regionalLookup.index;
+  const matchedCityName = regionalLookup.matchedCity
+    ? regionalLookup.matchedCity.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    : null;
 
   const handleTypologySelect = (val: Typology) => {
     setValue('typology', val, { shouldValidate: true, shouldDirty: true });
@@ -229,20 +241,32 @@ export function Step1Basics() {
           name="typology"
           render={({ field }) => (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" role="radiogroup" aria-label="Building Typology">
-              {TYPOLOGY_OPTIONS.map(({ value, label, icon: Icon }) => {
+              {TYPOLOGY_OPTIONS.map(({ value, label, icon: Icon }, idx) => {
                 const selected = field.value === value;
+                const isTabFocusable = selected || (!field.value && idx === 0);
                 return (
                   <button
                     key={value}
+                    id={`typology-card-${value}`}
                     type="button"
                     role="radio"
                     aria-checked={selected}
-                    tabIndex={0}
+                    tabIndex={isTabFocusable ? 0 : -1}
                     onClick={() => handleTypologySelect(value)}
                     onKeyDown={(e) => {
                       if (e.key === ' ' || e.key === 'Enter') {
                         e.preventDefault();
                         handleTypologySelect(value);
+                      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        const next = TYPOLOGY_OPTIONS[(idx + 1) % TYPOLOGY_OPTIONS.length].value;
+                        handleTypologySelect(next);
+                        document.getElementById(`typology-card-${next}`)?.focus();
+                      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        const prev = TYPOLOGY_OPTIONS[(idx - 1 + TYPOLOGY_OPTIONS.length) % TYPOLOGY_OPTIONS.length].value;
+                        handleTypologySelect(prev);
+                        document.getElementById(`typology-card-${prev}`)?.focus();
                       }
                     }}
                     className={`relative flex flex-col items-start p-3.5 rounded-lg text-left transition-all cursor-pointer ${
@@ -403,20 +427,38 @@ export function Step1Basics() {
           name="qualityTier"
           render={({ field }) => (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3" role="radiogroup" aria-label="Quality Tier">
-              {QUALITY_TIERS.map(({ value, label, range, desc, bestFor, icon: Icon }) => {
+              {QUALITY_TIERS.map(({ value, label, minRate, maxRate, plus, desc, bestFor, icon: Icon }, idx) => {
                 const selected = field.value === value;
+                const isTabFocusable = selected || (!field.value && idx === 0);
+                const scaledMin = Math.round(minRate * currentCityIndex);
+                const scaledMax = Math.round(maxRate * currentCityIndex);
+                const rangeDisplay = matchedCityName
+                  ? `₹${scaledMin.toLocaleString('en-IN')} – ₹${scaledMax.toLocaleString('en-IN')}${plus ? '+' : ''} / sqft (${currentCityIndex.toFixed(2)}× ${matchedCityName})`
+                  : `₹${minRate.toLocaleString('en-IN')} – ₹${maxRate.toLocaleString('en-IN')}${plus ? '+' : ''} / sqft`;
+
                 return (
                   <button
                     key={value}
+                    id={`quality-card-${value}`}
                     type="button"
                     role="radio"
                     aria-checked={selected}
-                    tabIndex={0}
+                    tabIndex={isTabFocusable ? 0 : -1}
                     onClick={() => field.onChange(value)}
                     onKeyDown={(e) => {
                       if (e.key === ' ' || e.key === 'Enter') {
                         e.preventDefault();
                         field.onChange(value);
+                      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        const next = QUALITY_TIERS[(idx + 1) % QUALITY_TIERS.length].value;
+                        field.onChange(next);
+                        document.getElementById(`quality-card-${next}`)?.focus();
+                      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        const prev = QUALITY_TIERS[(idx - 1 + QUALITY_TIERS.length) % QUALITY_TIERS.length].value;
+                        field.onChange(prev);
+                        document.getElementById(`quality-card-${prev}`)?.focus();
                       }
                     }}
                     className={`relative flex flex-col p-4 rounded-lg text-left transition-all cursor-pointer ${
@@ -434,9 +476,9 @@ export function Step1Basics() {
                       <Icon size={16} className={selected ? 'text-[#1E3A5F]' : 'text-[#64748B]'} />
                       <span className="font-bold text-sm text-[#0F172A]">{label}</span>
                     </div>
-                    {/* Neutral high-contrast price range (NEVER amber CTA color) */}
+                    {/* Dynamic regional index price range (U-8) */}
                     <span className="text-xs font-mono font-bold text-[#1E3A5F] tabular-nums mt-0.5">
-                      {range}
+                      {rangeDisplay}
                     </span>
                     <p className="text-xs text-[#64748B] mt-2 leading-relaxed">{desc}</p>
                     <div className="mt-3 pt-2 border-t border-[#E2E8F0] text-[11px] text-[#0F172A]">
