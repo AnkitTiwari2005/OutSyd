@@ -23,6 +23,57 @@ export const QUALITATIVE_CHART_COLORS = [
   '#A0B1BA', // Slate Mist
 ];
 
+export const CATEGORY_NAMES: Record<string, string> = {
+  CAT_01: 'Substructure & Excavation',
+  CAT_02: 'RCC Superstructure',
+  CAT_03: 'Masonry, Plaster & Internal Finishes',
+  CAT_04: 'Waterproofing & Chemical Treatment',
+  CAT_05: 'Roofing & False Ceiling',
+  CAT_06: 'Doors, Windows & Glazing',
+  CAT_07: 'Electrical & Low-Voltage Systems',
+  CAT_08: 'Plumbing, Sanitary & STP',
+  CAT_09: 'Flooring & Tiling',
+  CAT_10: 'Wall Finishing & Painting',
+  CAT_11: 'Modular Kitchen, Joinery & Woodwork',
+  CAT_12: 'Exterior Finishing & Cladding',
+  CAT_13: 'Staircase, Railings & Lifts',
+  CAT_14: 'HVAC, Fire Protection & MEP',
+  CAT_15: 'Parking & Basement',
+  CAT_16: 'Swimming Pool & Recreation',
+  CAT_17: 'Solar & Green Building',
+  CAT_18: 'Preliminaries, Site & Contingency',
+};
+
+export const ACCURACY_BANDS = {
+  Preliminary_15_20: {
+    band: '±15–20%',
+    label: 'Preliminary Estimate',
+    fullDisplay: '± 15–20% (Preliminary Estimate)',
+    color: 'amber' as const,
+    cls: 'bg-[#FEF3C7] border-[#FDE68A] text-[#B45309]',
+    iconCls: 'text-[#B45309]',
+    note: 'Based on macro dimensions and regional baseline rates. Suitable for high-level feasibility.',
+  },
+  Standard_10_15: {
+    band: '±10–15%',
+    label: 'Standard Estimate',
+    fullDisplay: '± 10–15% (Standard Estimate)',
+    color: 'blue' as const,
+    cls: 'bg-[#EFF4FA] border-[#CBD5E1] text-[#1E3A5F]',
+    iconCls: 'text-[#1E3A5F]',
+    note: 'Incorporates framing system, foundation type, and IS 1893 seismic zoning.',
+  },
+  Advanced_5_10: {
+    band: '±5–10%',
+    label: 'Advanced Estimate',
+    fullDisplay: '± 5–10% (Advanced Estimate)',
+    color: 'green' as const,
+    cls: 'bg-[#F0FDF4] border-[#BBF7D0] text-[#16A34A]',
+    iconCls: 'text-[#16A34A]',
+    note: 'Calibrated with full structural framing, envelope facade specifications, and MEP scope.',
+  },
+} as const;
+
 export const CATEGORY_COLORS: Record<string, string> = {
   CAT_01: '#1E3A5F', // Substructure — Deep Navy
   CAT_02: '#4E79A7', // RCC Superstructure — Slate Blue

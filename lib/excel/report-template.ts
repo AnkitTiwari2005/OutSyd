@@ -398,7 +398,7 @@ export async function generateEstimateExcel(
   ws3.getRow(lr).height = 20;
   lr++;
 
-  const labourRows = computeLabourBreakdown(result.grandTotalMaterialCost);
+  const labourRows = computeLabourBreakdown(Math.max(0, result.grandTotalWithLabor - result.grandTotalMaterialCost));
   const labourTotal = labourRows.reduce((s, r) => s + r.amount, 0);
 
   labourRows.forEach((r, idx) => {

@@ -43,8 +43,8 @@ export function estimateTimeline(buaSqft: number, numFloors: number, typology: s
   };
 }
 
-/** Labour breakdown by trade (% of material cost) */
-export function computeLabourBreakdown(grandTotal: number): Array<{
+/** Labour breakdown by trade (% of site labour pool) */
+export function computeLabourBreakdown(totalLabourAmount: number): Array<{
   trade: string; pct: number; amount: number;
 }> {
   const trades = [
@@ -59,7 +59,7 @@ export function computeLabourBreakdown(grandTotal: number): Array<{
     { trade: 'Waterproofing Labour',     pct:  4 },
     { trade: 'Steel Fixing Labour',      pct:  2 },
   ];
-  const labourPool = grandTotal * 0.30;
+  const labourPool = totalLabourAmount;
   return trades.map(t => ({
     ...t,
     amount: Math.round(labourPool * t.pct / 100),

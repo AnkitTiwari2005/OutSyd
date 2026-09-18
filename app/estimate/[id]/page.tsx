@@ -36,7 +36,7 @@ export default async function SharedEstimatePage({ params }: { params: Promise<{
   const band        = BAND_CONFIG[estimate.accuracyBand] ?? BAND_CONFIG['Preliminary_15_20'];
   const buaSqft     = result.derivedDimensions?.totalBuaSqft ?? 0;
   const costPerSqft = buaSqft > 0 ? Math.round((estimate.grandTotalMaterialCost ?? 0) / buaSqft) : 0;
-  const labourRows  = computeLabourBreakdown(estimate.grandTotalMaterialCost ?? 0);
+  const labourRows  = computeLabourBreakdown(Math.max(0, (estimate.grandTotalWithLabor ?? 0) - (estimate.grandTotalMaterialCost ?? 0)));
   const timeline    = estimateTimeline(buaSqft, input?.numFloors ?? 1, input?.typology ?? 'Residential');
   const alternatives = computeAlternatives(estimate.grandTotalMaterialCost ?? 0, input?.qualityTier ?? 'Standard');
 

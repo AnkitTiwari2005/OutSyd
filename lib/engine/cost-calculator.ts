@@ -7,39 +7,56 @@ import type {
   FullInput, CoefficientDataset, ClassificationResult, AccuracyBand,
 } from './types';
 import { deriveDimensions } from './estimator';
+import { CATEGORY_NAMES, ACCURACY_BANDS } from '../constants';
 
-export const CATEGORY_NAMES: Record<string, string> = {
-  CAT_01: 'Substructure & Excavation',
-  CAT_02: 'RCC Superstructure',
-  CAT_03: 'Masonry, Plaster & Internal Finishes',
-  CAT_04: 'Waterproofing & Chemical Treatment',
-  CAT_05: 'Roofing & False Ceiling',
-  CAT_06: 'Doors, Windows & Glazing',
-  CAT_07: 'Electrical & Low-Voltage Systems',
-  CAT_08: 'Plumbing, Sanitary & STP',
-  CAT_09: 'Flooring & Tiling',
-  CAT_10: 'Wall Finishing & Painting',
-  CAT_11: 'Modular Kitchen, Joinery & Woodwork',
-  CAT_12: 'Exterior Finishing & Cladding',
-  CAT_13: 'Staircase, Railings & Lifts',
-  CAT_14: 'HVAC, Fire Protection & MEP',
-  CAT_15: 'Parking & Basement',
-  CAT_16: 'Swimming Pool & Recreation',
-  CAT_17: 'Solar & Green Building',
-  CAT_18: 'Preliminaries, Site & Contingency',
-};
+export { CATEGORY_NAMES };
 
 export const BAND_DISPLAY: Record<AccuracyBand, string> = {
-  Preliminary_15_20: '± 15–20% (Preliminary Estimate)',
-  Standard_10_15   : '± 10–15% (Standard Estimate)',
-  Advanced_5_10    : '± 5–10% (Advanced Estimate)',
+  Preliminary_15_20: ACCURACY_BANDS.Preliminary_15_20.fullDisplay,
+  Standard_10_15   : ACCURACY_BANDS.Standard_10_15.fullDisplay,
+  Advanced_5_10    : ACCURACY_BANDS.Advanced_5_10.fullDisplay,
 };
 
 export const BAND_COLOR: Record<AccuracyBand, 'amber' | 'blue' | 'green'> = {
-  Preliminary_15_20: 'amber',
-  Standard_10_15   : 'blue',
-  Advanced_5_10    : 'green',
+  Preliminary_15_20: ACCURACY_BANDS.Preliminary_15_20.color,
+  Standard_10_15   : ACCURACY_BANDS.Standard_10_15.color,
+  Advanced_5_10    : ACCURACY_BANDS.Advanced_5_10.color,
 };
+
+/**
+ * C-5: Determines whether a line item rate already includes installation/subcontract labour.
+ * Turnkey subcontract and installed rates are not subjected to the +30% site labour markup.
+ * Pure material supply lines (cement, sand, aggregate, TMT steel, structural steel, bricks, blocks, paint materials)
+ * receive the +30% site labour uplift.
+ */
+export function isLabourInclusive(code: string): boolean {
+  if (code.startsWith('MAT_PLAST_') || code === 'MAT_EXT_PLAST') return true;
+  if (code.startsWith('MAT_CEIL_')) return true;
+  if (code.startsWith('MAT_FLOOR_') && code !== 'MAT_FLOOR_MORTAR') return true;
+  if (code.startsWith('MAT_WP_')) return true;
+  if (code.startsWith('MAT_DOOR_') || code.startsWith('MAT_WIN_') || code === 'MAT_GRILLE' || code === 'MAT_VENT') return true;
+  if (code.startsWith('MAT_ELEC_') && (
+    code === 'MAT_ELEC_POINT' || code === 'MAT_ELEC_GENSET' || code.includes('SOLAR') ||
+    code === 'MAT_ELEC_DB_MAIN' || code === 'MAT_ELEC_DB_FLOOR' || code === 'MAT_ELEC_CCTV' ||
+    code === 'MAT_ELEC_FIRE_ALARM' || code === 'MAT_ELEC_ACCESS_CTRL' || code === 'MAT_ELEC_INTERCOM' ||
+    code === 'MAT_ELEC_EV_CHARGER' || code === 'MAT_ELEC_BUSDUCT'
+  )) return true;
+  if (code.startsWith('MAT_SOLAR_') || code.startsWith('MAT_GREEN_')) return true;
+  if (code.startsWith('MAT_PLUMB_') && !code.includes('PIPE')) return true;
+  if (code.startsWith('MAT_WOOD_')) return true;
+  if (
+    code.startsWith('MAT_EXT_CLADDING_') || code.startsWith('MAT_EXT_CURTWALL') ||
+    code === 'MAT_EXT_PAINT' || code.startsWith('MAT_EXT_BOUNDARY_WALL') ||
+    code.startsWith('MAT_EXT_GATE') || code.startsWith('MAT_EXT_PAVING') ||
+    code.startsWith('MAT_EXT_ROAD_') || code.startsWith('MAT_EXT_LANDSCAPE') ||
+    code.startsWith('MAT_EXT_STONE_CLADDING')
+  ) return true;
+  if (code.startsWith('MAT_LIFT_') || code.startsWith('MAT_STAIR_RAILING_') || code.startsWith('MAT_STAIR_MARBLE') || code.startsWith('MAT_STAIR_GRANITE')) return true;
+  if (code.startsWith('MAT_HVAC_') || code.startsWith('MAT_FIRE_') || code === 'MAT_EXHAUST_FAN') return true;
+  if (code.startsWith('MAT_POOL_') || code.startsWith('MAT_GYM_') || code.startsWith('MAT_CLUB_')) return true;
+  if (code === 'MAT_MISC_TOTAL' || code === 'MAT_MISC_SCAFFOLD') return true;
+  return false;
+}
 
 const DISCLAIMER =
   'This estimate is for planning purposes only (accuracy band as stated). ' +
@@ -135,12 +152,24 @@ export function aggregateEstimate(
     !!bi.structuralDrawingUrl,
   );
 
+  // C-5: Site labour pool computed strictly on raw/pure material supply lines
+  let matOnlyCost = 0;
+  for (const item of allLineItems) {
+    if (!isLabourInclusive(item.materialItemCode)) {
+      matOnlyCost += item.lineCost;
+    }
+  }
+  const siteLabour = Math.round(matOnlyCost * 0.30 * 100) / 100;
+  const grandTotalWithLabor = Math.round((grandTotal + siteLabour) * 100) / 100;
+  const cubicContentEstimate = Math.round(dim.buaPerFloor * bi.heightFt * 100) / 100;
+
   return {
     lineItems             : allLineItems,
     categoryTotals,
     grandTotalMaterialCost: grandTotal,
-    grandTotalWithLabor   : Math.round(grandTotal * 1.30 * 100) / 100,
+    grandTotalWithLabor,
     plinthAreaEstimate,
+    cubicContentEstimate,
     accuracyBand,
     accuracyBandDisplay   : BAND_DISPLAY[accuracyBand],
     accuracyBandColor     : BAND_COLOR[accuracyBand],
