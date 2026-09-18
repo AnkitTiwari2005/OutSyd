@@ -3,7 +3,7 @@
 // Works even when direct PostgreSQL port is blocked by firewall
 // Usage: cmd /c "npx tsx scripts/setup-via-rest.ts"
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://cxidrrmgurhoefdjimfu.supabase.co';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || (process.env.SUPABASE_PROJECT_REF ? `https://${process.env.SUPABASE_PROJECT_REF}.supabase.co` : '');
 const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 async function sql(query: string) {
@@ -197,8 +197,9 @@ async function main() {
       const pgMetaBody = await pgMetaRes.text();
       console.error('pg-meta also failed:', pgMetaBody.slice(0, 400));
 
-      // Last resort: use Supabase's SQL editor API  
-      const sqlEditorRes = await fetch(`https://api.supabase.com/v1/projects/cxidrrmgurhoefdjimfu/database/query`, {
+      // Last resort: use Supabase's SQL editor API
+      const projectRef = process.env.SUPABASE_PROJECT_REF;
+      const sqlEditorRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
