@@ -118,8 +118,6 @@ const ITEM_NAMES: Record<string, { name: string; category: string }> = {
   MAT_ELEC_EARTHING      : { name: 'Earthing System (IS 3043)',             category: 'CAT_07' },
   MAT_ELEC_GENSET        : { name: 'Diesel Generator Set (DG)',             category: 'CAT_07' },
   MAT_ELEC_UPS_INVERTER  : { name: 'Online UPS / Inverter',                category: 'CAT_07' },
-  MAT_ELEC_SOLAR_PANEL   : { name: 'Rooftop Solar Panel (Mono PERC)',      category: 'CAT_07' },
-  MAT_ELEC_SOLAR_INV     : { name: 'Grid-Tied String Inverter',            category: 'CAT_07' },
   MAT_ELEC_CCTV          : { name: 'CCTV Camera (4MP IP)',                  category: 'CAT_07' },
   MAT_ELEC_FIRE_ALARM    : { name: 'Fire Alarm Detector',                  category: 'CAT_07' },
   MAT_ELEC_ACCESS_CTRL   : { name: 'Access Control System',                category: 'CAT_07' },
@@ -895,6 +893,20 @@ export function runEstimationEngine(
     addItem('MAT_PARK_PUMP_SUMP', 1, 'set');
     const bayCount = Math.floor(basementSqft / 180);
     addItem('MAT_PARK_STRIPING', bayCount, 'bays');
+  }
+
+  // ── CAT_16: Swimming Pool & Recreational (N-5) ───────────────────────────
+  const isRecreational = u.includes('clubhouse') || u.includes('community hall') || u.includes('resort');
+  if (isRecreational) {
+    addItem('MAT_CLUB_FINISH', totalBuaSqft * 0.35, 'sqft', true, 'Clubhouse / recreation facility finishing');
+    addItem('MAT_GYM_EQUIP', Math.min(2500, totalBuaSqft * 0.15), 'sqft', true, 'Fitness & gym equipment');
+    if (totalBuaSqft >= 8000 || qt === 'Premium') {
+      addItem('MAT_POOL_EXCAV', 140, 'cu.m', true, 'Swimming pool excavation');
+      addItem('MAT_POOL_RCC', 70, 'cu.m', true, 'M35 waterproof concrete pool shell');
+      addItem('MAT_POOL_TILE', 1100, 'sqft', true, 'Vitrified anti-slip pool tile');
+      addItem('MAT_POOL_PUMP_FILTER', 1, 'set', false, 'Filtration & recirculation pump system');
+      addItem('MAT_POOL_CHLORINATOR', 1, 'set', false, 'Salt chlorination water treatment');
+    }
   }
 
   // ── CAT_17: Solar & Green Building ────────────────────────────────────────

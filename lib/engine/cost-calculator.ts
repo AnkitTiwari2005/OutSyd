@@ -8,6 +8,7 @@ import type {
 } from './types';
 import { deriveDimensions } from './estimator';
 import { classifyBuilding } from './classifier';
+import { DEFAULT_DATASET } from './coefficients';
 import { CATEGORY_NAMES, ACCURACY_BANDS } from '../constants';
 
 export { CATEGORY_NAMES };
@@ -25,12 +26,18 @@ export const BAND_COLOR: Record<AccuracyBand, 'amber' | 'blue' | 'green'> = {
 };
 
 /**
- * C-5: Determines whether a line item rate already includes installation/subcontract labour.
+ * C-5 / N-4: Determines whether a line item rate already includes installation/subcontract labour.
+ * Inspects the explicit dataset.labourInclusive map attached to the active CoefficientDataset.
  * Turnkey subcontract and installed rates are not subjected to the +30% site labour markup.
  * Pure material supply lines (cement, sand, aggregate, TMT steel, structural steel, bricks, blocks, paint materials)
  * receive the +30% site labour uplift.
  */
-export function isLabourInclusive(code: string): boolean {
+export function isLabourInclusive(code: string, ds?: CoefficientDataset): boolean {
+  const dataset = ds ?? DEFAULT_DATASET;
+  if (dataset?.labourInclusive && code in dataset.labourInclusive) {
+    return dataset.labourInclusive[code];
+  }
+  // Fallback prefix rules for synthetic, test, or custom codes
   if (code.startsWith('MAT_PLAST_') || code === 'MAT_EXT_PLAST') return true;
   if (code.startsWith('MAT_CEIL_')) return true;
   if (code.startsWith('MAT_FLOOR_') && code !== 'MAT_FLOOR_MORTAR') return true;
@@ -173,7 +180,7 @@ export function aggregateEstimate(
   // C-5: Site labour pool computed strictly on raw/pure material supply lines
   let matOnlyCost = 0;
   for (const item of allLineItems) {
-    if (!isLabourInclusive(item.materialItemCode)) {
+    if (!isLabourInclusive(item.materialItemCode, ds)) {
       matOnlyCost += item.lineCost;
     }
   }

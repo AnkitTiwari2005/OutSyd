@@ -96,7 +96,7 @@ describe('Coefficient Dataset Invariants (DEFAULT_DATASET)', () => {
     const essentialItems = [
       'MAT_FOUND_EXCAV', 'MAT_FOUND_PCC', 'MAT_FOUND_CONC', 'MAT_FOUND_STEEL',
       'MAT_RCC_CEMENT', 'MAT_RCC_STEEL', 'MAT_RCC_SAND', 'MAT_RCC_AGGREGATE_20MM',
-      'MAT_MASON_BLOCK', 'MAT_MASON_BRICK', 'MAT_PLAST_CEMENT',
+      'MAT_MASON_BLOCK', 'MAT_MASON_BRICK', 'MAT_MASON_CEMENT',
       'MAT_FLOOR_VIT', 'MAT_PAINT_PUTTY', 'MAT_ELEC_POINT', 'MAT_PLUMB_PIPE_CPVC',
     ];
     for (const code of essentialItems) {
@@ -104,4 +104,33 @@ describe('Coefficient Dataset Invariants (DEFAULT_DATASET)', () => {
       assert.ok(rate && rate > 0, `Expected ${code} to have a positive rate in DEFAULT_DATASET`);
     }
   });
+
+  it('has explicit labourInclusive classification for 100% of rates in DEFAULT_DATASET (N-4)', () => {
+    assert.ok(DEFAULT_DATASET.labourInclusive, 'DEFAULT_DATASET must define labourInclusive');
+    const rateKeys = Object.keys(DEFAULT_DATASET.rates);
+    assert.ok(rateKeys.length > 0, 'rates should not be empty');
+    for (const code of rateKeys) {
+      assert.equal(
+        typeof DEFAULT_DATASET.labourInclusive[code],
+        'boolean',
+        `Rate '${code}' lacks an explicit boolean classification in DEFAULT_DATASET.labourInclusive (N-4)`,
+      );
+    }
+  });
+
+  it('ensures every key in DEFAULT_DATASET.rates has a corresponding entry in ITEM_NAMES (N-5, M-18)', async () => {
+    const { ITEM_NAMES } = await import('../lib/engine/estimator');
+    for (const code of Object.keys(DEFAULT_DATASET.rates)) {
+      assert.ok(
+        code in ITEM_NAMES,
+        `Rate '${code}' exists in DEFAULT_DATASET.rates but lacks an entry in ITEM_NAMES (N-5, M-18)`,
+      );
+    }
+  });
+
+  it('ensures orphaned duplicate solar rates are deleted (N-5)', () => {
+    assert.equal('MAT_ELEC_SOLAR_PANEL' in DEFAULT_DATASET.rates, false, 'MAT_ELEC_SOLAR_PANEL should be deleted');
+    assert.equal('MAT_ELEC_SOLAR_INV' in DEFAULT_DATASET.rates, false, 'MAT_ELEC_SOLAR_INV should be deleted');
+  });
 });
+

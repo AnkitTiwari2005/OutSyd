@@ -7,8 +7,224 @@
 
 import type { CoefficientDataset } from './types';
 
+export const LABOUR_INCLUSIVE_RATES: Record<string, boolean> = {
+  MAT_FOUND_EXCAV         : false,
+  MAT_FOUND_EXCAV_ROCK    : false,
+  MAT_FOUND_PCC           : false,
+  MAT_FOUND_CONC          : false,
+  MAT_FOUND_RAFT          : false,
+  MAT_FOUND_PILE          : false,
+  MAT_FOUND_PILE_STEEL    : false,
+  MAT_FOUND_STEEL         : false,
+  MAT_FOUND_DPC           : false,
+  MAT_FOUND_ANTITERM      : false,
+  MAT_FOUND_BACKFILL      : false,
+  MAT_FOUND_FORMWORK      : false,
+  MAT_FOUND_WATERBAR      : false,
+  MAT_FOUND_CURING        : false,
+  MAT_RCC_CEMENT          : false,
+  MAT_RCC_STEEL           : false,
+  MAT_RCC_STEEL_550D      : false,
+  MAT_RCC_SAND            : false,
+  MAT_RCC_AGGREGATE_20MM  : false,
+  MAT_RCC_AGGREGATE_10MM  : false,
+  MAT_RCC_COL_CONC        : false,
+  MAT_RCC_HIGH_CONC       : false,
+  MAT_RCC_FORMWORK        : false,
+  MAT_RCC_SLAB_FORM       : false,
+  MAT_RCC_BINDING_WIRE    : false,
+  MAT_RCC_SPACERS         : false,
+  MAT_RCC_ADMIX           : false,
+  MAT_RCC_FLYASH          : false,
+  MAT_RCC_GROUT           : false,
+  MAT_STEEL_STRUCT        : false,
+  MAT_MASON_BRICK         : false,
+  MAT_MASON_BLOCK         : false,
+  MAT_MASON_FLY_BRICK     : false,
+  MAT_MASON_HOLLOW_CONC   : false,
+  MAT_MASON_CEMENT        : false,
+  MAT_MASON_SAND          : false,
+  MAT_MASON_LINTEL        : false,
+  MAT_MASON_PARAPET       : false,
+  MAT_PLAST_INT           : true,
+  MAT_PLAST_EXT           : true,
+  MAT_PLAST_POP           : true,
+  MAT_PLAST_GYPSUM        : true,
+  MAT_PLAST_CEMENT        : true,
+  MAT_WP_IPS              : true,
+  MAT_WP_LIQ_PU           : true,
+  MAT_WP_LIQ_ACR          : true,
+  MAT_WP_CRYS             : true,
+  MAT_WP_TORCH            : true,
+  MAT_WP_BATH             : true,
+  MAT_WP_KITCH            : true,
+  MAT_WP_BASEMENT         : true,
+  MAT_WP_EXPANSION        : true,
+  MAT_ANTITERM_CHEMICAL   : false,
+  MAT_ROOF_TERRACE        : false,
+  MAT_ROOF_SLOPE          : false,
+  MAT_ROOF_METAL_DECK     : false,
+  MAT_ROOF_GI_SHEET       : false,
+  MAT_CEIL_POP            : true,
+  MAT_CEIL_GYPS           : true,
+  MAT_CEIL_GRID           : true,
+  MAT_CEIL_ACOU           : true,
+  MAT_CEIL_WOODEN         : true,
+  MAT_CEIL_STRETCH        : true,
+  MAT_DOOR_FLUSH          : true,
+  MAT_DOOR_PANEL          : true,
+  MAT_DOOR_TEAK           : true,
+  MAT_DOOR_FRP            : true,
+  MAT_DOOR_SLIDE          : true,
+  MAT_DOOR_SECURITY       : true,
+  MAT_DOOR_FIRE_RATED     : true,
+  MAT_DOOR_FRAME          : true,
+  MAT_DOOR_HARDWARE       : true,
+  MAT_WIN_ALUM            : true,
+  MAT_WIN_UPVC            : true,
+  MAT_WIN_THERMBREAK      : true,
+  MAT_WIN_GLASS_TOUGHENED : true,
+  MAT_WIN_GLASS_DBLE      : true,
+  MAT_WIN_HARDWARE        : true,
+  MAT_GRILLE              : true,
+  MAT_VENT                : true,
+  MAT_ELEC_POINT          : true,
+  MAT_ELEC_WIRE_6         : false,
+  MAT_ELEC_WIRE_2_5       : false,
+  MAT_ELEC_WIRE_1_5       : false,
+  MAT_ELEC_CONDUIT_25     : false,
+  MAT_ELEC_DB_MAIN        : true,
+  MAT_ELEC_DB_FLOOR       : true,
+  MAT_ELEC_MCB            : false,
+  MAT_ELEC_RCCB           : false,
+  MAT_ELEC_SWITCH_MOD     : false,
+  MAT_ELEC_SOCKET_16A     : false,
+  MAT_ELEC_EARTHING       : false,
+  MAT_ELEC_UPS_INVERTER   : false,
+  MAT_ELEC_GENSET         : true,
+  MAT_ELEC_CCTV           : true,
+  MAT_ELEC_FIRE_ALARM     : true,
+  MAT_ELEC_ACCESS_CTRL    : true,
+  MAT_ELEC_INTERCOM       : true,
+  MAT_ELEC_EV_CHARGER     : true,
+  MAT_ELEC_CABLE_TRAY     : false,
+  MAT_ELEC_BUSDUCT        : true,
+  MAT_PLUMB_EWC           : true,
+  MAT_PLUMB_WC            : true,
+  MAT_PLUMB_WASH          : true,
+  MAT_PLUMB_BATH          : true,
+  MAT_PLUMB_BATHTUB       : true,
+  MAT_PLUMB_SINK_SS       : true,
+  MAT_PLUMB_URINAL        : true,
+  MAT_PLUMB_FAUCET_BASIN  : true,
+  MAT_PLUMB_FAUCET_BATH   : true,
+  MAT_PLUMB_FAUCET_KITCH  : true,
+  MAT_PLUMB_PIPE_CPVC     : false,
+  MAT_PLUMB_PIPE_PPR      : false,
+  MAT_PLUMB_PIPE_PVC      : false,
+  MAT_PLUMB_PIPE_GI       : false,
+  MAT_PLUMB_GULLY         : true,
+  MAT_PLUMB_TANK_OHT      : true,
+  MAT_PLUMB_TANK_SUMP     : true,
+  MAT_PLUMB_PUMP_BOOSTER  : true,
+  MAT_PLUMB_PUMP_SEWAGE   : true,
+  MAT_PLUMB_STP           : true,
+  MAT_PLUMB_SOLAR_HWS     : true,
+  MAT_PLUMB_GAS_PIPE      : false,
+  MAT_FLOOR_CER           : true,
+  MAT_FLOOR_VIT           : true,
+  MAT_FLOOR_VIT_LVT       : true,
+  MAT_FLOOR_MARBLE_IND    : true,
+  MAT_FLOOR_MARBLE_IMP    : true,
+  MAT_FLOOR_GRANITE       : true,
+  MAT_FLOOR_KOTA          : true,
+  MAT_FLOOR_HARDWOOD      : true,
+  MAT_FLOOR_EPOXY         : true,
+  MAT_FLOOR_IPS           : true,
+  MAT_FLOOR_MORTAR        : false,
+  MAT_FLOOR_SKIRTING      : true,
+  MAT_FLOOR_DADO_BATH     : true,
+  MAT_FLOOR_DADO_KITCH    : true,
+  MAT_PAINT_PUTTY         : false,
+  MAT_PAINT_PRIMER        : false,
+  MAT_PAINT_INT_EMU       : false,
+  MAT_PAINT_INT_LUSTER    : false,
+  MAT_PAINT_EXT_EMU       : false,
+  MAT_PAINT_EXT_ELAST     : false,
+  MAT_PAINT_DISTEM        : false,
+  MAT_PAINT_TEXTURE       : false,
+  MAT_WOOD_KITCH_ECO      : true,
+  MAT_WOOD_KITCH          : true,
+  MAT_WOOD_KITCH_PREM     : true,
+  MAT_WOOD_CARPEN         : true,
+  MAT_WOOD_WARDROBE       : true,
+  MAT_WOOD_WARDROBE_PREM  : true,
+  MAT_WOOD_LOFT           : true,
+  MAT_WOOD_STUDY_TABLE    : true,
+  MAT_WOOD_PANEL          : true,
+  MAT_WOOD_POLISH         : true,
+  MAT_WOOD_TV_UNIT        : true,
+  MAT_WOOD_POOJA_MANDIR   : true,
+  MAT_EXT_PLAST           : true,
+  MAT_EXT_PAINT           : true,
+  MAT_EXT_TEXTURE         : false,
+  MAT_EXT_CLADDING_ACP    : true,
+  MAT_EXT_CURTWALL        : true,
+  MAT_EXT_CURTWALL_UHV    : true,
+  MAT_EXT_STONE_CLADDING  : true,
+  MAT_EXT_BOUNDARY_WALL   : true,
+  MAT_EXT_GATE_MAIN       : true,
+  MAT_EXT_GATE_PEDES      : true,
+  MAT_EXT_PAVING          : true,
+  MAT_EXT_ROAD_BITUMEN    : true,
+  MAT_EXT_LANDSCAPE       : true,
+  MAT_STAIR_CONC          : false,
+  MAT_STAIR_STEEL         : false,
+  MAT_STAIR_RAILING_SS    : true,
+  MAT_STAIR_RAILING_MS    : true,
+  MAT_STAIR_RAILING_GLASS : true,
+  MAT_STAIR_MARBLE        : true,
+  MAT_STAIR_GRANITE       : true,
+  MAT_LIFT_4P             : true,
+  MAT_LIFT_8P             : true,
+  MAT_LIFT_13P            : true,
+  MAT_LIFT_HYDRO          : true,
+  MAT_HVAC_SPLIT          : true,
+  MAT_HVAC_CASSET         : true,
+  MAT_HVAC_VRF            : true,
+  MAT_HVAC_CENTRAL_AHU    : true,
+  MAT_HVAC_DUCT_INSUL     : true,
+  MAT_HVAC_FRESH_AIR      : true,
+  MAT_FIRE_HYDRANT        : true,
+  MAT_FIRE_PUMP_SET       : true,
+  MAT_FIRE_EXTINGUISHER   : true,
+  MAT_FIRE_SPRINKLER      : true,
+  MAT_EXHAUST_FAN         : true,
+  MAT_PARK_RCC_EXCAV      : false,
+  MAT_PARK_RCC_WALLS      : false,
+  MAT_PARK_FLOOR_SCREED   : false,
+  MAT_PARK_LINING         : false,
+  MAT_PARK_VENTILATION    : false,
+  MAT_PARK_PUMP_SUMP      : false,
+  MAT_PARK_STRIPING       : false,
+  MAT_PARK_EV_CHARGING    : false,
+  MAT_POOL_EXCAV          : true,
+  MAT_POOL_RCC            : true,
+  MAT_POOL_TILE           : true,
+  MAT_POOL_PUMP_FILTER    : true,
+  MAT_POOL_CHLORINATOR    : true,
+  MAT_GYM_EQUIP           : true,
+  MAT_CLUB_FINISH         : true,
+  MAT_SOLAR_PANEL_ROO     : true,
+  MAT_SOLAR_INV_ROO       : true,
+  MAT_GREEN_RAINWATER     : true,
+  MAT_GREEN_DUAL_FLUSH    : true,
+  MAT_MISC_SCAFFOLD       : true,
+  MAT_MISC_TOTAL          : true,
+};
+
 export const DEFAULT_DATASET: CoefficientDataset = {
-  version: 'v2026.09.2',
+  version: 'v2026.09.3',
 
   // ─── Cement coefficients (bags/sqft BUA) — per floor height band ─────────
   // Sources: CPWD DSR Schedule-I, IS 456, standard mix design tables
@@ -59,6 +275,8 @@ export const DEFAULT_DATASET: CoefficientDataset = {
   // REFERENCE UNIT RATES — National average baseline (INR, Sep 2026)
   // Standard quality. Regional index and quality multiplier applied separately.
   // ═══════════════════════════════════════════════════════════════════════════
+  labourInclusive: LABOUR_INCLUSIVE_RATES,
+
   rates: {
     // ── CAT_01: Substructure & Excavation ────────────────────────────────────
     MAT_FOUND_EXCAV        : 280,    // ₹/cu.m  — mechanical excavation
@@ -84,8 +302,6 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_RCC_AGGREGATE_20MM : 44,     // ₹/cu.ft — 20mm crushed aggregate
     MAT_RCC_AGGREGATE_10MM : 48,     // ₹/cu.ft — 10mm (slab top)
     MAT_RCC_COL_CONC       : 6600,   // ₹/cu.m — M25 column concrete
-    MAT_RCC_BEAM_CONC      : 6300,   // ₹/cu.m — M20 beam concrete
-    MAT_RCC_SLAB_CONC      : 6300,   // ₹/cu.m — M20 slab concrete
     MAT_RCC_HIGH_CONC      : 8200,   // ₹/cu.m — M40 (high-rise G16+)
     MAT_RCC_FORMWORK       : 320,    // ₹/sq.m — column/beam shuttering
     MAT_RCC_SLAB_FORM      : 280,    // ₹/sq.m — slab soffit shuttering
@@ -93,7 +309,6 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_RCC_SPACERS        : 5,      // ₹/unit — PVC cover blocks
     MAT_RCC_ADMIX          : 200,    // ₹/litre — superplasticizer
     MAT_RCC_FLYASH         : 8,      // ₹/kg   — fly ash (PPC blend)
-    MAT_RCC_CURING_COMP    : 120,    // ₹/litre — curing compound
     MAT_RCC_GROUT          : 85,     // ₹/kg   — non-shrink grout (column bases)
     MAT_STEEL_STRUCT       : 95,     // ₹/kg   — structural steel sections (Steel sys only)
 
@@ -105,9 +320,7 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_MASON_CEMENT       : 420,    // ₹/bag  — OPC 43 / PPC for mortar
     MAT_MASON_SAND         : 34,     // ₹/cu.ft — plastering sand
     MAT_MASON_LINTEL       : 6300,   // ₹/cu.m — M20 lintel concrete
-    MAT_MASON_LINTEL_STEEL : 63,     // ₹/kg
     MAT_MASON_PARAPET      : 1300,   // ₹/rmt  — parapet wall (0.9m ht)
-    MAT_MASON_COLUMN_CLAD  : 180,    // ₹/sqft — column cladding (brick)
     MAT_PLAST_INT          : 22,     // ₹/sqft — 12mm internal plaster
     MAT_PLAST_EXT          : 32,     // ₹/sqft — 20mm external plaster
     MAT_PLAST_POP          : 18,     // ₹/sqft — POP skim coat
@@ -122,20 +335,15 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_WP_TORCH           : 75,     // ₹/sqft — torch-applied bitumen membrane
     MAT_WP_BATH            : 38,     // ₹/sqft — bathroom cementitious WP
     MAT_WP_KITCH           : 32,     // ₹/sqft — kitchen WP
-    MAT_WP_RET_WALL        : 28,     // ₹/sqft — retaining wall WP
     MAT_WP_BASEMENT        : 95,     // ₹/sqft — basement tanking system
-    MAT_WP_PRIMER          : 130,    // ₹/litre — bitumen primer
     MAT_WP_EXPANSION       : 850,    // ₹/rmt  — expansion joint sealant
-    MAT_WP_GROUTING        : 280,    // ₹/rmt  — joint grouting
     MAT_ANTITERM_CHEMICAL  : 280,    // ₹/litre — termiticide concentrate
 
     // ── CAT_05: Roofing & False Ceiling ─────────────────────────────────────
     MAT_ROOF_TERRACE       : 38,     // ₹/sqft — terrace finish + WP
     MAT_ROOF_SLOPE         : 55,     // ₹/sqft — sloped RCC + waterproofing
     MAT_ROOF_METAL_DECK    : 280,    // ₹/sqft — metal deck roofing
-    MAT_ROOF_POLYCARBONATE : 220,    // ₹/sqft — polycarbonate sheet
     MAT_ROOF_GI_SHEET      : 180,    // ₹/sqft — GI Corrugated sheet
-    MAT_ROOF_SOLAR_STRUCT  : 85,     // ₹/sqft — solar panel mounting structure
     MAT_CEIL_POP           : 95,     // ₹/sqft — POP false ceiling (installed)
     MAT_CEIL_GYPS          : 140,    // ₹/sqft — gypsum board (Armstrong/Saint-Gobain)
     MAT_CEIL_GRID          : 185,    // ₹/sqft — metal grid (commercial)
@@ -156,28 +364,23 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_WIN_ALUM           : 360,    // ₹/sqft — aluminium window (fabricated)
     MAT_WIN_UPVC           : 480,    // ₹/sqft — UPVC sliding window
     MAT_WIN_THERMBREAK     : 850,    // ₹/sqft — thermally broken aluminium (premium)
-    MAT_WIN_WOOD           : 320,    // ₹/sqft — teak/hardwood window
     MAT_WIN_GLASS_TOUGHENED: 220,    // ₹/sqft — 12mm toughened glass
     MAT_WIN_GLASS_DBLE     : 380,    // ₹/sqft — double-glazed unit (DGU)
     MAT_WIN_HARDWARE       : 750,    // ₹/set  — espag handle + stays + rubber
     MAT_GRILLE             : 130,    // ₹/sqft — MS grille (painted)
     MAT_VENT               : 1900,   // ₹/unit — ventilator (aluminium louvre)
-    MAT_SKYLIGHT           : 2200,   // ₹/sqft — skylight (polycarbonate framed)
 
     // ── CAT_07: Electrical & Low-Voltage Systems ─────────────────────────────
     MAT_ELEC_POINT         : 1500,   // ₹/point — complete wiring point
     MAT_ELEC_WIRE_6        : 85,     // ₹/m    — 6 sq.mm FRLS PVC wire
-    MAT_ELEC_WIRE_4        : 68,     // ₹/m    — 4 sq.mm
     MAT_ELEC_WIRE_2_5      : 58,     // ₹/m    — 2.5 sq.mm (power)
     MAT_ELEC_WIRE_1_5      : 40,     // ₹/m    — 1.5 sq.mm (light)
     MAT_ELEC_CONDUIT_25    : 32,     // ₹/m    — 25mm PVC conduit
-    MAT_ELEC_CONDUIT_20    : 25,     // ₹/m    — 20mm conduit
     MAT_ELEC_DB_MAIN       : 12000,  // ₹/unit — main LT panel/MCCB board
     MAT_ELEC_DB_FLOOR      : 5500,   // ₹/unit — floor distribution board
     MAT_ELEC_MCB           : 200,    // ₹/unit — 20A SP MCB
     MAT_ELEC_RCCB          : 1200,   // ₹/unit — 30mA RCCB
     MAT_ELEC_SWITCH_MOD    : 750,    // ₹/plate — modular switch plate (4 module)
-    MAT_ELEC_SOCKET_5A     : 380,    // ₹/unit — 5A socket
     MAT_ELEC_SOCKET_16A    : 650,    // ₹/unit — 16A socket (AC/geyser)
     MAT_ELEC_EARTHING      : 3500,   // ₹/set  — pipe/plate chemical earthing pit (IS 3043)
     MAT_ELEC_UPS_INVERTER  : 25000,  // ₹/unit — pure sine wave home inverter + battery
@@ -185,16 +388,11 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     // (Cummins/Kirloskar/Mahindra) with AMF panel, acoustic enclosure, GI earthing,
     // exhaust piping and commissioning per CPWD DSR 2023 and Indian market norms.
     MAT_ELEC_GENSET        : 22000,  // ₹/kVA  — diesel generator set (CPCB IV+ acoustic, installed)
-    MAT_ELEC_SOLAR_PANEL   : 38,     // ₹/W    — mono PERC solar panel
-    MAT_ELEC_SOLAR_INV     : 12000,  // ₹/kW   — string inverter
     MAT_ELEC_CCTV          : 6000,   // ₹/camera — IP CCTV (4MP)
     MAT_ELEC_FIRE_ALARM    : 2500,   // ₹/detector — ionisation detector
-    MAT_ELEC_FIRE_SPRINKLER: 4500,   // ₹/head — fire sprinkler (wet system)
     MAT_ELEC_ACCESS_CTRL   : 18000,  // ₹/door — access control system
     MAT_ELEC_INTERCOM      : 6500,   // ₹/unit — video door phone
-    MAT_ELEC_AUTOMATION    : 85000,  // ₹/room — smart home per room
     MAT_ELEC_EV_CHARGER    : 35000,  // ₹/point — EV charging point (32A)
-    MAT_ELEC_STREET_LIGHT  : 12000,  // ₹/unit — LED street light (site)
     MAT_ELEC_CABLE_TRAY    : 280,    // ₹/m    — perforated cable tray (150mm)
     MAT_ELEC_BUSDUCT       : 3500,   // ₹/m    — busduct (rise main, commercial)
 
@@ -212,7 +410,6 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_PLUMB_PIPE_CPVC    : 80,     // ₹/m    — CPVC pipe (IS 15778)
     MAT_PLUMB_PIPE_PPR     : 95,     // ₹/m    — PPR pipe (hot/cold)
     MAT_PLUMB_PIPE_PVC     : 50,     // ₹/m    — PVC drain pipe
-    MAT_PLUMB_PIPE_SWR     : 45,     // ₹/m    — SWR soil waste rain pipe
     MAT_PLUMB_PIPE_GI      : 220,    // ₹/m    — GI pipe (fire hydrant)
     MAT_PLUMB_GULLY        : 320,    // ₹/unit — floor trap / gully trap
     MAT_PLUMB_TANK_OHT     : 5.5,    // ₹/litre— HDPE overhead tank
@@ -220,11 +417,8 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_PLUMB_PUMP_BOOSTER : 22000,  // ₹/set  — booster pump set
     MAT_PLUMB_PUMP_SEWAGE  : 18000,  // ₹/set  — sewage submersible pump
     MAT_PLUMB_STP          : 90000,  // ₹/KLD  — STP (MBR technology)
-    MAT_PLUMB_RWH          : 45000,  // ₹/unit — rainwater harvesting system
     MAT_PLUMB_SOLAR_HWS    : 28000,  // ₹/unit — solar water heater (200LPD)
-    MAT_PLUMB_SOFTENER     : 35000,  // ₹/unit — water softener system
     MAT_PLUMB_GAS_PIPE     : 180,    // ₹/m    — PNG gas piping (copper)
-    MAT_PLUMB_GAS_METER    : 8000,   // ₹/unit — gas meter point
 
     // ── CAT_09: Flooring & Tiling ────────────────────────────────────────────
     MAT_FLOOR_CER          : 85,     // ₹/sqft — ceramic tile (installed, 600×600)
@@ -234,14 +428,11 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_FLOOR_MARBLE_IMP   : 650,    // ₹/sqft — imported marble (Italian)
     MAT_FLOOR_GRANITE      : 240,    // ₹/sqft — Indian granite (polished)
     MAT_FLOOR_KOTA         : 70,     // ₹/sqft — Kota stone
-    MAT_FLOOR_KADAPPA       : 58,     // ₹/sqft — Kadappa stone
     MAT_FLOOR_HARDWOOD     : 380,    // ₹/sqft — engineered hardwood
-    MAT_FLOOR_LAMINATE     : 180,    // ₹/sqft — laminate flooring
     MAT_FLOOR_EPOXY        : 90,     // ₹/sqft — epoxy screed (industrial)
     MAT_FLOOR_IPS          : 45,     // ₹/sqft — IPS (industrial floor)
     MAT_FLOOR_MORTAR       : 20,     // ₹/sqft — mortar bed
     MAT_FLOOR_SKIRTING     : 60,     // ₹/rft  — tile skirting
-    MAT_FLOOR_TRIM         : 45,     // ₹/rft  — aluminium trim strip
     MAT_FLOOR_DADO_BATH    : 120,    // ₹/sqft — bathroom wall tile (upto 7ft)
     MAT_FLOOR_DADO_KITCH   : 100,    // ₹/sqft — kitchen dado (3ft)
 
@@ -253,10 +444,7 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_PAINT_EXT_EMU      : 300,    // ₹/litre — exterior weathershield
     MAT_PAINT_EXT_ELAST    : 450,    // ₹/litre — elastomeric exterior paint
     MAT_PAINT_DISTEM       : 65,     // ₹/kg   — distemper (economy)
-    MAT_PAINT_EPOXY_WALL   : 650,    // ₹/litre — epoxy wall paint (wet areas)
-    MAT_PAINT_DAMP_PROOF   : 350,    // ₹/litre — Dr Fixit Dampguard etc
     MAT_PAINT_TEXTURE      : 150,    // ₹/sqft — texture paint (installed)
-    MAT_PAINT_POLISHED      : 280,    // ₹/sqft — venetian plaster (premium)
 
     // ── CAT_11: Modular Kitchen, Joinery & Woodwork ──────────────────────────
     MAT_WOOD_KITCH_ECO     : 2800,   // ₹/lft  — economy modular kitchen
@@ -269,9 +457,7 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_WOOD_STUDY_TABLE   : 18000,  // ₹/unit — study/work table
     MAT_WOOD_PANEL         : 1200,   // ₹/sqft — decorative wall panelling
     MAT_WOOD_POLISH        : 90,     // ₹/sqft — melamine/PU polish
-    MAT_WOOD_HARDWARE      : 600,    // ₹/set  — cabinet hardware set
     MAT_WOOD_TV_UNIT       : 35000,  // ₹/unit — TV unit + back panel
-    MAT_WOOD_SHOE_RACK     : 8000,   // ₹/unit — shoe rack
     MAT_WOOD_POOJA_MANDIR  : 25000,  // ₹/unit — pooja unit (teak)
 
     // ── CAT_12: Exterior Finishing & Cladding ───────────────────────────────
@@ -282,16 +468,12 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_EXT_CURTWALL       : 1300,   // ₹/sqft — structural glazing curtain wall
     MAT_EXT_CURTWALL_UHV   : 1850,   // ₹/sqft — unitised high-performance CW (Saint-Gobain Low-E DGU)
     MAT_EXT_STONE_CLADDING : 350,    // ₹/sqft — natural stone cladding
-    MAT_EXT_TERRACOTTA     : 280,    // ₹/sqft — terracotta cladding
-    MAT_EXT_COMPOSITE      : 380,    // ₹/sqft — composite/GRC panel
     MAT_EXT_BOUNDARY_WALL  : 1500,   // ₹/rmt  — 6ft compound wall
     MAT_EXT_GATE_MAIN      : 65000,  // ₹/unit — motorised sliding main gate
     MAT_EXT_GATE_PEDES     : 18000,  // ₹/unit — pedestrian gate
     MAT_EXT_PAVING         : 75,     // ₹/sqft — interlocking paver (external)
     MAT_EXT_ROAD_BITUMEN   : 180,    // ₹/sqft — internal road (60mm bitumen)
     MAT_EXT_LANDSCAPE      : 45,     // ₹/sqft — basic landscaping (turfing)
-    MAT_EXT_LANDSCAPE_HARD : 250,    // ₹/sqft — hardscaping (granite paving)
-    MAT_EXT_WATER_FEATURE  : 180000, // ₹/unit — water feature / fountain
 
     // ── CAT_13: Staircase, Railings & Lifts ─────────────────────────────────
     MAT_STAIR_CONC         : 6300,   // ₹/cu.m — M25 stair concrete
@@ -311,17 +493,13 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_HVAC_CASSET        : 65000,  // ₹/ton  — cassette AC
     MAT_HVAC_VRF           : 85000,  // ₹/ton  — VRF/VRV system
     MAT_HVAC_CENTRAL_AHU   : 120000, // ₹/ton  — central AHU (duct)
-    MAT_HVAC_CHILLER       : 180000, // ₹/ton  — screw chiller (large commercial)
     MAT_HVAC_DUCT_INSUL    : 280,    // ₹/sqft — insulated ducting
     MAT_HVAC_FRESH_AIR     : 35,     // ₹/sqft — fresh air ventilation
     MAT_FIRE_HYDRANT       : 85000,  // ₹/set  — wet riser hydrant system per floor
     MAT_FIRE_PUMP_SET      : 250000, // ₹/set  — fire pump set (main+jockey+diesel)
-    MAT_FIRE_SUPPRESSION   : 220,    // ₹/sqft — FM200 / clean agent system
     MAT_FIRE_EXTINGUISHER  : 2500,   // ₹/unit — ABC CO2 extinguisher
     MAT_FIRE_SPRINKLER     : 4500,   // ₹/head — fire sprinkler head (wet pipe, IS 15105)
-    MAT_BMS_SYSTEM         : 180000, // ₹/floor— BMS per floor (commercial)
     MAT_EXHAUST_FAN        : 3500,   // ₹/unit — axial exhaust fan
-    MAT_PRESSUR_VESTIBULE  : 45000,  // ₹/floor— pressurization (high-rise)
 
     // ── CAT_15: Parking & Basement ──────────────────────────────────────────
     MAT_PARK_RCC_EXCAV     : 480,    // ₹/cu.m — basement excavation + strutting + carting (CPWD DSR 2024)
@@ -331,40 +509,27 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_PARK_VENTILATION   : 280,    // ₹/sqft — basement ventilation
     MAT_PARK_PUMP_SUMP     : 25000,  // ₹/set  — stormwater / de-watering pump
     MAT_PARK_STRIPING      : 120,    // ₹/bay  — parking bay markings
-    MAT_PARK_MECHANICAL    : 1800000,// ₹/unit — 2-level mechanical parker
     MAT_PARK_EV_CHARGING   : 35000,  // ₹/point— EV charging in parking
 
     // ── CAT_16: Swimming Pool & Recreational ─────────────────────────────────
     MAT_POOL_EXCAV         : 7200,   // ₹/cu.m
     MAT_POOL_RCC           : 8500,   // ₹/cu.m — M35 WS pool concrete
     MAT_POOL_TILE          : 380,    // ₹/sqft — pool tile (vitrified)
-    MAT_POOL_MOSAIC        : 550,    // ₹/sqft — mosaic tile
     MAT_POOL_PUMP_FILTER   : 180000, // ₹/set  — filtration + pump system
     MAT_POOL_CHLORINATOR   : 45000,  // ₹/set  — salt chlorination system
-    MAT_POOL_LIGHTING      : 8500,   // ₹/unit — underwater LED pool light
     MAT_GYM_EQUIP          : 4500,   // ₹/sqft — gym equipment + flooring
     MAT_CLUB_FINISH        : 2500,   // ₹/sqft — clubhouse premium finishing
 
     // ── CAT_17: Solar & Green Building ──────────────────────────────────────
     MAT_SOLAR_PANEL_ROO    : 38,     // ₹/Wp   — rooftop solar panel
     MAT_SOLAR_INV_ROO      : 12000,  // ₹/kW   — grid-tied inverter
-    MAT_SOLAR_STRUC        : 2000,   // ₹/module— mounting structure
-    MAT_SOLAR_WIRING       : 5000,   // ₹/kW   — DC wiring harness
     MAT_GREEN_RAINWATER    : 45000,  // ₹/unit — RWH system
     MAT_GREEN_DUAL_FLUSH   : 12000,  // ₹/unit — dual-flush valve set
-    MAT_GREEN_DAYLIGHT     : 35000,  // ₹/unit — daylight harvesting sensor
-    MAT_GREEN_IGBC_CONSULT : 350000, // ₹/lump — IGBC certification consulting
-    MAT_GREEN_GRIHA        : 280000, // ₹/lump — GRIHA certification
 
     // ── CAT_18: Preliminaries, Site & Miscellaneous ──────────────────────────
     // CAT_18 is auto-computed as 3.5% of all other categories (miscPct)
     // The following rates are used for high-rise / complex additions
     MAT_MISC_SCAFFOLD      : 18,     // ₹/sqft/month — external scaffolding
-    MAT_MISC_TOWER_CRANE   : 180000, // ₹/month — tower crane hire
-    MAT_MISC_HOIST         : 45000,  // ₹/month — material hoist
-    MAT_MISC_TEMP_ELEC     : 25000,  // ₹/month — temporary electrical
-    MAT_MISC_SAFETY        : 12,     // ₹/sqft — safety net + hoarding
-    MAT_MISC_QC_TESTING    : 8,      // ₹/sqft — soil test, concrete cube test
     MAT_MISC_TOTAL         : 1,      // placeholder (cost computed as % of total)
   },
 

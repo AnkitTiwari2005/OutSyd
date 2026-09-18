@@ -71,6 +71,7 @@ export interface ClassificationResult {
 export interface CoefficientDataset {
   version : string;
   rates   : Record<string, number>;  // materialItemCode → base rate (INR)
+  labourInclusive: Record<string, boolean>; // materialItemCode → boolean (true = turnkey/installed, false = raw material needing +30% site labour)
   grades  : Record<QualityTier, Record<string, string>>; // tier → code → grade label
   seismicMultipliers: Record<SeismicZone, number>;
   qualityMultipliers: Record<QualityTier, number>;

@@ -234,4 +234,21 @@ describe('Quantification Engine (runEstimationEngine)', () => {
       }
     }
   });
+
+  it('wires and emits CAT_16 swimming pool and recreation items when buildingUse is community hall or clubhouse (N-5)', () => {
+    const input: FullInput = {
+      lengthFt: 100, breadthFt: 100, heightFt: 30, plotAreaSqft: 20000, numFloors: 2,
+      typology: 'Institutional', buildingUse: 'Community Hall',
+      soilType: 'Normal', locationRegion: 'Bengaluru', qualityTier: 'Premium',
+    };
+    const cls = classifyBuilding(input);
+    const items = runEstimationEngine(input, cls, DEFAULT_DATASET, 1.0);
+    const poolItems = items.filter(i => i.categoryCode === 'CAT_16');
+    assert.ok(poolItems.length > 0, 'Expected CAT_16 line items for community hall / clubhouse');
+    const codes = poolItems.map(i => i.materialItemCode);
+    assert.ok(codes.includes('MAT_CLUB_FINISH'), 'Expected MAT_CLUB_FINISH');
+    assert.ok(codes.includes('MAT_GYM_EQUIP'), 'Expected MAT_GYM_EQUIP');
+    assert.ok(codes.includes('MAT_POOL_TILE'), 'Expected MAT_POOL_TILE');
+  });
 });
+
