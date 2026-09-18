@@ -8,7 +8,7 @@
 import type { CoefficientDataset } from './types';
 
 export const DEFAULT_DATASET: CoefficientDataset = {
-  version: '2026-09-18-v2',
+  version: '2026-09-18-v3',
 
   // ─── Cement coefficients (bags/sqft BUA) — per floor height band ─────────
   // Sources: CPWD DSR Schedule-I, IS 456, standard mix design tables
@@ -177,6 +177,8 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_ELEC_SWITCH_MOD    : 750,    // ₹/plate — modular switch plate (4 module)
     MAT_ELEC_SOCKET_5A     : 380,    // ₹/unit — 5A socket
     MAT_ELEC_SOCKET_16A    : 650,    // ₹/unit — 16A socket (AC/geyser)
+    MAT_ELEC_EARTHING      : 3500,   // ₹/set  — pipe/plate chemical earthing pit (IS 3043)
+    MAT_ELEC_UPS_INVERTER  : 25000,  // ₹/unit — pure sine wave home inverter + battery
     // MAT_ELEC_GENSET: ₹22,000/kVA installed rate for CPCB IV+ compliant acoustic DG set
     // (Cummins/Kirloskar/Mahindra) with AMF panel, acoustic enclosure, GI earthing,
     // exhaust piping and commissioning per CPWD DSR 2023 and Indian market norms.
@@ -314,6 +316,7 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_FIRE_PUMP_SET      : 250000, // ₹/set  — fire pump set (main+jockey+diesel)
     MAT_FIRE_SUPPRESSION   : 220,    // ₹/sqft — FM200 / clean agent system
     MAT_FIRE_EXTINGUISHER  : 2500,   // ₹/unit — ABC CO2 extinguisher
+    MAT_FIRE_SPRINKLER     : 4500,   // ₹/head — fire sprinkler head (wet pipe, IS 15105)
     MAT_BMS_SYSTEM         : 180000, // ₹/floor— BMS per floor (commercial)
     MAT_EXHAUST_FAN        : 3500,   // ₹/unit — axial exhaust fan
     MAT_PRESSUR_VESTIBULE  : 45000,  // ₹/floor— pressurization (high-rise)

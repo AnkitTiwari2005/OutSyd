@@ -6,6 +6,7 @@ import type {
   FullInput, EstimateLineItem, CoefficientDataset,
   ClassificationResult, DerivedDimensions, RoomCounts, FloorTier, QualityTier,
 } from './types';
+import { DEFAULT_DATASET } from './coefficients';
 
 // ─── Item name map ────────────────────────────────────────────────────────────
 const ITEM_NAMES: Record<string, { name: string; category: string }> = {
@@ -258,6 +259,18 @@ const ITEM_NAMES: Record<string, { name: string; category: string }> = {
   MAT_MISC_SCAFFOLD      : { name: 'High-Rise Suspended Scaffold / Cradle',category: 'CAT_18' },
 };
 
+// Dev-time invariant: verify every ITEM_NAMES key resolves to a valid rate in DEFAULT_DATASET.rates
+if (process.env.NODE_ENV !== 'production') {
+  for (const itemCode of Object.keys(ITEM_NAMES)) {
+    if (itemCode === 'MAT_MISC_TOTAL') continue;
+    if (typeof DEFAULT_DATASET.rates[itemCode] !== 'number') {
+      throw new Error(
+        `Engine Invariant Violation (C-6): ITEM_NAMES key '${itemCode}' lacks a rate in DEFAULT_DATASET.rates.`,
+      );
+    }
+  }
+}
+
 // Category display names
 const CATEGORY_NAMES: Record<string, string> = {
   CAT_01: 'Substructure & Excavation',
@@ -390,6 +403,14 @@ function li(
 
   const unitRate = round2(baseRate * qMult * ri);
   const qty      = round2(Math.max(0, quantity));
+
+  // C-6: Runtime guard — refuse to return an estimate line item containing quantity > 0 && unitRate === 0
+  if (qty > 0 && unitRate === 0) {
+    throw new Error(
+      `Engine Invariant Violation (C-6): Line item '${code}' has quantity ${qty} but resolved to ₹0 unitRate.`,
+    );
+  }
+
   const meta     = ITEM_NAMES[code] ?? { name: code, category: 'CAT_18' };
   const grade    = ds.grades[quality]?.[code] ?? ds.grades.Standard?.[code] ?? 'Standard';
 
