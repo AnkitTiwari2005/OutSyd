@@ -27,6 +27,7 @@ function LoginForm() {
       setError('Invalid email or password credentials.');
       return;
     }
+    router.refresh();
     router.push(safeTarget);
   };
 
