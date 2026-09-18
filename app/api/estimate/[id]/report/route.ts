@@ -1,18 +1,48 @@
-// app/api/estimate/[id]/report/route.ts — GET PDF download
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { estimates, buildingInputs, reports } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import type { EstimateResult } from '@/lib/engine/types';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const pdfCache = new Map<string, Uint8Array>();
+
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  try {
+    const rl = await checkRateLimit(`export:${ip}`, false);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'TOO_MANY_REQUESTS', retryAfter: Math.ceil((rl.reset - Date.now()) / 1000) },
+        { status: 429 },
+      );
+    }
+  } catch (err) {
+    console.warn('[RateLimit] Warning on export route:', err);
+  }
+
   const { id } = await params;
+
+  if (pdfCache.has(id)) {
+    const cachedBytes = pdfCache.get(id)!;
+    const filename = `OUTSYD-Estimate-${id.slice(0, 8)}.pdf`;
+    return new NextResponse(Buffer.from(cachedBytes), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': cachedBytes.byteLength.toString(),
+        'Cache-Control': 'public, max-age=86400, immutable',
+        'X-Cache': 'HIT',
+      },
+    });
+  }
 
   const [estimate] = await db.select().from(estimates).where(eq(estimates.id, id)).limit(1);
   if (!estimate) {
@@ -58,6 +88,9 @@ export async function GET(
         : Buffer.from(pdfBuffer as ArrayBuffer)
     );
 
+    // Cache rendered PDF by estimate ID (H-9)
+    pdfCache.set(id, bytes);
+
     try {
       await db.insert(reports).values({
         id: crypto.randomUUID(),
@@ -76,7 +109,8 @@ export async function GET(
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Length': bytes.byteLength.toString(),
-        'Cache-Control': 'no-store',
+        'Cache-Control': 'public, max-age=86400, immutable',
+        'X-Cache': 'MISS',
       },
     });
   } catch (err) {
