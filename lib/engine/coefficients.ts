@@ -626,6 +626,15 @@ export const REGIONAL_RATE_INDEX: Record<string, number> = {
   'rampur'           : 0.83,
   'shahjahanpur'     : 0.82,
   'muzaffarnagar'    : 0.84,
+  'ambala'           : 1.05,
+  'panipat'          : 1.05,
+  'karnal'           : 1.05,
+  'haldwani'         : 1.02,
+  'dispur'           : 1.08,
+  'tezpur'           : 1.08,
+  'dhubri'           : 1.06,
+  'diphu'            : 1.06,
+  'kargil'           : 1.25,
 
   // ── Default fallback ──────────────────────────────────────────────────────
   'default'          : 1.00,
@@ -658,16 +667,16 @@ export const SEISMIC_ZONE_LOOKUP: Record<string, string> = {
   'haldwani': 'Zone_IV',
   // Zone III
   'mumbai': 'Zone_III', 'navi mumbai': 'Zone_III', 'thane': 'Zone_III',
-  'pune': 'Zone_III', 'kolkata': 'Zone_III', 'ahmedabad': 'Zone_III',
-  'lucknow': 'Zone_III', 'kanpur': 'Zone_III', 'kochi': 'Zone_III',
-  'bhubaneswar': 'Zone_III', 'agra': 'Zone_III', 'varanasi': 'Zone_III',
-  'coimbatore': 'Zone_III', 'allahabad': 'Zone_III', 'prayagraj': 'Zone_III',
-  'jaipur': 'Zone_III', 'ajmer': 'Zone_III', 'bhopal': 'Zone_III',
-  'ujjain': 'Zone_III', 'jabalpur': 'Zone_III', 'raipur': 'Zone_III',
-  'ranchi': 'Zone_III', 'jamshedpur': 'Zone_III', 'vadodara': 'Zone_III',
-  'rajkot': 'Zone_III', 'panaji': 'Zone_III', 'goa': 'Zone_III',
-  'mangaluru': 'Zone_III', 'mangalore': 'Zone_III', 'surat': 'Zone_III',
-  'thiruvananthapuram': 'Zone_III', 'kozhikode': 'Zone_III',
+  'pune': 'Zone_III', 'kolkata': 'Zone_III', 'chennai': 'Zone_III',
+  'ahmedabad': 'Zone_III', 'lucknow': 'Zone_III', 'kanpur': 'Zone_III',
+  'kochi': 'Zone_III', 'bhubaneswar': 'Zone_III', 'agra': 'Zone_III',
+  'varanasi': 'Zone_III', 'coimbatore': 'Zone_III', 'allahabad': 'Zone_III',
+  'prayagraj': 'Zone_III', 'jaipur': 'Zone_III', 'ajmer': 'Zone_III',
+  'bhopal': 'Zone_III', 'ujjain': 'Zone_III', 'jabalpur': 'Zone_III',
+  'raipur': 'Zone_III', 'ranchi': 'Zone_III', 'jamshedpur': 'Zone_III',
+  'vadodara': 'Zone_III', 'rajkot': 'Zone_III', 'panaji': 'Zone_III',
+  'goa': 'Zone_III', 'mangaluru': 'Zone_III', 'mangalore': 'Zone_III',
+  'surat': 'Zone_III', 'thiruvananthapuram': 'Zone_III', 'kozhikode': 'Zone_III',
   'aligarh': 'Zone_III', 'mathura': 'Zone_III', 'firozabad': 'Zone_III',
   'gorakhpur': 'Zone_III', 'jhansi': 'Zone_III',
   // Zone II
@@ -677,7 +686,7 @@ export const SEISMIC_ZONE_LOOKUP: Record<string, string> = {
   'mysuru': 'Zone_II', 'mysore': 'Zone_II', 'hubli': 'Zone_II',
   'belgaum': 'Zone_II', 'belagavi': 'Zone_II', 'dharwad': 'Zone_II',
   'madurai': 'Zone_II', 'trichy': 'Zone_II', 'salem': 'Zone_II',
-  'tirunelveli': 'Zone_II', 'vellore': 'Zone_II', 'chennai': 'Zone_II',
+  'tirunelveli': 'Zone_II', 'vellore': 'Zone_II',
   'warangal': 'Zone_II', 'nizamabad': 'Zone_II', 'nashik': 'Zone_II',
   'aurangabad': 'Zone_II', 'solapur': 'Zone_II', 'kolhapur': 'Zone_II',
   'dhanbad': 'Zone_II', 'bokaro': 'Zone_II', 'cuttack': 'Zone_II',
@@ -713,8 +722,16 @@ export function lookupRegionalIndex(location: string): { index: number; matchedC
 
 export function lookupSeismicZone(location: string): SeismicZone | null {
   const loc = location.toLowerCase().trim();
-  for (const [city, zone] of Object.entries(SEISMIC_ZONE_LOOKUP)) {
-    if (loc.includes(city) || city.includes(loc)) return zone as SeismicZone;
+  if (loc in SEISMIC_ZONE_LOOKUP) {
+    return SEISMIC_ZONE_LOOKUP[loc] as SeismicZone;
   }
-  return null;
+  let best: { key: string; zone: SeismicZone } | null = null;
+  for (const [city, zone] of Object.entries(SEISMIC_ZONE_LOOKUP)) {
+    if (loc.includes(city) || city.includes(loc)) {
+      if (!best || city.length > best.key.length) {
+        best = { key: city, zone: zone as SeismicZone };
+      }
+    }
+  }
+  return best ? best.zone : null;
 }

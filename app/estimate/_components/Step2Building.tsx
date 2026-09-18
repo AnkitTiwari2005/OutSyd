@@ -70,8 +70,8 @@ export function Step2Building() {
             <div className="flex items-center gap-1.5">
               <select {...register('seismicZone')} className="form-input cursor-pointer">
                 <option value="Not_sure">Not sure — auto-detect from location</option>
-                <option value="Zone_II">Zone II — Low seismic risk (Bengaluru, Hyderabad, Chennai)</option>
-                <option value="Zone_III">Zone III — Moderate risk (Mumbai, Kolkata, Pune, Bhopal)</option>
+                <option value="Zone_II">Zone II — Low seismic risk (Bengaluru, Hyderabad, Visakhapatnam)</option>
+                <option value="Zone_III">Zone III — Moderate risk (Mumbai, Kolkata, Chennai, Pune)</option>
                 <option value="Zone_IV">Zone IV — High risk (Delhi NCR, Patna, Chandigarh, Dehradun)</option>
                 <option value="Zone_V">Zone V — Very high risk (Guwahati, Srinagar, Port Blair, Leh)</option>
               </select>
