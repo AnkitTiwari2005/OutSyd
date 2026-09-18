@@ -57,6 +57,23 @@ export const useEstimateStore = create<EstimateStore>()(
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
+      version: 1,
+      migrate: (persistedState: unknown, version: number) => {
+        if (version === 0) {
+          const state = (persistedState && typeof persistedState === 'object')
+            ? (persistedState as Record<string, unknown>)
+            : {};
+          return {
+            ...state,
+            currentStep: typeof state.currentStep === 'number' ? state.currentStep : 0,
+            formData: typeof state.formData === 'object' && state.formData !== null ? state.formData : {},
+            result: state.result ?? null,
+            estimateId: typeof state.estimateId === 'string' ? state.estimateId : null,
+            guestToken: typeof state.guestToken === 'string' ? state.guestToken : null,
+          };
+        }
+        return persistedState as EstimateStore;
+      },
       partialize: (s) => ({
         currentStep: s.currentStep,
         formData   : s.formData,
