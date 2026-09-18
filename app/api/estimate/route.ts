@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
         buildingCategory         : cls.category,
         classificationReasons    : JSON.stringify(cls.reasons),
         plinthAreaEstimate       : result.plinthAreaEstimate,
-        cubicContentEstimate     : result.cubicContentEstimate,
+        cubicContentEstimate     : result.cubicContentEstimate ?? null,
         grandTotalMaterialCost   : result.grandTotalMaterialCost,
         grandTotalWithLabor      : result.grandTotalWithLabor,
         regionalIndexApplied     : ri,

@@ -27,7 +27,15 @@ export function classifyBuilding(input: ClassifierInput): ClassificationResult {
   const isTier2 = input.numFloors > 3 || isNonResidential;
   if (isTier2) {
     tier = 2;
-    category = isNonResidential ? 'Mid_Rise_Commercial' : 'Small_Residential';
+    if (input.typology === 'Commercial') {
+      category = 'Mid_Rise_Commercial';
+    } else if (input.typology === 'Institutional') {
+      category = 'Institutional_Facility';
+    } else if (input.typology === 'Industrial') {
+      category = 'Industrial_Facility';
+    } else {
+      category = 'Small_Residential';
+    }
     if (input.numFloors > 3)  reasons.push(`${input.numFloors} floors exceeds 3-floor Tier 1 threshold`);
     if (isNonResidential)     reasons.push(`Non-residential typology: ${input.typology}`);
   }

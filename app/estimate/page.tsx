@@ -1,4 +1,4 @@
-// app/estimate/page.tsx — Estimator Page
+import { Suspense } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { EstimateFormShell } from './_components/EstimateFormShell';
 
@@ -13,8 +13,9 @@ export default function EstimatePage() {
       <Navbar />
 
       <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Estimator Shell */}
-        <EstimateFormShell />
+        <Suspense fallback={<div className="card-standard bg-white border border-[#E2E8F0] p-12 text-center text-sm text-[#64748B]">Loading estimator wizard...</div>}>
+          <EstimateFormShell />
+        </Suspense>
       </div>
     </main>
   );

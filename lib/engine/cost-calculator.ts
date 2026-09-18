@@ -110,9 +110,8 @@ export function aggregateEstimate(
   const allLineItems = [...lineItems, miscLineItem];
   const grandTotal   = Math.round((subTotal + miscTotal) * 100) / 100;
 
-  // Category totals (only non-zero)
+  // Category totals for all 18 standard categories in consistent sequence
   const categoryTotals: CategoryTotal[] = Object.entries(CATEGORY_NAMES)
-    .filter(([code]) => (catMap[code] ?? 0) > 0)
     .map(([code, name]) => ({
       categoryCode: code,
       name,
@@ -126,8 +125,7 @@ export function aggregateEstimate(
     Premium : { Residential: 3200, Commercial: 4500, Institutional: 5000, Industrial: 2800 },
   };
   const par = ((parRates[bi.qualityTier] ?? parRates.Standard)[bi.typology] ?? 2300) * ri;
-  const plinthAreaEstimate   = Math.round(dim.totalBuaSqft * par * 100) / 100;
-  const cubicContentEstimate = Math.round(dim.totalBuaSqft * (bi.heightFt / bi.numFloors) * (par / 10) * 100) / 100;
+  const plinthAreaEstimate = Math.round(dim.totalBuaSqft * par * 100) / 100;
 
   const accuracyBand = computeAccuracyBand(
     cls.tier,
@@ -143,7 +141,6 @@ export function aggregateEstimate(
     grandTotalMaterialCost: grandTotal,
     grandTotalWithLabor   : Math.round(grandTotal * 1.30 * 100) / 100,
     plinthAreaEstimate,
-    cubicContentEstimate,
     accuracyBand,
     accuracyBandDisplay   : BAND_DISPLAY[accuracyBand],
     accuracyBandColor     : BAND_COLOR[accuracyBand],

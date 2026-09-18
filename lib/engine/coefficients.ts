@@ -177,9 +177,10 @@ export const DEFAULT_DATASET: CoefficientDataset = {
     MAT_ELEC_SWITCH_MOD    : 750,    // ₹/plate — modular switch plate (4 module)
     MAT_ELEC_SOCKET_5A     : 380,    // ₹/unit — 5A socket
     MAT_ELEC_SOCKET_16A    : 650,    // ₹/unit — 16A socket (AC/geyser)
-    MAT_ELEC_EARTHING      : 9000,   // ₹/set  — GI earthing system (IS 3043)
-    MAT_ELEC_GENSET        : 100000, // ₹/kVA  — diesel generator set
-    MAT_ELEC_UPS_INVERTER  : 8000,   // ₹/kVA  — online UPS / inverter
+    // MAT_ELEC_GENSET: ₹22,000/kVA installed rate for CPCB IV+ compliant acoustic DG set
+    // (Cummins/Kirloskar/Mahindra) with AMF panel, acoustic enclosure, GI earthing,
+    // exhaust piping and commissioning per CPWD DSR 2023 and Indian market norms.
+    MAT_ELEC_GENSET        : 22000,  // ₹/kVA  — diesel generator set (CPCB IV+ acoustic, installed)
     MAT_ELEC_SOLAR_PANEL   : 38,     // ₹/W    — mono PERC solar panel
     MAT_ELEC_SOLAR_INV     : 12000,  // ₹/kW   — string inverter
     MAT_ELEC_CCTV          : 6000,   // ₹/camera — IP CCTV (4MP)

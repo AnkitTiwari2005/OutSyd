@@ -40,7 +40,7 @@ export const useEstimateStore = create<EstimateStore>()(
 
       setStep         : (step) => set({ currentStep: step }),
       updateFormData  : (data) => set((s) => ({ formData: { ...s.formData, ...data } })),
-      resetForm       : () => set({ currentStep: 0, formData: {}, result: null, estimateId: null, error: null }),
+      resetForm       : () => set({ currentStep: 0, formData: {}, result: null, estimateId: null, error: null, isLoading: false }),
       setResult       : (result, estimateId, guestToken) => set({ result, estimateId, guestToken: guestToken ?? null }),
       setLoading      : (isLoading) => set({ isLoading }),
       setError        : (error) => set({ error }),

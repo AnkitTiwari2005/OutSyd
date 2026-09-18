@@ -11,8 +11,14 @@ export type WindZone = 'Low' | 'Moderate' | 'High' | 'Cyclone_prone' | 'Not_sure
 export type FacadeType = 'Curtain_Wall' | 'ACP_Cladding' | 'Conventional' | 'Not_sure';
 export type HvacScope = 'Basic' | 'Full_Central' | 'Not_sure';
 export type AccuracyBand = 'Preliminary_15_20' | 'Standard_10_15' | 'Advanced_5_10';
-export type BuildingCategory = 'Small_Residential' | 'Mid_Rise_Commercial' | 'High_Rise' | 'Complex_Specialized';
 export type ClassificationTier = 1 | 2 | 3;
+export type BuildingCategory =
+  | 'Small_Residential'
+  | 'Mid_Rise_Commercial'
+  | 'Institutional_Facility'
+  | 'Industrial_Facility'
+  | 'High_Rise'
+  | 'Complex_Specialized';
 export type FloorTier = 'G1_G3' | 'G4_G7' | 'G8_G15' | 'G16_PLUS';
 
 // ─── Input ─────────────────────────────────────────────────────────────────
@@ -99,7 +105,7 @@ export interface EstimateResult {
   grandTotalMaterialCost: number;
   grandTotalWithLabor   : number;  // +30% labor markup
   plinthAreaEstimate    : number;
-  cubicContentEstimate  : number;
+  cubicContentEstimate? : number;
   accuracyBand          : AccuracyBand;
   accuracyBandDisplay   : string;
   accuracyBandColor     : 'amber' | 'blue' | 'green';

@@ -22,6 +22,10 @@ const CAT_COLORS: Record<string, string> = {
   CAT_07: 'EC4899', CAT_08: '06B6D4', CAT_09: '84CC16',
   CAT_10: 'F97316', CAT_11: '6366F1', CAT_12: '78716C',
   CAT_13: 'D97706', CAT_14: '6B7280',
+  CAT_15: '475569', // Parking & Basement
+  CAT_16: '0EA5E9', // Swimming Pool & Recreation
+  CAT_17: '16A34A', // Solar & Green Building
+  CAT_18: 'D97706', // Preliminaries, Site & Contingency
 };
 
 const INR_FORMAT = '₹#,##,##0'; // Indian number format
@@ -132,8 +136,24 @@ export async function generateEstimateExcel(
   bandCell2.font = { name: 'Calibri', bold: true, size: 13, color: { argb: `FF${bandTextColors[result.accuracyBand] ?? '92400E'}` } };
   bandCell2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${bandColors[result.accuracyBand] ?? 'FEF3C7'}` } };
   bandCell2.alignment = { horizontal: 'left', vertical: 'middle' };
+  const thinBorder = {
+    top: { style: 'thin' as const, color: { argb: 'FFE2E8F0' } },
+    bottom: { style: 'thin' as const, color: { argb: 'FFE2E8F0' } },
+    left: { style: 'thin' as const, color: { argb: 'FFE2E8F0' } },
+    right: { style: 'thin' as const, color: { argb: 'FFE2E8F0' } },
+  };
+  bandCell2.border = thinBorder;
+  ws1.getCell(`B${row}`).border = thinBorder;
   ws1.getRow(row).height = 28;
-  row += 2;
+
+  // Classification info row
+  ws1.mergeCells(`A${row + 1}:B${row + 1}`);
+  const classCell = ws1.getCell(`A${row + 1}`);
+  classCell.value = `Classification: Tier ${result.classification.tier} — ${result.classification.category.replace(/_/g, ' ')}`;
+  classCell.font = { name: 'Calibri', size: 9.5, color: { argb: 'FF475569' }, italic: true };
+  classCell.alignment = { horizontal: 'left', vertical: 'middle' };
+  ws1.getRow(row + 1).height = 18;
+  row += 3;
 
   // Summary metrics
   const buaSqft = result.derivedDimensions.totalBuaSqft;
@@ -208,7 +228,9 @@ export async function generateEstimateExcel(
   discCell.value = `DISCLAIMER: ${result.disclaimer}\n\nAll figures are preliminary estimates only. Not a substitute for detailed BOQ by a licensed quantity surveyor.`;
   discCell.font = { name: 'Calibri', size: 9, color: { argb: 'FF94A3B8' }, italic: true };
   discCell.alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-  ws1.getRow(row).height = 60;
+  ws1.getRow(row).height = 25;
+  ws1.getRow(row + 1).height = 25;
+  ws1.getRow(row + 2).height = 25;
 
   // ── Sheet 2: Full BOQ ────────────────────────────────────────────────────────
   const ws2 = wb.addWorksheet('Full BOQ', { properties: { tabColor: { argb: `FF3B82F6` } } });

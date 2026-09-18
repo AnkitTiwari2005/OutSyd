@@ -5,7 +5,7 @@
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FullInputSchema, type FullInput } from '@/lib/validation/input-schema';
 import { useEstimateStore } from '@/stores/estimate-store';
 import { Step1Basics } from './Step1Basics';
@@ -28,9 +28,30 @@ const STEP_TITLES = [
 
 export function EstimateFormShell() {
   const router = useRouter();
-  const { formData, updateFormData, setResult, setLoading, setError, isLoading, error } = useEstimateStore();
-  const [currentStep, setCurrentStep] = useState(0);
+  const searchParams = useSearchParams();
+  const rawStep = searchParams?.get('step');
+  const mode = searchParams?.get('mode');
+
+  // Derive current step from URL (?step=1 -> 0, ?step=2 -> 1, ?step=3 -> 2)
+  const currentStep = rawStep === '2' ? 1 : rawStep === '3' ? 2 : 0;
+
+  const { formData, updateFormData, setResult, setLoading, setError, resetForm, isLoading, error } = useEstimateStore();
   const [tier2ToastShown, setTier2ToastShown] = useState(false);
+
+  // Guarantee isLoading is always reset when entering or leaving wizard
+  useEffect(() => {
+    setLoading(false);
+    return () => {
+      setLoading(false);
+    };
+  }, [setLoading]);
+
+  // Clean draft on fresh visit to /estimate (unless arriving with mode=edit)
+  useEffect(() => {
+    if (mode !== 'edit' && !rawStep) {
+      resetForm();
+    }
+  }, [mode, rawStep, resetForm]);
 
   const methods = useForm<FullInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,24 +95,26 @@ export function EstimateFormShell() {
     Number(watched.numFloors) >= 1
   );
 
-  const handleNext = () => {
-    const data = methods.getValues();
-    updateFormData(data);
-    if (currentStep < 2) {
-      setCurrentStep((s) => s + 1);
+  const handleNavigateToStep = (stepIdx: number) => {
+    if (stepIdx >= 0 && stepIdx <= 2) {
+      const data = methods.getValues();
+      updateFormData(data);
+      const params = new URLSearchParams(searchParams?.toString() ?? '');
+      params.set('step', String(stepIdx + 1));
+      router.push(`/estimate?${params.toString()}`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const handleBack = () => {
-    setCurrentStep((s) => Math.max(0, s - 1));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleNext = () => {
+    if (currentStep < 2) {
+      handleNavigateToStep(currentStep + 1);
+    }
   };
 
-  const handleNavigateToStep = (stepIdx: number) => {
-    if (stepIdx >= 0 && stepIdx <= 2) {
-      setCurrentStep(stepIdx);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleBack = () => {
+    if (currentStep > 0) {
+      handleNavigateToStep(currentStep - 1);
     }
   };
 
@@ -112,6 +135,7 @@ export function EstimateFormShell() {
         return;
       }
       setResult(json, json.estimateId, json.guestToken);
+      setLoading(false); // Clear loading state on success path
       router.push('/estimate/result');
     } catch {
       setError('Connection error. Please check your network and try again.');

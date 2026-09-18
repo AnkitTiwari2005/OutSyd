@@ -82,7 +82,11 @@ function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false
           </span>
         )}
 
-        <span className="text-xs font-bold text-[#0F172A] tabular-nums">{formatINR(subtotal)}</span>
+        {subtotal === 0 ? (
+          <span className="text-xs font-semibold text-[#64748B] italic">Not applicable (₹0)</span>
+        ) : (
+          <span className="text-xs font-bold text-[#0F172A] tabular-nums">{formatINR(subtotal)}</span>
+        )}
         <span className="text-[11px] font-medium text-[#64748B] w-10 text-right tabular-nums">{pct}%</span>
         {open ? <ChevronUp size={14} className="text-[#64748B] shrink-0" /> : <ChevronDown size={14} className="text-[#64748B] shrink-0" />}
       </button>
@@ -101,9 +105,14 @@ function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false
             </div>
           )}
 
-          {/* Desktop Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs min-w-[600px]">
+          {/* Desktop Table or Empty Note */}
+          {items.length === 0 ? (
+            <div className="p-4 text-xs text-[#64748B] italic bg-[#F7F8FA]">
+              No scope or itemized specifications required for this project category based on building inputs (₹0).
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs min-w-[600px]">
               <thead>
                 <tr className="bg-[#F7F8FA] text-[#64748B] border-b border-[#E2E8F0] font-semibold">
                   <th className="px-4 py-2 text-left">Item Description</th>
@@ -139,14 +148,15 @@ function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    )}
+  </div>
+);
 }
 
 export default function ResultPage() {
-  const { result, formData, estimateId } = useEstimateStore();
+  const { result, formData, estimateId, resetForm, clearResult } = useEstimateStore();
   const router = useRouter();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [expandedWhyCode, setExpandedWhyCode] = useState<string | null>(null);
@@ -181,6 +191,12 @@ export default function ResultPage() {
   const buaSqft = result.derivedDimensions.totalBuaSqft;
   const costPerSqft = buaSqft > 0 ? Math.round(result.grandTotalMaterialCost / buaSqft) : 0;
   const costPerSqftLabour = buaSqft > 0 ? Math.round(result.grandTotalWithLabor / buaSqft) : 0;
+
+  // Check variance between bottom-up turnkey total and macro plinth area estimate
+  const divergenceRatio = result.plinthAreaEstimate > 0
+    ? Math.abs(result.grandTotalWithLabor - result.plinthAreaEstimate) / result.plinthAreaEstimate
+    : 0;
+  const isDivergent = divergenceRatio > 0.20;
 
   const chartData = result.categoryTotals
     .filter(c => c.subtotal > 0)
@@ -328,14 +344,26 @@ export default function ResultPage() {
       {/* Defined height: 64px, solid white background, z-index 40, border bottom #E2E8F0 */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-[#E2E8F0] z-40 shadow-xs">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               type="button"
-              onClick={() => router.push('/estimate')}
+              onClick={() => router.push('/estimate?mode=edit&step=3')}
               className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[#1E3A5F] hover:underline cursor-pointer"
             >
               <ArrowLeft size={15} />
               <span>Modify Inputs</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                clearResult();
+                router.push('/estimate');
+              }}
+              className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 text-[#1E3A5F] bg-[#EFF4FA] border border-[#CBD5E1] rounded hover:bg-[#E2E8F0] cursor-pointer"
+            >
+              <RotateCcw size={12} />
+              <span>Start New Estimate</span>
             </button>
             <div className="w-px h-5 bg-[#E2E8F0]" />
             <Link href="/">
@@ -429,6 +457,19 @@ export default function ResultPage() {
             <strong>Planning estimate:</strong> Quantities and unit rates reflect CPWD DSR 2024 specifications and regional cost indices. Not a substitute for a licensed structural engineer&apos;s BOQ. <Link href="/disclaimer" className="underline font-semibold">Full disclaimer →</Link>
           </p>
         </div>
+
+        {/* Macro Benchmark Sanity-Check Warning when BOQ diverges from plinth rate by > 20% */}
+        {isDivergent && (
+          <div className="p-3.5 rounded-lg bg-[#FFFBEB] border border-[#FDE68A] text-xs text-[#92400E] flex items-start gap-3">
+            <Info size={16} className="shrink-0 mt-0.5 text-[#D97706]" />
+            <div>
+              <p className="font-bold">Macro Benchmark Sanity-Check Notice ({(divergenceRatio * 100).toFixed(0)}% methodology variance)</p>
+              <p className="mt-0.5 leading-relaxed text-[#78350F]">
+                The bottom-up itemized BOQ turnkey total ({formatINR(result.grandTotalWithLabor)}) varies from the macro plinth area rate benchmark ({formatINR(result.plinthAreaEstimate)}) by {(divergenceRatio * 100).toFixed(0)}%. Detailed BOQ aggregates individual elemental takeoff quantities (soil conditions, seismic detailing, facade specs, and MEP systems) rather than top-down flat-area approximations.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ── 4 Key Figures Grid ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -545,6 +586,7 @@ export default function ResultPage() {
                 const pct = result.grandTotalMaterialCost > 0
                   ? (cat.subtotal / result.grandTotalMaterialCost * 100) : 0;
                 const isHighCost = pct >= 20;
+                const isZero = cat.subtotal === 0;
 
                 return (
                   <div key={cat.categoryCode} className="space-y-1">
@@ -554,19 +596,27 @@ export default function ResultPage() {
                         {cat.name}
                       </span>
                       <div className="flex items-center gap-2 shrink-0">
-                        {isHighCost && (
-                          <button
-                            type="button"
-                            onClick={() => setExpandedWhyCode(expandedWhyCode === cat.categoryCode ? null : cat.categoryCode)}
-                            title="View primary line-item cost drivers"
-                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#1E3A5F] bg-[#EFF4FA] px-1.5 py-0.5 rounded cursor-pointer hover:underline"
-                          >
-                            <Info size={11} />
-                            <span>Why?</span>
-                          </button>
+                        {isZero ? (
+                          <span className="text-[11px] text-[#64748B] italic bg-[#F1F5F9] px-2 py-0.5 rounded">
+                            Not applicable (₹0)
+                          </span>
+                        ) : (
+                          <>
+                            {isHighCost && (
+                              <button
+                                type="button"
+                                onClick={() => setExpandedWhyCode(expandedWhyCode === cat.categoryCode ? null : cat.categoryCode)}
+                                title="View primary line-item cost drivers"
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#1E3A5F] bg-[#EFF4FA] px-1.5 py-0.5 rounded cursor-pointer hover:underline"
+                              >
+                                <Info size={11} />
+                                <span>Why?</span>
+                              </button>
+                            )}
+                            <span className="font-bold text-[#0F172A] tabular-nums">{formatINR(cat.subtotal)}</span>
+                            <span className="text-[11px] text-[#64748B] w-8 text-right tabular-nums">{pct.toFixed(1)}%</span>
+                          </>
                         )}
-                        <span className="font-bold text-[#0F172A] tabular-nums">{formatINR(cat.subtotal)}</span>
-                        <span className="text-[11px] text-[#64748B] w-8 text-right tabular-nums">{pct.toFixed(1)}%</span>
                       </div>
                     </div>
 
@@ -574,7 +624,7 @@ export default function ResultPage() {
                     <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-300"
-                        style={{ width: `${Math.max(pct, 0.5)}%`, background: getCategoryColor(cat.categoryCode) }}
+                        style={{ width: `${isZero ? 0 : Math.max(pct, 0.5)}%`, background: getCategoryColor(cat.categoryCode) }}
                       />
                     </div>
 
@@ -684,10 +734,9 @@ export default function ResultPage() {
 
           {result.categoryTotals.map(cat => {
             const items = result.lineItems.filter(li => li.categoryCode === cat.categoryCode);
-            if (items.length === 0) return null;
             const pct = result.grandTotalMaterialCost > 0
               ? (cat.subtotal / result.grandTotalMaterialCost * 100) : 0;
-            const isLargest = cat.subtotal === Math.max(...result.categoryTotals.map(c => c.subtotal));
+            const isLargest = cat.subtotal > 0 && cat.subtotal === Math.max(...result.categoryTotals.map(c => c.subtotal));
 
             return (
               <CategorySection
@@ -714,6 +763,19 @@ export default function ResultPage() {
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                clearResult();
+                router.push('/estimate');
+              }}
+              className="btn-secondary flex-1 sm:flex-initial py-2.5 px-4 text-xs font-semibold"
+            >
+              <RotateCcw size={14} />
+              <span>Start New Estimate</span>
+            </button>
+
             <button
               type="button"
               onClick={() => handleDownload('xlsx')}

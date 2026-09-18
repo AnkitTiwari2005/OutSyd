@@ -529,10 +529,27 @@ export function runEstimationEngine(
     items.push(li('MAT_ELEC_FIRE_ALARM', detectors, 'detectors', ds, qt, ri));
   }
 
-  // DG set — residential 4+ floors or commercial
+  // DG set — per IS 1646, NBC 2016 Part 8 Sec 2 and CPWD norms:
+  // Residential: 2.5 kVA/1,000 sqft BUA for basic common loads (lifts, pumps, common lighting),
+  // 4.0 kVA/1,000 sqft for Premium (essential flat loads).
+  // Commercial/Institutional: 4.0 kVA/1,000 sqft (Standard) to 6.0 kVA/1,000 sqft (Premium).
+  // Industrial: 5.0 kVA/1,000 sqft. Sized to commercial DG steps with realistic minimums.
   if (numFloors >= 4 || bi.typology !== 'Residential') {
-    const dgKva = Math.ceil(totalBuaSqft / 1000) * 15;
-    items.push(li('MAT_ELEC_GENSET', dgKva, 'kVA', ds, qt, ri, true, 'DG set — size per load calculation'));
+    let kvaPer1000 = 2.5;
+    let minKva = 15;
+    if (bi.typology === 'Residential') {
+      kvaPer1000 = qt === 'Premium' ? 4.0 : 2.5;
+      minKva = 15;
+    } else if (bi.typology === 'Commercial' || bi.typology === 'Institutional') {
+      kvaPer1000 = qt === 'Premium' ? 6.0 : 4.0;
+      minKva = 25;
+    } else {
+      kvaPer1000 = 5.0;
+      minKva = 30;
+    }
+    const rawKva = Math.ceil(totalBuaSqft / 1000) * kvaPer1000;
+    const dgKva = Math.max(minKva, Math.ceil(rawKva / 5) * 5); // Round to nearest 5 kVA step
+    items.push(li('MAT_ELEC_GENSET', dgKva, 'kVA', ds, qt, ri, true, `DG set (${dgKva} kVA) — backup sizing per NBC 2016 / IS 1646 load norms`));
   }
 
   // Video door phone

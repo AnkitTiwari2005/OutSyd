@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 
-export const Tier1Schema = z.object({
+export const Tier1BaseSchema = z.object({
   lengthFt      : z.coerce.number({ required_error: 'Length is required' }).positive('Must be greater than 0').max(2000),
   breadthFt     : z.coerce.number({ required_error: 'Breadth is required' }).positive('Must be greater than 0').max(2000),
   heightFt      : z.coerce.number({ required_error: 'Total height is required' }).positive('Must be greater than 0').max(1500),
@@ -22,7 +22,7 @@ export const Tier1Schema = z.object({
   }),
 });
 
-export const Tier2Schema = Tier1Schema.extend({
+export const Tier2BaseSchema = Tier1BaseSchema.extend({
   structuralSystem: z.enum(['RCC_Frame', 'Load_bearing', 'Steel', 'Shear_Wall', 'Not_sure']).default('Not_sure'),
   foundationType  : z.enum(['Isolated', 'Raft', 'Pile', 'Not_sure']).default('Not_sure'),
   numLifts        : z.coerce.number().int().min(0).max(20).default(0),
@@ -32,7 +32,7 @@ export const Tier2Schema = Tier1Schema.extend({
   seismicZone     : z.enum(['Zone_II', 'Zone_III', 'Zone_IV', 'Zone_V', 'Not_sure']).default('Not_sure'),
 });
 
-export const Tier3Schema = Tier2Schema.extend({
+export const Tier3BaseSchema = Tier2BaseSchema.extend({
   soilBearingCapacity  : z.coerce.number().positive().optional(),
   windLoadZone         : z.enum(['Low', 'Moderate', 'High', 'Cyclone_prone', 'Not_sure']).default('Not_sure'),
   serviceFloors        : z.coerce.number().int().min(0).max(10).default(0),
@@ -42,7 +42,7 @@ export const Tier3Schema = Tier2Schema.extend({
   structuralDrawingUrl : z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 
-export const FullInputSchema = Tier3Schema.extend({
+export const FullInputBaseSchema = Tier3BaseSchema.extend({
   targetTimelineMonths: z.coerce.number().int().positive().optional(),
   greenCertTarget     : z.enum(['None', 'IGBC', 'GRIHA']).optional(),
   localRateOverrides  : z.array(z.object({
@@ -50,6 +50,34 @@ export const FullInputSchema = Tier3Schema.extend({
     rate            : z.number().positive(),
   })).optional(),
 });
+
+// Cross-field validation: building footprint vs plot area & ground coverage ratio
+const validateFootprintAndCoverage = (
+  data: { lengthFt?: number; breadthFt?: number; plotAreaSqft?: number },
+  ctx: z.RefinementCtx
+) => {
+  if (data.lengthFt && data.breadthFt && data.plotAreaSqft) {
+    const footprint = data.lengthFt * data.breadthFt;
+    if (footprint > data.plotAreaSqft) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Building footprint (${footprint.toLocaleString('en-IN')} sqft) cannot exceed total plot area (${data.plotAreaSqft.toLocaleString('en-IN')} sqft).`,
+        path: ['plotAreaSqft'],
+      });
+    } else if (footprint / data.plotAreaSqft > 0.85) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Ground coverage ratio (${((footprint / data.plotAreaSqft) * 100).toFixed(0)}%) exceeds standard 85% maximum plot coverage norm (NBC 2016).`,
+        path: ['plotAreaSqft'],
+      });
+    }
+  }
+};
+
+export const Tier1Schema = Tier1BaseSchema.superRefine(validateFootprintAndCoverage);
+export const Tier2Schema = Tier2BaseSchema.superRefine(validateFootprintAndCoverage);
+export const Tier3Schema = Tier3BaseSchema.superRefine(validateFootprintAndCoverage);
+export const FullInputSchema = FullInputBaseSchema.superRefine(validateFootprintAndCoverage);
 
 export type Tier1Input  = z.infer<typeof Tier1Schema>;
 export type Tier2Input  = z.infer<typeof Tier2Schema>;
