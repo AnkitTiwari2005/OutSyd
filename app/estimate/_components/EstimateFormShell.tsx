@@ -13,6 +13,8 @@ import { Step2Building } from './Step2Building';
 import { Step4Review } from './Step4Review';
 import { ProgressStepper } from './ProgressStepper';
 import { ArrowLeft, ArrowRight, Zap, AlertCircle } from 'lucide-react';
+import { classifyBuilding } from '@/lib/engine/classifier';
+import { resolveAccuracyBandForInput } from '@/lib/engine/cost-calculator';
 
 const STEPS = [
   { id: 0, label: 'Basics' },
@@ -96,15 +98,20 @@ export function EstimateFormShell() {
   }, [_hasHydrated, formData, methods]);
 
   const watched = useWatch({ control: methods.control });
-  const isTier2 = (Number(watched.numFloors) || 1) > 3 || ['Commercial', 'Institutional', 'Industrial'].includes(watched.typology ?? '');
-  const isTier3 = Boolean(watched.structuralDrawingUrl || (Number(watched.numFloors) || 1) > 7);
+  const cls = classifyBuilding({
+    numFloors: Number(watched.numFloors) || 1,
+    typology: watched.typology ?? 'Residential',
+    structuralSystem: watched.structuralSystem,
+    seismicZone: watched.seismicZone,
+  });
+  const accuracyBand = resolveAccuracyBandForInput(watched as Partial<FullInput>);
 
   // Show tier unlock toast once
   useEffect(() => {
-    if (isTier2 && !tier2ToastShown.current && currentStep === 0) {
+    if (cls.tier >= 2 && !tier2ToastShown.current && currentStep === 0) {
       tier2ToastShown.current = true;
     }
-  }, [isTier2, currentStep]);
+  }, [cls.tier, currentStep]);
 
   const step1Validation = Tier1Schema.safeParse(watched);
   const isStep1Valid = step1Validation.success;
@@ -248,11 +255,11 @@ export function EstimateFormShell() {
               {STEP_TITLES[currentStep]}
             </h2>
             <div className="flex items-center gap-2">
-              {isTier3 ? (
+              {accuracyBand === 'Advanced_5_10' ? (
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A]">
                   Tier 3 · ±5–10%
                 </span>
-              ) : isTier2 ? (
+              ) : accuracyBand === 'Standard_10_15' ? (
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#EFF4FA] border border-[#CBD5E1] text-[#1E3A5F]">
                   Tier 2 · ±10–15%
                 </span>

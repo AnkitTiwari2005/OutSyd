@@ -7,6 +7,7 @@ import type {
   FullInput, CoefficientDataset, ClassificationResult, AccuracyBand,
 } from './types';
 import { deriveDimensions } from './estimator';
+import { classifyBuilding } from './classifier';
 import { CATEGORY_NAMES, ACCURACY_BANDS } from '../constants';
 
 export { CATEGORY_NAMES };
@@ -69,28 +70,51 @@ const DISCLAIMER =
 // ─── Accuracy Band ────────────────────────────────────────────────────────────
 export function computeAccuracyBand(
   classificationTier: 1 | 2 | 3,
-  tier2Complete: boolean, tier3Complete: boolean,
-  hasNotSureFieldsFlag: boolean, hasDrawingUpload: boolean,
+  tier2Complete: boolean,
+  tier3Complete: boolean,
+  hasNotSureFieldsFlag: boolean,
+  hasDrawingUpload: boolean,
+  hasDrawingParsed = false,
 ): AccuracyBand {
   if (classificationTier === 1 || !tier2Complete) return 'Preliminary_15_20';
   if (classificationTier === 3) {
-    if ((tier3Complete && !hasNotSureFieldsFlag) || hasDrawingUpload) return 'Advanced_5_10';
+    // N-3: Gated behind an actually parsed structural drawing.
+    // Unparsed drawings or manual Tier 3 inputs are capped at Standard_10_15.
+    if (hasDrawingParsed) return 'Advanced_5_10';
+    if (hasNotSureFieldsFlag && !tier3Complete && !hasDrawingUpload) return 'Preliminary_15_20';
     return 'Standard_10_15';
   }
   if (hasNotSureFieldsFlag) return 'Preliminary_15_20';
   return 'Standard_10_15';
 }
 
-function checkTier2Complete(bi: FullInput): boolean {
+export function checkTier2Complete(bi: Partial<FullInput>): boolean {
   return !!(bi.structuralSystem && bi.foundationType && bi.seismicZone);
 }
-function checkTier3Complete(bi: FullInput): boolean {
+export function checkTier3Complete(bi: Partial<FullInput>): boolean {
   return !!(bi.windLoadZone && bi.facadeType && bi.fireHvacScope);
 }
-function checkHasNotSureFields(bi: FullInput): boolean {
+export function checkHasNotSureFields(bi: Partial<FullInput>): boolean {
   return [bi.structuralSystem, bi.foundationType, bi.seismicZone,
           bi.windLoadZone, bi.facadeType, bi.fireHvacScope]
     .some(f => f === 'Not_sure');
+}
+
+export function resolveAccuracyBandForInput(bi: Partial<FullInput>, hasDrawingParsed = false): AccuracyBand {
+  const cls = classifyBuilding({
+    numFloors: Number(bi.numFloors) || 1,
+    typology: bi.typology ?? 'Residential',
+    structuralSystem: bi.structuralSystem,
+    seismicZone: bi.seismicZone,
+  });
+  return computeAccuracyBand(
+    cls.tier,
+    checkTier2Complete(bi),
+    checkTier3Complete(bi),
+    checkHasNotSureFields(bi),
+    Boolean(bi.structuralDrawingUrl),
+    hasDrawingParsed,
+  );
 }
 
 // ─── Main Aggregator ──────────────────────────────────────────────────────────
@@ -144,13 +168,7 @@ export function aggregateEstimate(
   const par = ((parRates[bi.qualityTier] ?? parRates.Standard)[bi.typology] ?? 2300) * ri;
   const plinthAreaEstimate = Math.round(dim.totalBuaSqft * par * 100) / 100;
 
-  const accuracyBand = computeAccuracyBand(
-    cls.tier,
-    checkTier2Complete(bi),
-    checkTier3Complete(bi),
-    checkHasNotSureFields(bi),
-    !!bi.structuralDrawingUrl,
-  );
+  const accuracyBand = resolveAccuracyBandForInput(bi);
 
   // C-5: Site labour pool computed strictly on raw/pure material supply lines
   let matOnlyCost = 0;

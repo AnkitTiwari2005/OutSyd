@@ -8,7 +8,7 @@
 import type { CoefficientDataset, SeismicZone } from './types';
 
 export const DEFAULT_DATASET: CoefficientDataset = {
-  version: '2026-09-18-v4',
+  version: 'v2026.09.2',
 
   // ─── Cement coefficients (bags/sqft BUA) — per floor height band ─────────
   // Sources: CPWD DSR Schedule-I, IS 456, standard mix design tables

@@ -26,13 +26,18 @@ describe('Accuracy Band Computation (computeAccuracyBand)', () => {
     assert.equal(band, 'Standard_10_15');
   });
 
-  it('assigns Advanced_5_10 for Tier 3 when complete without "Not_sure"', () => {
+  it('caps Tier 3 at Standard_10_15 when complete without parsed drawing (N-3)', () => {
     const band = computeAccuracyBand(3, true, true, false, false);
-    assert.equal(band, 'Advanced_5_10');
+    assert.equal(band, 'Standard_10_15');
   });
 
-  it('assigns Advanced_5_10 when structural drawing is provided even with partial Not_sure', () => {
-    const band = computeAccuracyBand(3, true, false, true, true);
+  it('caps Tier 3 at Standard_10_15 when unparsed structural drawing URL is provided (N-3)', () => {
+    const band = computeAccuracyBand(3, true, false, true, true, false);
+    assert.equal(band, 'Standard_10_15');
+  });
+
+  it('assigns Advanced_5_10 only when structural drawing is verified/parsed (N-3)', () => {
+    const band = computeAccuracyBand(3, true, true, false, true, true);
     assert.equal(band, 'Advanced_5_10');
   });
 });
