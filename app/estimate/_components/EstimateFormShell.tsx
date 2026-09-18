@@ -272,68 +272,78 @@ export function EstimateFormShell() {
           </div>
         </div>
 
-        {/* ── Step Form Content Area ───────────────────────────────────── */}
-        <div className="p-4 sm:p-6 md:p-8">
-          {currentStep === 0 && <Step1Basics />}
-          {currentStep === 1 && <Step2Building />}
-          {currentStep === 2 && <Step4Review onNavigateToStep={handleNavigateToStep} />}
-        </div>
-
-        {/* Error Notice */}
-        {error && (
-          <div className="mx-4 sm:mx-8 mb-4 p-3.5 rounded-lg bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#B91C1C] flex items-center gap-2">
-            <AlertCircle size={15} className="shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* ── Navigation Actions Bar ──────────────────────────────────── */}
-        <div className="border-t border-[#E2E8F0] bg-[#F7F8FA] px-4 sm:px-8 py-4 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleBack}
-            disabled={currentStep === 0}
-            className="btn-secondary px-4 py-2"
-          >
-            <ArrowLeft size={14} />
-            <span>Back</span>
-          </button>
-
-          <div className="text-xs text-[#64748B] font-medium hidden sm:block">
-            Step {currentStep + 1} of 3
+        {/* ── Form wrapper enabling Enter key submission (U-10) ─────────── */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (currentStep < 2) {
+              handleNext();
+            } else {
+              handleSubmit();
+            }
+          }}
+        >
+          {/* ── Step Form Content Area ───────────────────────────────────── */}
+          <div className="p-4 sm:p-6 md:p-8">
+            {currentStep === 0 && <Step1Basics />}
+            {currentStep === 1 && <Step2Building />}
+            {currentStep === 2 && <Step4Review onNavigateToStep={handleNavigateToStep} />}
           </div>
 
-          {currentStep < 2 ? (
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={currentStep === 0 && !isStep1Valid}
-              className="btn-primary px-6 py-2.5"
-            >
-              <span>Continue</span>
-              <ArrowRight size={14} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isLoading}
-              className="btn-primary px-7 py-2.5"
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Calculating BOQ…
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5">
-                  <Zap size={15} />
-                  Calculate Estimate
-                </span>
-              )}
-            </button>
+          {/* Error Notice */}
+          {error && (
+            <div className="mx-4 sm:mx-8 mb-4 p-3.5 rounded-lg bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#B91C1C] flex items-center gap-2">
+              <AlertCircle size={15} className="shrink-0" />
+              <span>{error}</span>
+            </div>
           )}
-        </div>
+
+          {/* ── Navigation Actions Bar ──────────────────────────────────── */}
+          <div className="border-t border-[#E2E8F0] bg-[#F7F8FA] px-4 sm:px-8 py-4 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={handleBack}
+              disabled={currentStep === 0}
+              className="btn-secondary px-4 py-2"
+            >
+              <ArrowLeft size={14} />
+              <span>Back</span>
+            </button>
+
+            <div className="text-xs text-[#64748B] font-medium hidden sm:block">
+              Step {currentStep + 1} of 3
+            </div>
+
+            {currentStep < 2 ? (
+              <button
+                type="submit"
+                disabled={currentStep === 0 && !isStep1Valid}
+                className="btn-primary px-6 py-2.5"
+              >
+                <span>Continue</span>
+                <ArrowRight size={14} />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="btn-primary px-7 py-2.5"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Calculating BOQ…
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <Zap size={15} />
+                    Calculate Estimate
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+        </form>
       </div>
     </FormProvider>
   );
