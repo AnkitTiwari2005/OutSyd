@@ -58,12 +58,16 @@ const REGIONS = Object.keys(REGIONAL_RATE_INDEX).filter(r => r !== 'default').so
 
 export function Step1Basics() {
   const { register, control, setValue, formState: { errors } } = useFormContext<FullInput>();
-  const [typology, length, breadth, floors, qualityTier, locationRegion] = useWatch({
-    name: ['typology', 'lengthFt', 'breadthFt', 'numFloors', 'qualityTier', 'locationRegion'],
+  const [typology, length, breadth, floors, qualityTier, locationRegion, plotAreaSqft] = useWatch({
+    name: ['typology', 'lengthFt', 'breadthFt', 'numFloors', 'qualityTier', 'locationRegion', 'plotAreaSqft'],
   });
 
   const useOptions = typology ? BUILDING_USE_OPTIONS[typology] ?? [] : [];
   const bua = (Number(length) || 0) * (Number(breadth) || 0) * (Number(floors) || 1);
+  const footprint = (Number(length) || 0) * (Number(breadth) || 0);
+  const plotArea = Number(plotAreaSqft) || 0;
+  const coveragePct = footprint > 0 && plotArea > 0 ? (footprint / plotArea) * 100 : 0;
+  const minPlotAreaFor85 = footprint > 0 ? Math.ceil(footprint / 0.85) : 0;
 
   return (
     <div className="space-y-8">
@@ -135,14 +139,41 @@ export function Step1Basics() {
               control={control}
               name="plotAreaSqft"
               render={({ field }) => (
-                <NumberStepperInput
-                  placeholder="e.g. 2400"
-                  min={1}
-                  step={50}
-                  value={field.value}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                  onValueChange={(val) => field.onChange(val)}
-                />
+                <div>
+                  <NumberStepperInput
+                    placeholder="e.g. 2400"
+                    min={1}
+                    step={50}
+                    value={field.value}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    onValueChange={(val) => field.onChange(val)}
+                  />
+                  {footprint > 0 && (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                      <span className="text-[#64748B]">
+                        Footprint: <strong className="text-[#1E3A5F]">{footprint.toLocaleString('en-IN')} sqft</strong>
+                      </span>
+                      {plotArea > 0 && (
+                        <span className={`px-1.5 py-0.2 rounded font-medium ${
+                          coveragePct > 85
+                            ? 'bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]'
+                            : 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]'
+                        }`}>
+                          {coveragePct.toFixed(0)}% Coverage (max 85% norm)
+                        </span>
+                      )}
+                      {coveragePct > 85 && (
+                        <button
+                          type="button"
+                          onClick={() => setValue('plotAreaSqft', minPlotAreaFor85, { shouldValidate: true })}
+                          className="text-[11px] text-[#1E3A5F] font-semibold underline hover:text-[#D97706] cursor-pointer ml-auto"
+                        >
+                          Set to {minPlotAreaFor85.toLocaleString('en-IN')} sqft
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             />
           </FormField>

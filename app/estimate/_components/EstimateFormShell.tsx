@@ -66,6 +66,8 @@ export function EstimateFormShell() {
       numStaircases: 1,
       numLifts: 0,
       parkingLevels: 0,
+      unitsPerFloor: undefined,
+      structuralDrawingUrl: '',
       ...(formData as Partial<FullInput>),
     },
     mode: 'onChange',
@@ -82,6 +84,10 @@ export function EstimateFormShell() {
     }
   }, [isTier2, tier2ToastShown, currentStep]);
 
+  const footprint = (Number(watched.lengthFt) || 0) * (Number(watched.breadthFt) || 0);
+  const plotArea = Number(watched.plotAreaSqft) || 0;
+  const isCoverageValid = footprint > 0 && plotArea > 0 ? (footprint <= plotArea && footprint / plotArea <= 0.85) : true;
+
   const isStep1Valid = Boolean(
     watched.typology &&
     watched.buildingUse &&
@@ -92,7 +98,8 @@ export function EstimateFormShell() {
     Number(watched.breadthFt) > 0 &&
     Number(watched.heightFt) > 0 &&
     Number(watched.plotAreaSqft) > 0 &&
-    Number(watched.numFloors) >= 1
+    Number(watched.numFloors) >= 1 &&
+    isCoverageValid
   );
 
   const handleNavigateToStep = (stepIdx: number) => {
@@ -106,19 +113,60 @@ export function EstimateFormShell() {
     }
   };
 
-  const handleNext = () => {
-    if (currentStep < 2) {
-      handleNavigateToStep(currentStep + 1);
+  const handleNext = async () => {
+    if (currentStep === 0) {
+      const valid = await methods.trigger([
+        'lengthFt',
+        'breadthFt',
+        'heightFt',
+        'plotAreaSqft',
+        'numFloors',
+        'typology',
+        'buildingUse',
+        'soilType',
+        'locationRegion',
+        'qualityTier',
+      ]);
+      if (!valid || !isCoverageValid) {
+        if (!isCoverageValid) {
+          setError(
+            footprint > plotArea
+              ? `Building footprint (${footprint.toLocaleString('en-IN')} sqft) cannot exceed total plot area (${plotArea.toLocaleString('en-IN')} sqft).`
+              : `Ground coverage ratio (${((footprint / plotArea) * 100).toFixed(0)}%) exceeds standard 85% norm (NBC 2016). Minimum plot area is ${Math.ceil(footprint / 0.85).toLocaleString('en-IN')} sqft.`
+          );
+        }
+        return;
+      }
+      setError(null);
+      handleNavigateToStep(1);
+    } else if (currentStep === 1) {
+      const valid = await methods.trigger([
+        'structuralSystem',
+        'foundationType',
+        'seismicZone',
+        'windLoadZone',
+        'numStaircases',
+        'numLifts',
+        'parkingLevels',
+        'unitsPerFloor',
+        'facadeType',
+        'fireHvacScope',
+        'structuralDrawingUrl',
+      ]);
+      if (!valid) return;
+      setError(null);
+      handleNavigateToStep(2);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
+      setError(null);
       handleNavigateToStep(currentStep - 1);
     }
   };
 
-  const handleSubmit = methods.handleSubmit(async (data) => {
+  const onValid = async (data: FullInput) => {
     updateFormData(data);
     setLoading(true);
     setError(null);
@@ -130,7 +178,12 @@ export function EstimateFormShell() {
       });
       const json = await res.json();
       if (!res.ok) {
-        setError(json.message ?? json.error ?? 'Calculation error. Please verify inputs.');
+        const errorDetail = json.fieldErrors
+          ? Object.entries(json.fieldErrors)
+              .map(([f, msgs]) => `${f}: ${(msgs as string[]).join(', ')}`)
+              .join(' | ')
+          : null;
+        setError(json.message ?? errorDetail ?? json.error ?? 'Calculation error. Please verify inputs.');
         setLoading(false);
         return;
       }
@@ -140,8 +193,37 @@ export function EstimateFormShell() {
     } catch {
       setError('Connection error. Please check your network and try again.');
       setLoading(false);
+    } finally {
+      setLoading(false);
     }
-  });
+  };
+
+  const onInvalid = (fieldErrors: any) => {
+    console.warn('Form validation failed on calculate click:', fieldErrors);
+    setLoading(false);
+
+    const errorEntries = Object.entries(fieldErrors) as [string, { message?: string }][];
+    const firstEntry = errorEntries[0];
+    const firstMsg = firstEntry?.[1]?.message || 'Please verify highlighted inputs before calculating.';
+    setError(`Validation notice: ${firstMsg}`);
+
+    // If an invalid field belongs to an earlier step, redirect user directly to that step
+    const step1Keys = ['lengthFt', 'breadthFt', 'heightFt', 'plotAreaSqft', 'numFloors', 'typology', 'buildingUse', 'soilType', 'locationRegion', 'qualityTier'];
+    const hasStep1 = errorEntries.some(([k]) => step1Keys.includes(k));
+    if (hasStep1) {
+      handleNavigateToStep(0);
+      return;
+    }
+
+    const step2Keys = ['structuralSystem', 'foundationType', 'seismicZone', 'windLoadZone', 'numStaircases', 'numLifts', 'parkingLevels', 'unitsPerFloor', 'facadeType', 'fireHvacScope', 'structuralDrawingUrl'];
+    const hasStep2 = errorEntries.some(([k]) => step2Keys.includes(k));
+    if (hasStep2) {
+      handleNavigateToStep(1);
+      return;
+    }
+  };
+
+  const handleSubmit = methods.handleSubmit(onValid, onInvalid);
 
   return (
     <FormProvider {...methods}>

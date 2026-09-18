@@ -156,7 +156,7 @@ export function Step2Building() {
             />
           </FormField>
 
-          <FormField label="Units per Floor" error={errors.unitsPerFloor?.message} hint="Flats or offices">
+          <FormField label="Units per Floor" error={errors.unitsPerFloor?.message} hint="Flats or offices (optional)">
             <Controller
               control={control}
               name="unitsPerFloor"
@@ -167,8 +167,11 @@ export function Step2Building() {
                   step={1}
                   placeholder="e.g. 4"
                   value={field.value ?? ''}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                  onValueChange={(val) => field.onChange(val)}
+                  onChange={(e) => {
+                    const raw = e.target.value.trim();
+                    field.onChange(raw === '' ? undefined : Number(raw));
+                  }}
+                  onValueChange={(val) => field.onChange(val || undefined)}
                 />
               )}
             />

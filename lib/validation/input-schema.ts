@@ -22,28 +22,50 @@ export const Tier1BaseSchema = z.object({
   }),
 });
 
+// Helper for optional numeric inputs that may be received as empty string, 0, null, or NaN from form elements
+const optionalNumber = (schema: z.ZodNumber) =>
+  z.preprocess((val) => {
+    if (val === '' || val === null || val === undefined || Number.isNaN(Number(val))) return undefined;
+    const num = Number(val);
+    return num === 0 ? undefined : num;
+  }, schema.optional());
+
+// Helper for optional URL inputs that may lack protocol or have leading/trailing whitespace
+const optionalUrl = z.preprocess((val) => {
+  if (val === '' || val === null || val === undefined) return undefined;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed === '') return undefined;
+    if (!/^https?:\/\//i.test(trimmed)) {
+      return `https://${trimmed}`;
+    }
+    return trimmed;
+  }
+  return val;
+}, z.string().url('Must be a valid URL (e.g. https://drive.google.com/...)').optional());
+
 export const Tier2BaseSchema = Tier1BaseSchema.extend({
   structuralSystem: z.enum(['RCC_Frame', 'Load_bearing', 'Steel', 'Shear_Wall', 'Not_sure']).default('Not_sure'),
   foundationType  : z.enum(['Isolated', 'Raft', 'Pile', 'Not_sure']).default('Not_sure'),
   numLifts        : z.coerce.number().int().min(0).max(20).default(0),
   numStaircases   : z.coerce.number().int().min(1).max(20).default(1),
   parkingLevels   : z.coerce.number().int().min(0).max(10).default(0),
-  unitsPerFloor   : z.coerce.number().int().min(1).max(100).optional(),
+  unitsPerFloor   : optionalNumber(z.number().int().min(1).max(100)),
   seismicZone     : z.enum(['Zone_II', 'Zone_III', 'Zone_IV', 'Zone_V', 'Not_sure']).default('Not_sure'),
 });
 
 export const Tier3BaseSchema = Tier2BaseSchema.extend({
-  soilBearingCapacity  : z.coerce.number().positive().optional(),
+  soilBearingCapacity  : optionalNumber(z.number().positive()),
   windLoadZone         : z.enum(['Low', 'Moderate', 'High', 'Cyclone_prone', 'Not_sure']).default('Not_sure'),
   serviceFloors        : z.coerce.number().int().min(0).max(10).default(0),
   podiumLevels         : z.coerce.number().int().min(0).max(5).default(0),
   facadeType           : z.enum(['Curtain_Wall', 'ACP_Cladding', 'Conventional', 'Not_sure']).default('Not_sure'),
   fireHvacScope        : z.enum(['Basic', 'Full_Central', 'Not_sure']).default('Not_sure'),
-  structuralDrawingUrl : z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  structuralDrawingUrl : optionalUrl,
 });
 
 export const FullInputBaseSchema = Tier3BaseSchema.extend({
-  targetTimelineMonths: z.coerce.number().int().positive().optional(),
+  targetTimelineMonths: optionalNumber(z.number().int().positive()),
   greenCertTarget     : z.enum(['None', 'IGBC', 'GRIHA']).optional(),
   localRateOverrides  : z.array(z.object({
     materialItemCode: z.string(),
@@ -61,13 +83,13 @@ const validateFootprintAndCoverage = (
     if (footprint > data.plotAreaSqft) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Building footprint (${footprint.toLocaleString('en-IN')} sqft) cannot exceed total plot area (${data.plotAreaSqft.toLocaleString('en-IN')} sqft).`,
+        message: `Building footprint (${footprint.toLocaleString('en-IN')} sqft) cannot exceed total plot area (${data.plotAreaSqft.toLocaleString('en-IN')} sqft). Please increase plot area or reduce building dimensions.`,
         path: ['plotAreaSqft'],
       });
     } else if (footprint / data.plotAreaSqft > 0.85) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Ground coverage ratio (${((footprint / data.plotAreaSqft) * 100).toFixed(0)}%) exceeds standard 85% maximum plot coverage norm (NBC 2016).`,
+        message: `Ground coverage ratio (${((footprint / data.plotAreaSqft) * 100).toFixed(0)}%) exceeds standard 85% maximum plot coverage norm (NBC 2016). Minimum plot area for this footprint is ${Math.ceil(footprint / 0.85).toLocaleString('en-IN')} sqft.`,
         path: ['plotAreaSqft'],
       });
     }

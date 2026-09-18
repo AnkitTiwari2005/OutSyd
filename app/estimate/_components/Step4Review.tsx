@@ -14,6 +14,12 @@ export function Step4Review({ onNavigateToStep }: Props) {
   const v = watch();
   const bua = (v.lengthFt ?? 0) * (v.breadthFt ?? 0) * (v.numFloors ?? 1);
 
+  const footprint = (v.lengthFt ?? 0) * (v.breadthFt ?? 0);
+  const plotArea = v.plotAreaSqft ?? 0;
+  const coverageRatio = footprint > 0 && plotArea > 0 ? footprint / plotArea : 0;
+  const isCoverageOver = coverageRatio > 0.85;
+  const isFootprintOver = footprint > 0 && plotArea > 0 && footprint > plotArea;
+
   // Compute expected accuracy tier
   const hasStructuralDetails = v.structuralSystem && v.structuralSystem !== 'Not_sure';
   const hasAdvancedDetails = Boolean(v.structuralDrawingUrl || (v.facadeType && v.facadeType !== 'Not_sure'));
@@ -62,7 +68,7 @@ export function Step4Review({ onNavigateToStep }: Props) {
         ['Total Height', `${v.heightFt ?? '—'} ft`],
         ['Floors', `${v.numFloors ?? '—'} Floors`],
         ['Built-up Area (BUA)', bua > 0 ? `${bua.toLocaleString('en-IN')} sqft` : '—'],
-        ['Plot Area', v.plotAreaSqft ? `${v.plotAreaSqft.toLocaleString('en-IN')} sqft` : '—'],
+        ['Plot Area', v.plotAreaSqft ? `${v.plotAreaSqft.toLocaleString('en-IN')} sqft (${(coverageRatio * 100).toFixed(0)}% coverage)` : '—'],
       ],
     },
     {
@@ -85,6 +91,7 @@ export function Step4Review({ onNavigateToStep }: Props) {
         ['Wind Zone', (v.windLoadZone ?? 'Moderate (39 m/s)').replace(/_/g, ' ')],
         ['Staircases / Elevators', `${v.numStaircases ?? 1} Stairs / ${v.numLifts ?? 0} Lifts`],
         ['Basement Parking', `${v.parkingLevels ?? 0} Levels`],
+        ['Units per Floor', v.unitsPerFloor ? `${v.unitsPerFloor} units` : 'Not specified (Standard)'],
       ],
     },
     {
@@ -120,6 +127,29 @@ export function Step4Review({ onNavigateToStep }: Props) {
           <p className="text-xs mt-1 leading-relaxed opacity-90">{acc.note}</p>
         </div>
       </div>
+
+      {/* Plot Coverage Warning if Invalid */}
+      {(isFootprintOver || isCoverageOver) && (
+        <div className="p-3.5 rounded-lg bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-[#B91C1C]">
+            <AlertTriangle size={16} className="shrink-0" />
+            <span>
+              {isFootprintOver
+                ? `Building footprint (${footprint.toLocaleString('en-IN')} sqft) exceeds plot area (${plotArea.toLocaleString('en-IN')} sqft).`
+                : `Ground coverage ratio (${(coverageRatio * 100).toFixed(0)}%) exceeds standard 85% norm (NBC 2016). Minimum plot area is ${Math.ceil(footprint / 0.85).toLocaleString('en-IN')} sqft.`}
+            </span>
+          </div>
+          {onNavigateToStep && (
+            <button
+              type="button"
+              onClick={() => onNavigateToStep(0)}
+              className="text-xs font-bold text-[#B91C1C] underline cursor-pointer hover:opacity-80 shrink-0 ml-3"
+            >
+              Fix in Step 1
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Review Sections with Inline Click-to-Edit */}
       <div className="space-y-4">
