@@ -5,7 +5,7 @@
 // 160+ cities | 200+ line items | 18 categories | 6 soil types | 5 seismic zones
 // ⚠ Review by a licensed Civil/Structural Engineer before go-live.
 
-import type { CoefficientDataset } from './types';
+import type { CoefficientDataset, SeismicZone } from './types';
 
 export const DEFAULT_DATASET: CoefficientDataset = {
   version: '2026-09-18-v3',
@@ -711,10 +711,10 @@ export function lookupRegionalIndex(location: string): { index: number; matchedC
   return { index: REGIONAL_RATE_INDEX.default, matchedCity: null };
 }
 
-export function lookupSeismicZone(location: string): string | null {
+export function lookupSeismicZone(location: string): SeismicZone | null {
   const loc = location.toLowerCase().trim();
   for (const [city, zone] of Object.entries(SEISMIC_ZONE_LOOKUP)) {
-    if (loc.includes(city) || city.includes(loc)) return zone;
+    if (loc.includes(city) || city.includes(loc)) return zone as SeismicZone;
   }
   return null;
 }
