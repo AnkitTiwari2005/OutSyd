@@ -1,6 +1,6 @@
 // lib/db/schema.ts — Drizzle ORM schema (PostgreSQL / Supabase)
 import {
-  pgTable, text, integer, doublePrecision, boolean, timestamp, primaryKey,
+  pgTable, text, integer, doublePrecision, boolean, timestamp, primaryKey, index,
 } from 'drizzle-orm/pg-core';
 
 // ─── Users ────────────────────────────────────────────────────────────────────
@@ -13,7 +13,7 @@ export const users = pgTable('users', {
   passwordHash : text('password_hash'),
   role         : text('role').default('registered').notNull(), // 'guest' | 'registered' | 'admin'
   createdAt    : timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt    : timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt    : timestamp('updated_at', { withTimezone: true }).defaultNow().$onUpdate(() => new Date()).notNull(),
 });
 
 // Auth.js v5 required adapter tables
@@ -54,8 +54,11 @@ export const projects = pgTable('projects', {
   guestToken: text('guest_token'),
   name      : text('name').notNull().default('Untitled Project'),
   createdAt : timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt : timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-});
+  updatedAt : timestamp('updated_at', { withTimezone: true }).defaultNow().$onUpdate(() => new Date()).notNull(),
+}, (table) => [
+  index('projects_user_id_idx').on(table.userId),
+  index('projects_guest_token_idx').on(table.guestToken),
+]);
 
 // ─── Building Inputs ──────────────────────────────────────────────────────────
 export const buildingInputs = pgTable('building_inputs', {
@@ -92,7 +95,9 @@ export const buildingInputs = pgTable('building_inputs', {
   buildingCategory : text('building_category'),
   computedBuaSqft  : doublePrecision('computed_bua_sqft'),
   submittedAt      : timestamp('submitted_at', { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [
+  index('building_inputs_project_id_idx').on(table.projectId),
+]);
 
 // ─── Coefficient Datasets (IMMUTABLE) ─────────────────────────────────────────
 export const coefficientDatasets = pgTable('coefficient_datasets', {
@@ -132,7 +137,10 @@ export const estimates = pgTable('estimates', {
   regionalIndexApplied     : doublePrecision('regional_index_applied').default(1.0),
   resultJson               : text('result_json').notNull(), // JSON string
   createdAt                : timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [
+  index('estimates_project_id_idx').on(table.projectId),
+  index('estimates_building_input_id_idx').on(table.buildingInputId),
+]);
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
 export const reports = pgTable('reports', {
@@ -141,4 +149,6 @@ export const reports = pgTable('reports', {
   fileUrl    : text('file_url'),
   generatedAt: timestamp('generated_at', { withTimezone: true }).defaultNow().notNull(),
   expiresAt  : timestamp('expires_at', { withTimezone: true }),
-});
+}, (table) => [
+  index('reports_estimate_id_idx').on(table.estimateId),
+]);
