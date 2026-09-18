@@ -711,34 +711,76 @@ export const SEISMIC_ZONE_LOOKUP: Record<string, string> = {
 
 export function lookupRegionalIndex(location: string): { index: number; matchedCity: string | null } {
   const loc = location.toLowerCase().trim();
-  // Exact first
+  if (!loc) return { index: REGIONAL_RATE_INDEX.default, matchedCity: null };
+
+  // 1. Exact match first
   if (loc in REGIONAL_RATE_INDEX && loc !== 'default') {
     return { index: REGIONAL_RATE_INDEX[loc], matchedCity: loc };
   }
-  // Partial match — longest key wins for specificity
-  let best: { key: string; index: number } | null = null;
+
+  // Require minimum query length of 3 chars for partial matching
+  if (loc.length < 3) {
+    return { index: REGIONAL_RATE_INDEX.default, matchedCity: null };
+  }
+
+  // 2. Prefix match (canonical city starts with query loc)
+  let bestPrefix: { key: string; index: number } | null = null;
   for (const [city, index] of Object.entries(REGIONAL_RATE_INDEX)) {
     if (city === 'default') continue;
-    if (loc.includes(city) || city.includes(loc)) {
-      if (!best || city.length > best.key.length) best = { key: city, index };
+    if (city.startsWith(loc)) {
+      if (!bestPrefix || city.length > bestPrefix.key.length) {
+        bestPrefix = { key: city, index };
+      }
     }
   }
-  if (best) return { index: best.index, matchedCity: best.key };
+  if (bestPrefix) return { index: bestPrefix.index, matchedCity: bestPrefix.key };
+
+  // 3. Substring match where loc contains city (e.g. query "North Bengaluru" contains "bengaluru")
+  let bestSubstring: { key: string; index: number } | null = null;
+  for (const [city, index] of Object.entries(REGIONAL_RATE_INDEX)) {
+    if (city === 'default') continue;
+    if (loc.includes(city)) {
+      if (!bestSubstring || city.length > bestSubstring.key.length) {
+        bestSubstring = { key: city, index };
+      }
+    }
+  }
+  if (bestSubstring) return { index: bestSubstring.index, matchedCity: bestSubstring.key };
+
   return { index: REGIONAL_RATE_INDEX.default, matchedCity: null };
 }
 
 export function lookupSeismicZone(location: string): SeismicZone | null {
   const loc = location.toLowerCase().trim();
+  if (!loc) return null;
+
+  // 1. Exact match first
   if (loc in SEISMIC_ZONE_LOOKUP) {
     return SEISMIC_ZONE_LOOKUP[loc] as SeismicZone;
   }
-  let best: { key: string; zone: SeismicZone } | null = null;
+
+  // Require minimum query length of 3 chars for partial matching
+  if (loc.length < 3) return null;
+
+  // 2. Prefix match
+  let bestPrefix: { key: string; zone: SeismicZone } | null = null;
   for (const [city, zone] of Object.entries(SEISMIC_ZONE_LOOKUP)) {
-    if (loc.includes(city) || city.includes(loc)) {
-      if (!best || city.length > best.key.length) {
-        best = { key: city, zone: zone as SeismicZone };
+    if (city.startsWith(loc)) {
+      if (!bestPrefix || city.length > bestPrefix.key.length) {
+        bestPrefix = { key: city, zone: zone as SeismicZone };
       }
     }
   }
-  return best ? best.zone : null;
+  if (bestPrefix) return bestPrefix.zone;
+
+  // 3. Substring match
+  let bestSubstring: { key: string; zone: SeismicZone } | null = null;
+  for (const [city, zone] of Object.entries(SEISMIC_ZONE_LOOKUP)) {
+    if (loc.includes(city)) {
+      if (!bestSubstring || city.length > bestSubstring.key.length) {
+        bestSubstring = { key: city, zone: zone as SeismicZone };
+      }
+    }
+  }
+  return bestSubstring ? bestSubstring.zone : null;
 }

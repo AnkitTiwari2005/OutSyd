@@ -12,7 +12,7 @@ import {
   Check, Mountain, Droplets, Layers, CircleDot,
   Coins, Star, Crown, CheckCircle2, MapPin
 } from 'lucide-react';
-import { REGIONAL_RATE_INDEX } from '@/lib/engine/coefficients';
+import { REGIONAL_RATE_INDEX, lookupRegionalIndex } from '@/lib/engine/coefficients';
 
 const TYPOLOGY_OPTIONS = [
   { value: 'Residential',   label: 'Residential',   icon: Home },
@@ -362,26 +362,26 @@ export function Step1Basics() {
                   autoComplete="off"
                 />
                 <datalist id="outsyd-city-index">
-                  {REGIONS.map(r => <option key={r} value={r} />)}
+                  {REGIONS.map(r => (
+                    <option key={r} value={r.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} />
+                  ))}
                 </datalist>
               </div>
 
               {locationRegion && (() => {
-                const query = locationRegion.toLowerCase().trim();
-                const matched = REGIONS.find(r => r.toLowerCase() === query || query.includes(r.toLowerCase()));
-                if (matched) {
-                  const idx = REGIONAL_RATE_INDEX[matched as keyof typeof REGIONAL_RATE_INDEX];
+                const { index, matchedCity } = lookupRegionalIndex(locationRegion);
+                if (matchedCity) {
                   return (
                     <div className="mt-2 p-2 rounded bg-[#F0FDF4] border border-[#BBF7D0] flex items-center gap-1.5 text-xs text-[#16A34A] font-semibold">
                       <CheckCircle2 size={13} />
-                      <span>Validated CPWD Regional Cost Index: <strong>{idx}×</strong> for {matched.toUpperCase()}</span>
+                      <span>Validated CPWD Regional Cost Index: <strong>{index.toFixed(2)}×</strong> for {matchedCity.toUpperCase()}</span>
                     </div>
                   );
                 }
-                if (locationRegion.length > 2) {
+                if (locationRegion.trim().length >= 3) {
                   return (
                     <p className="text-xs text-[#B45309] mt-1.5">
-                      City not indexed — applying national baseline CPWD rate (1.00×)
+                      City not indexed — applying national baseline CPWD rate ({index.toFixed(2)}×)
                     </p>
                   );
                 }
