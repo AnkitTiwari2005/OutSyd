@@ -5,6 +5,10 @@ import { useFormContext } from 'react-hook-form';
 import type { FullInput } from '@/lib/validation/input-schema';
 import { CheckCircle2, AlertTriangle, Info, Edit2 } from 'lucide-react';
 
+import { computeAccuracyBand } from '@/lib/engine/cost-calculator';
+import { classifyBuilding } from '@/lib/engine/classifier';
+import { ACCURACY_BANDS } from '@/lib/constants';
+
 interface Props {
   onNavigateToStep?: (stepIndex: number) => void;
 }
@@ -20,40 +24,31 @@ export function Step4Review({ onNavigateToStep }: Props) {
   const isCoverageOver = coverageRatio > 0.85;
   const isFootprintOver = footprint > 0 && plotArea > 0 && footprint > plotArea;
 
-  // Compute expected accuracy tier
-  const hasStructuralDetails = v.structuralSystem && v.structuralSystem !== 'Not_sure';
-  const hasAdvancedDetails = Boolean(v.structuralDrawingUrl || (v.facadeType && v.facadeType !== 'Not_sure'));
-  const tier = hasAdvancedDetails ? 3 : hasStructuralDetails ? 2 : 1;
+  // U-4: Single source of truth accuracy band predicate from engine
+  const cls = classifyBuilding({
+    numFloors: v.numFloors ?? 1,
+    typology: v.typology ?? 'Residential',
+    structuralSystem: v.structuralSystem,
+    seismicZone: v.seismicZone,
+  });
 
-  const ACCURACY = {
-    1: {
-      band: '±15–20%',
-      label: 'Preliminary Estimate',
-      icon: AlertTriangle,
-      cls: 'bg-[#FEF3C7] border-[#FDE68A] text-[#B45309]',
-      iconCls: 'text-[#B45309]',
-      note: 'Based on macro dimensions and regional baseline rates. Suitable for high-level feasibility.',
-    },
-    2: {
-      band: '±10–15%',
-      label: 'Standard Estimate',
-      icon: Info,
-      cls: 'bg-[#EFF4FA] border-[#CBD5E1] text-[#1E3A5F]',
-      iconCls: 'text-[#1E3A5F]',
-      note: 'Incorporates framing system, foundation type, and IS 1893 seismic zoning.',
-    },
-    3: {
-      band: '±5–10%',
-      label: 'Advanced Estimate',
-      icon: CheckCircle2,
-      cls: 'bg-[#F0FDF4] border-[#BBF7D0] text-[#16A34A]',
-      iconCls: 'text-[#16A34A]',
-      note: 'Calibrated with full structural framing, envelope facade specifications, and MEP scope.',
-    },
-  } as const;
+  const tier2Complete = Boolean(v.structuralSystem && v.foundationType && v.seismicZone);
+  const tier3Complete = Boolean(v.windLoadZone && v.facadeType && v.fireHvacScope);
+  const hasNotSureFields = [
+    v.structuralSystem, v.foundationType, v.seismicZone,
+    v.windLoadZone, v.facadeType, v.fireHvacScope
+  ].some(f => f === 'Not_sure');
 
-  const acc = ACCURACY[tier as 1 | 2 | 3];
-  const Icon = acc.icon;
+  const accuracyBand = computeAccuracyBand(
+    cls.tier,
+    tier2Complete,
+    tier3Complete,
+    hasNotSureFields,
+    Boolean(v.structuralDrawingUrl),
+  );
+
+  const acc = ACCURACY_BANDS[accuracyBand];
+  const Icon = accuracyBand === 'Advanced_5_10' ? CheckCircle2 : accuracyBand === 'Standard_10_15' ? Info : AlertTriangle;
 
   const sections: Array<{
     heading: string;
