@@ -1,7 +1,7 @@
 'use client';
 // app/estimate/[id]/_components/ShareResultClient.tsx
 // Client-side share, save, and PDF download buttons for the shareable page
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Share2, Download, Save, Loader2 } from 'lucide-react';
@@ -17,6 +17,24 @@ export function ShareResultClient({ estimateId, grandTotal }: Props) {
   const [saving, setSaving]   = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [name, setName]       = useState('');
+
+  useEffect(() => {
+    if (!saveOpen) return;
+    const prevActive = document.activeElement as HTMLElement | null;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSaveOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+      prevActive?.focus?.();
+    };
+  }, [saveOpen]);
 
   const handleShare = async () => {
     try {
@@ -69,9 +87,15 @@ export function ShareResultClient({ estimateId, grandTotal }: Props) {
 
       {/* Save dialog */}
       {saveOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="share-save-title"
+          onClick={e => { if (e.target === e.currentTarget) setSaveOpen(false); }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+        >
           <div className="card-md w-full max-w-sm p-6 slide-up">
-            <h2 className="font-bold text-slate-800 mb-1">Save Estimate</h2>
+            <h2 id="share-save-title" className="font-bold text-slate-800 mb-1">Save Estimate</h2>
             <p className="text-xs text-slate-400 mb-4">Give this project a name and save it to your dashboard.</p>
             <div className="mb-1">
               <p className="text-xs text-slate-500 mb-1">Total: <strong className="text-orange-600">{formatINR(grandTotal)}</strong></p>

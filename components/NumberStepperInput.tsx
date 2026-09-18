@@ -30,6 +30,11 @@ export const NumberStepperInput = React.forwardRef<HTMLInputElement, NumberStepp
         <input
           ref={ref}
           type="number"
+          inputMode="numeric"
+          onWheel={(e) => {
+            e.currentTarget.blur();
+            props.onWheel?.(e);
+          }}
           value={value ?? ''}
           onChange={onChange}
           step={step}

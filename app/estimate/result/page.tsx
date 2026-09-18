@@ -209,6 +209,24 @@ export default function ResultPage() {
     }
   }, [isReady, result, router]);
 
+  useEffect(() => {
+    if (!saveOpen) return;
+    const prevActive = document.activeElement as HTMLElement | null;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSaveOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+      prevActive?.focus?.();
+    };
+  }, [saveOpen]);
+
   if (!isReady || !result) {
     return (
       <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center p-4">
@@ -538,7 +556,7 @@ export default function ResultPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
           {/* Column 1: Cost Distribution Donut Chart with Direct Legend */}
           <SectionCard title="Cost Distribution by Category" className="lg:col-span-2">
-            <div className="w-full h-56">
+            <div className="w-full h-56" role="img" aria-label="Cost breakdown by category">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -825,12 +843,15 @@ export default function ResultPage() {
       {/* ── Save Modal Dialog ── */}
       {saveOpen && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="save-modal-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           onClick={e => { if (e.target === e.currentTarget) setSaveOpen(false); }}
         >
           <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-xl w-full max-w-sm p-6 space-y-4 animate-in fade-in">
             <div>
-              <h3 className="text-base font-bold text-[#1E3A5F]">Save Estimate Project</h3>
+              <h3 id="save-modal-title" className="text-base font-bold text-[#1E3A5F]">Save Estimate Project</h3>
               <p className="text-xs text-[#64748B] mt-1">Assign a project name to track and reload this BOQ in your dashboard.</p>
             </div>
 

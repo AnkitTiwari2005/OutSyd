@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -11,6 +11,15 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen]);
 
   const isEstimate = pathname.startsWith('/estimate');
 
@@ -118,6 +127,7 @@ export function Navbar() {
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 text-[#64748B] hover:text-[#0F172A] rounded-md"
             aria-label="Toggle navigation menu"
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -126,7 +136,14 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="md:hidden border-b border-[#E2E8F0] bg-white px-4 py-4 space-y-2 shadow-sm animate-in slide-in-from-top-2">
+        <div
+          role="navigation"
+          aria-label="Mobile navigation"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setMobileOpen(false);
+          }}
+          className="md:hidden border-b border-[#E2E8F0] bg-white px-4 py-4 space-y-2 shadow-sm animate-in slide-in-from-top-2"
+        >
           <Link
             href="/estimate"
             onClick={() => setMobileOpen(false)}

@@ -20,6 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return {
     title      : `OUTSYD Estimate — ${formatINR(est.grandTotalMaterialCost ?? 0)} (${est.accuracyBand?.replace(/_/g,' ')})`,
     description: `Category-wise construction cost estimate. Total: ${formatINRFull(est.grandTotalMaterialCost ?? 0)} with ${est.accuracyBand?.replace(/_/g,' ')} accuracy.`,
+    robots     : { index: false, follow: false },
   };
 }
 

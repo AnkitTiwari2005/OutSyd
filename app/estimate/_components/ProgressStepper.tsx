@@ -41,9 +41,15 @@ export function ProgressStepper({
           const isActive = idx === currentStep;
 
           return (
-            <div
+            <button
               key={step.id}
-              className="flex flex-col items-center relative z-10 select-none cursor-pointer"
+              type="button"
+              disabled={!isCompleted}
+              aria-current={isActive ? 'step' : undefined}
+              aria-label={`Step ${idx + 1}: ${step.label}${isCompleted ? ' (Completed)' : isActive ? ' (Current)' : ''}`}
+              className={`flex flex-col items-center relative z-10 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A5F] rounded-lg p-1 bg-transparent border-0 transition-opacity ${
+                isCompleted ? 'cursor-pointer hover:opacity-90' : isActive ? 'cursor-default' : 'cursor-not-allowed opacity-75'
+              }`}
               onClick={() => {
                 // Allow jumping to previously completed steps
                 if (isCompleted && onStepClick) {
@@ -59,7 +65,6 @@ export function ProgressStepper({
                     ? 'bg-[#1E3A5F] text-white border-2 border-[#1E3A5F]'
                     : 'bg-white text-[#94A3B8] border-2 border-[#CBD5E1]'
                 }`}
-                aria-current={isActive ? 'step' : undefined}
               >
                 {isCompleted ? <Check size={16} strokeWidth={2.5} /> : idx + 1}
               </div>
@@ -74,7 +79,7 @@ export function ProgressStepper({
               >
                 {step.label}
               </span>
-            </div>
+            </button>
           );
         })}
       </div>
