@@ -126,4 +126,32 @@ describe('Estimate Aggregator (aggregateEstimate)', () => {
     assert.equal(res.categoryTotals[0].categoryCode, 'CAT_01');
     assert.equal(res.categoryTotals[17].categoryCode, 'CAT_18');
   });
+
+  it('applies compressed timeline surcharge when targetTimelineMonths is less than standard baseline duration (P2)', () => {
+    // 2400 sqft G+1 residential standard timeline is 18 months (base 18 for <5000 sqft)
+    const normalRes = aggregateEstimate(sampleItems, dummyInput, cls, DEFAULT_DATASET, 1.0);
+    const compressedInput: FullInput = {
+      ...dummyInput,
+      targetTimelineMonths: 12, // 33% compression vs 18mo norm
+    };
+    const compressedRes = aggregateEstimate(sampleItems, compressedInput, cls, DEFAULT_DATASET, 1.0);
+
+    const accelItem = compressedRes.lineItems.find(i => i.materialItemCode === 'MAT_PRELIM_ACCEL');
+    assert.ok(accelItem, 'Expected MAT_PRELIM_ACCEL line item for compressed timeline');
+    assert.ok(accelItem.lineCost > 0, 'Expected positive line cost for acceleration surcharge');
+    assert.ok(compressedRes.grandTotalMaterialCost > normalRes.grandTotalMaterialCost, 'Compressed timeline should increase material/turnkey grand total');
+  });
+
+  it('does not apply compressed timeline surcharge when targetTimelineMonths is >= standard duration or undefined (P2)', () => {
+    const normalRes = aggregateEstimate(sampleItems, dummyInput, cls, DEFAULT_DATASET, 1.0);
+    const relaxedInput: FullInput = {
+      ...dummyInput,
+      targetTimelineMonths: 24, // >= 18 months standard
+    };
+    const relaxedRes = aggregateEstimate(sampleItems, relaxedInput, cls, DEFAULT_DATASET, 1.0);
+
+    const accelItem = relaxedRes.lineItems.find(i => i.materialItemCode === 'MAT_PRELIM_ACCEL');
+    assert.equal(accelItem, undefined, 'Expected no MAT_PRELIM_ACCEL when timeline is not compressed');
+    assert.equal(relaxedRes.grandTotalMaterialCost, normalRes.grandTotalMaterialCost, 'Relaxed timeline should not change total cost');
+  });
 });

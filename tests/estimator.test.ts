@@ -251,29 +251,37 @@ describe('Quantification Engine (runEstimationEngine)', () => {
     assert.ok(codes.includes('MAT_POOL_TILE'), 'Expected MAT_POOL_TILE');
   });
 
-  it('triggers raft foundation when soilBearingCapacity is low (<100 kN/m²) (H-6)', () => {
-    const input: FullInput = {
+  it('triggers raft foundation when soilBearingCapacity is low (<100 kN/m²) (H-6, P1)', () => {
+    const baseInput: FullInput = {
       lengthFt: 40, breadthFt: 30, heightFt: 22, plotAreaSqft: 2400, numFloors: 2,
       typology: 'Residential', buildingUse: 'Villa',
       soilType: 'Normal', locationRegion: 'Bengaluru', qualityTier: 'Standard',
-      soilBearingCapacity: 80, // soft soil condition
+      soilBearingCapacity: 150, // firm soil -> isolated footings
     };
-    const cls = classifyBuilding(input);
-    const items = runEstimationEngine(input, cls, DEFAULT_DATASET, 1.0);
-    const hasRaft = items.some(i => i.materialItemCode === 'MAT_FOUND_RAFT');
-    assert.ok(hasRaft, 'Expected MAT_FOUND_RAFT when soilBearingCapacity < 100');
+    const softSoilInput: FullInput = {
+      ...baseInput,
+      soilBearingCapacity: 80, // soft soil condition (< 100) -> raft foundation
+    };
+    const cls = classifyBuilding(baseInput);
+    const firmItems = runEstimationEngine(baseInput, cls, DEFAULT_DATASET, 1.0);
+    const softItems = runEstimationEngine(softSoilInput, cls, DEFAULT_DATASET, 1.0);
+
+    const firmHasRaft = firmItems.some(i => i.materialItemCode === 'MAT_FOUND_RAFT');
+    const softHasRaft = softItems.some(i => i.materialItemCode === 'MAT_FOUND_RAFT');
+    assert.equal(firmHasRaft, false, 'Expected no raft foundation on firm soil (150 kN/m²)');
+    assert.equal(softHasRaft, true, 'Expected MAT_FOUND_RAFT when soilBearingCapacity < 100 kN/m²');
   });
 
-  it('augments stair circulation when podiumLevels or serviceFloors are provided (H-6)', () => {
+  it('podiumLevels increases MAT_STAIR_CONC and MAT_STAIR_STEEL quantities (P1)', () => {
     const baseInput: FullInput = {
-      lengthFt: 100, breadthFt: 80, heightFt: 120, plotAreaSqft: 15000, numFloors: 10,
+      lengthFt: 80, breadthFt: 60, heightFt: 80, plotAreaSqft: 8000, numFloors: 6,
       typology: 'Commercial', buildingUse: 'Office',
-      soilType: 'Normal', locationRegion: 'Mumbai', qualityTier: 'Standard',
+      soilType: 'Normal', locationRegion: 'Bengaluru', qualityTier: 'Standard',
+      podiumLevels: 0,
     };
     const podiumInput: FullInput = {
       ...baseInput,
       podiumLevels: 2,
-      serviceFloors: 1,
     };
     const cls = classifyBuilding(baseInput);
     const baseItems = runEstimationEngine(baseInput, cls, DEFAULT_DATASET, 1.0);
@@ -281,7 +289,65 @@ describe('Quantification Engine (runEstimationEngine)', () => {
 
     const baseStairConc = baseItems.find(i => i.materialItemCode === 'MAT_STAIR_CONC')!.quantity;
     const podiumStairConc = podiumItems.find(i => i.materialItemCode === 'MAT_STAIR_CONC')!.quantity;
-    assert.ok(podiumStairConc > baseStairConc, 'Expected podium/service floors to increase stair concrete volume');
+    const baseStairSteel = baseItems.find(i => i.materialItemCode === 'MAT_STAIR_STEEL')!.quantity;
+    const podiumStairSteel = podiumItems.find(i => i.materialItemCode === 'MAT_STAIR_STEEL')!.quantity;
+
+    assert.ok(podiumStairConc > baseStairConc, `Expected podiumLevels: 2 to increase stair concrete (${podiumStairConc} > ${baseStairConc})`);
+    assert.ok(podiumStairSteel > baseStairSteel, `Expected podiumLevels: 2 to increase stair steel (${podiumStairSteel} > ${baseStairSteel})`);
+  });
+
+  it('serviceFloors increases MAT_STAIR_CONC and MAT_STAIR_STEEL quantities (P1)', () => {
+    const baseInput: FullInput = {
+      lengthFt: 80, breadthFt: 60, heightFt: 80, plotAreaSqft: 8000, numFloors: 6,
+      typology: 'Commercial', buildingUse: 'Office',
+      soilType: 'Normal', locationRegion: 'Bengaluru', qualityTier: 'Standard',
+      serviceFloors: 0,
+    };
+    const serviceInput: FullInput = {
+      ...baseInput,
+      serviceFloors: 2,
+    };
+    const cls = classifyBuilding(baseInput);
+    const baseItems = runEstimationEngine(baseInput, cls, DEFAULT_DATASET, 1.0);
+    const serviceItems = runEstimationEngine(serviceInput, cls, DEFAULT_DATASET, 1.0);
+
+    const baseStairConc = baseItems.find(i => i.materialItemCode === 'MAT_STAIR_CONC')!.quantity;
+    const serviceStairConc = serviceItems.find(i => i.materialItemCode === 'MAT_STAIR_CONC')!.quantity;
+    const baseStairSteel = baseItems.find(i => i.materialItemCode === 'MAT_STAIR_STEEL')!.quantity;
+    const serviceStairSteel = serviceItems.find(i => i.materialItemCode === 'MAT_STAIR_STEEL')!.quantity;
+
+    assert.ok(serviceStairConc > baseStairConc, `Expected serviceFloors: 2 to increase stair concrete (${serviceStairConc} > ${baseStairConc})`);
+    assert.ok(serviceStairSteel > baseStairSteel, `Expected serviceFloors: 2 to increase stair steel (${serviceStairSteel} > ${baseStairSteel})`);
+  });
+
+  it('greenCertTarget triggers solar, rainwater harvesting, and water-saving fixtures (P1)', () => {
+    const noneInput: FullInput = {
+      lengthFt: 40, breadthFt: 30, heightFt: 22, plotAreaSqft: 1200, numFloors: 2, // 2400 sqft BUA, small plot < 1500
+      typology: 'Residential', buildingUse: 'Villa',
+      soilType: 'Normal', locationRegion: 'Bengaluru', qualityTier: 'Standard',
+      greenCertTarget: 'None',
+    };
+    const igbcInput: FullInput = {
+      ...noneInput,
+      greenCertTarget: 'IGBC',
+    };
+    const cls = classifyBuilding(noneInput);
+    const noneItems = runEstimationEngine(noneInput, cls, DEFAULT_DATASET, 1.0);
+    const igbcItems = runEstimationEngine(igbcInput, cls, DEFAULT_DATASET, 1.0);
+
+    const noneSolar = noneItems.some(i => i.materialItemCode === 'MAT_SOLAR_PANEL_ROO');
+    const igbcSolar = igbcItems.some(i => i.materialItemCode === 'MAT_SOLAR_PANEL_ROO');
+    const noneRwh = noneItems.some(i => i.materialItemCode === 'MAT_GREEN_RAINWATER');
+    const igbcRwh = igbcItems.some(i => i.materialItemCode === 'MAT_GREEN_RAINWATER');
+    const noneDual = noneItems.some(i => i.materialItemCode === 'MAT_GREEN_DUAL_FLUSH');
+    const igbcDual = igbcItems.some(i => i.materialItemCode === 'MAT_GREEN_DUAL_FLUSH');
+
+    assert.equal(noneSolar, false, 'Expected no solar on small standard residential with greenCertTarget: None');
+    assert.equal(igbcSolar, true, 'Expected MAT_SOLAR_PANEL_ROO when greenCertTarget is IGBC');
+    assert.equal(noneRwh, false, 'Expected no RWH on small plot with greenCertTarget: None');
+    assert.equal(igbcRwh, true, 'Expected MAT_GREEN_RAINWATER when greenCertTarget is IGBC');
+    assert.equal(noneDual, false, 'Expected no dual-flush on standard quality with greenCertTarget: None');
+    assert.equal(igbcDual, true, 'Expected MAT_GREEN_DUAL_FLUSH when greenCertTarget is IGBC');
   });
 });
 
