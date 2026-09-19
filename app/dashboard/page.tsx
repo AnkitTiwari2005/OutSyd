@@ -4,21 +4,39 @@ import { auth, signOut } from '@/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { projects } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import Link from 'next/link';
-import { PlusCircle, BarChart3, Clock, LogOut, User, Building2 } from 'lucide-react';
+import { PlusCircle, BarChart3, Clock, LogOut, User, Building2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const metadata = { title: 'Projects Dashboard — OUTSYD' };
 
-export default async function DashboardPage() {
+interface PageProps {
+  searchParams?: Promise<{ page?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: PageProps) {
   const session = await auth();
   if (!session?.user) redirect('/login');
   const userId = (session.user.id ?? '') as string;
 
+  const resolvedParams = searchParams ? await searchParams : {};
+  const currentPage = Math.max(1, parseInt(resolvedParams.page || '1', 10) || 1);
+  const pageSize = 20;
+  const offset = (currentPage - 1) * pageSize;
+
+  const [countRow] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(projects)
+    .where(eq(projects.userId, userId));
+  const totalCount = Number(countRow?.count ?? 0);
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
   const userProjects = await db
     .select().from(projects)
     .where(eq(projects.userId, userId))
-    .orderBy(desc(projects.updatedAt)).limit(30);
+    .orderBy(desc(projects.updatedAt))
+    .limit(pageSize)
+    .offset(offset);
 
   return (
     <main className="min-h-screen bg-[#F7F8FA] text-[#0F172A]">
@@ -66,7 +84,8 @@ export default async function DashboardPage() {
           <div>
             <h1 className="text-2xl font-bold text-[#1E3A5F]">Saved BOQ Projects</h1>
             <p className="text-xs text-[#64748B] mt-0.5">
-              {userProjects.length} saved building estimate{userProjects.length !== 1 ? 's' : ''}
+              {totalCount} saved building estimate{totalCount !== 1 ? 's' : ''}
+              {totalPages > 1 ? ` · Page ${currentPage} of ${totalPages}` : ''}
             </p>
           </div>
 
@@ -91,33 +110,78 @@ export default async function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {userProjects.map((p) => (
-              <Link
-                key={p.id}
-                href={`/dashboard/projects/${p.id}`}
-                className="card-standard p-5 bg-white border border-[#E2E8F0] hover:border-[#1E3A5F] transition-all group block"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="w-8 h-8 rounded-md bg-[#EFF4FA] text-[#1E3A5F] flex items-center justify-center">
-                    <BarChart3 size={16} />
+          <>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {userProjects.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/dashboard/projects/${p.id}`}
+                  className="card-standard p-5 bg-white border border-[#E2E8F0] hover:border-[#1E3A5F] transition-all group block"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="w-8 h-8 rounded-md bg-[#EFF4FA] text-[#1E3A5F] flex items-center justify-center">
+                      <BarChart3 size={16} />
+                    </div>
+                    <span className="text-[11px] font-bold text-[#1E3A5F] group-hover:underline">
+                      View BOQ →
+                    </span>
                   </div>
-                  <span className="text-[11px] font-bold text-[#1E3A5F] group-hover:underline">
-                    View BOQ →
+                  <h2 className="font-bold text-sm text-[#0F172A] leading-snug group-hover:text-[#1E3A5F] transition-colors">
+                    {p.name}
+                  </h2>
+                  <div className="flex items-center gap-1.5 mt-3 text-xs text-[#64748B]">
+                    <Clock size={11} />
+                    <span>
+                      Saved {new Date(p.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#E2E8F0] pt-4 mt-6">
+                <p className="text-xs text-[#64748B]">
+                  Showing <span className="font-semibold text-[#0F172A]">{offset + 1}</span> to{' '}
+                  <span className="font-semibold text-[#0F172A]">{Math.min(offset + pageSize, totalCount)}</span> of{' '}
+                  <span className="font-semibold text-[#0F172A]">{totalCount}</span> estimates
+                </p>
+
+                <div className="flex items-center gap-2">
+                  {currentPage > 1 ? (
+                    <Link
+                      href={`/dashboard?page=${currentPage - 1}`}
+                      className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1"
+                    >
+                      <ChevronLeft size={13} /> Previous
+                    </Link>
+                  ) : (
+                    <span className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1 opacity-50 cursor-not-allowed">
+                      <ChevronLeft size={13} /> Previous
+                    </span>
+                  )}
+
+                  <span className="text-xs text-[#64748B] px-2 font-mono">
+                    {currentPage} / {totalPages}
                   </span>
+
+                  {currentPage < totalPages ? (
+                    <Link
+                      href={`/dashboard?page=${currentPage + 1}`}
+                      className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1"
+                    >
+                      Next <ChevronRight size={13} />
+                    </Link>
+                  ) : (
+                    <span className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1 opacity-50 cursor-not-allowed">
+                      Next <ChevronRight size={13} />
+                    </span>
+                  )}
                 </div>
-                <h2 className="font-bold text-sm text-[#0F172A] leading-snug group-hover:text-[#1E3A5F] transition-colors">
-                  {p.name}
-                </h2>
-                <div className="flex items-center gap-1.5 mt-3 text-xs text-[#64748B]">
-                  <Clock size={11} />
-                  <span>
-                    Saved {new Date(p.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>

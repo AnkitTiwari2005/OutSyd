@@ -9,7 +9,24 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { Link2 } from 'lucide-react';
 
 export function Step2Building() {
-  const { register, control, formState: { errors } } = useFormContext<FullInput>();
+  const { register, control, watch, formState: { errors } } = useFormContext<FullInput>();
+
+  const targetTimelineMonths = watch('targetTimelineMonths');
+  const numFloors = watch('numFloors') || 1;
+  const lengthFt = watch('lengthFt') || 0;
+  const breadthFt = watch('breadthFt') || 0;
+  const typology = watch('typology') || 'Residential';
+
+  const totalBuaSqft = lengthFt * breadthFt * numFloors;
+  const baseMonths = totalBuaSqft < 2000 ? 12 : totalBuaSqft < 5000 ? 18 : totalBuaSqft < 15000 ? 24 : 36;
+  const floorExtra = Math.max(0, numFloors - 3) * 1.5;
+  const typologyFactor = typology === 'Industrial' ? 0.8 : typology === 'Commercial' ? 1.2 : 1.0;
+  const standardTimelineMonths = Math.round((baseMonths + floorExtra) * typologyFactor);
+
+  const isHighlyCompressed =
+    typeof targetTimelineMonths === 'number' &&
+    targetTimelineMonths > 0 &&
+    (targetTimelineMonths < 4 || targetTimelineMonths < 0.4 * standardTimelineMonths);
 
   return (
     <div className="space-y-8">
@@ -304,6 +321,11 @@ export function Step2Building() {
               />
               <InfoTooltip content="Desired construction duration in months. Accelerated schedules (< normal baseline) automatically account for fast-track mobilization, shift work, and early-curing measures." />
             </div>
+            {isHighlyCompressed && (
+              <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mt-2 leading-relaxed">
+                ⚠️ Target timeline is exceptionally compressed ({targetTimelineMonths} months vs ~{standardTimelineMonths} mo standard); consider consulting a structural contractor.
+              </p>
+            )}
           </FormField>
         </div>
 

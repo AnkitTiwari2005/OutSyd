@@ -93,6 +93,7 @@ function RegisterForm() {
               <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
               <input
                 type="text"
+                autoComplete="name"
                 value={form.name}
                 required
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -108,6 +109,7 @@ function RegisterForm() {
               <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
               <input
                 type="email"
+                autoComplete="email"
                 value={form.email}
                 required
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
@@ -123,6 +125,7 @@ function RegisterForm() {
               <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
               <input
                 type="password"
+                autoComplete="new-password"
                 value={form.password}
                 required
                 minLength={8}

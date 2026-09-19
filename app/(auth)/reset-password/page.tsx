@@ -143,6 +143,7 @@ function ResetPasswordForm() {
                   <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
                   <input
                     type="password"
+                    autoComplete="new-password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     required
@@ -159,6 +160,7 @@ function ResetPasswordForm() {
                   <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
                   <input
                     type="password"
+                    autoComplete="new-password"
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     required
