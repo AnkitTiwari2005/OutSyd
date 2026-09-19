@@ -224,7 +224,7 @@ export const LABOUR_INCLUSIVE_RATES: Record<string, boolean> = {
 };
 
 export const DEFAULT_DATASET: CoefficientDataset = {
-  version: 'v2026.09.3',
+  version: 'v2026.09.4',
 
   // ─── Cement coefficients (bags/sqft BUA) — per floor height band ─────────
   // Sources: CPWD DSR Schedule-I, IS 456, standard mix design tables
@@ -254,6 +254,7 @@ export const DEFAULT_DATASET: CoefficientDataset = {
   },
 
   // ─── Quality tier multipliers ─────────────────────────────────────────────
+  // TODO(verify): Quality tier cost multipliers (Economy 0.82x, Standard 1.00x, Premium 1.50x) vs RICS / Colliers India Construction Cost Benchmarks 2025-2026
   qualityMultipliers: {
     Economy : 0.82,
     Standard: 1.00,
@@ -261,6 +262,7 @@ export const DEFAULT_DATASET: CoefficientDataset = {
   },
 
   // ─── Structural system modifiers (cm=cement, sm=steel, mm=masonry) ────────
+  // TODO(verify): Structural system cost modifiers vs IS 456 / SP 16 structural quantity takeoff comparisons
   structMultipliers: {
     RCC_Frame   : { cm: 1.00, sm: 1.00, mm: 1.00 },
     Load_bearing: { cm: 0.70, sm: 0.50, mm: 1.55 },

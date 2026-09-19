@@ -62,7 +62,7 @@ export function isLabourInclusive(code: string, ds?: CoefficientDataset): boolea
   if (code.startsWith('MAT_LIFT_') || code.startsWith('MAT_STAIR_RAILING_') || code.startsWith('MAT_STAIR_MARBLE') || code.startsWith('MAT_STAIR_GRANITE')) return true;
   if (code.startsWith('MAT_HVAC_') || code.startsWith('MAT_FIRE_') || code === 'MAT_EXHAUST_FAN') return true;
   if (code.startsWith('MAT_POOL_') || code.startsWith('MAT_GYM_') || code.startsWith('MAT_CLUB_')) return true;
-  if (code === 'MAT_MISC_TOTAL' || code === 'MAT_MISC_SCAFFOLD') return true;
+  if (code === 'MAT_MISC_TOTAL' || code === 'MAT_MISC_SCAFFOLD' || code === 'MAT_PRELIM_ACCEL') return true;
   return false;
 }
 
@@ -155,8 +155,37 @@ export function aggregateEstimate(
     approximateNote  : `${(ds.miscPct * 100).toFixed(1)}% of total material cost — standard industry practice`,
   };
 
-  const allLineItems = [...lineItems, miscLineItem];
-  const grandTotal   = Math.round((subTotal + miscTotal) * 100) / 100;
+  // ── P2: Fast-Track Timeline Acceleration Surcharge ───────────────────────
+  // Baseline normal construction duration in months (NBC 2016 / CPWD project norms)
+  const baseMonths = dim.totalBuaSqft < 2000 ? 12 : dim.totalBuaSqft < 5000 ? 18 : dim.totalBuaSqft < 15000 ? 24 : 36;
+  const floorExtra = Math.max(0, bi.numFloors - 3) * 1.5;
+  const typologyFactor = bi.typology === 'Industrial' ? 0.8 : bi.typology === 'Commercial' ? 1.2 : 1.0;
+  const normalTimelineMonths = Math.round((baseMonths + floorExtra) * typologyFactor);
+
+  let accelLineItem: EstimateLineItem | undefined;
+  if (bi.targetTimelineMonths && bi.targetTimelineMonths > 0 && bi.targetTimelineMonths < normalTimelineMonths) {
+    const compressionRatio = (normalTimelineMonths - bi.targetTimelineMonths) / normalTimelineMonths;
+    // Fast-track acceleration premium: 5% to 15% surcharge for schedule compression up to 35%
+    // TODO(verify): Fast-track timeline acceleration surcharge curve (5-15% premium for schedule compression up to 35%) vs CPWD / RICS commercial fast-track construction norms
+    const accelerationPct = Math.min(0.15, Math.max(0.05, Math.round(compressionRatio * 0.40 * 100) / 100));
+    const accelerationCost = Math.round(subTotal * accelerationPct * 100) / 100;
+    catMap['CAT_18'] = Math.round((catMap['CAT_18'] + accelerationCost) * 100) / 100;
+    accelLineItem = {
+      materialItemCode : 'MAT_PRELIM_ACCEL',
+      name             : `Fast-Track Compressed Schedule Surcharge (+${(accelerationPct * 100).toFixed(1)}%)`,
+      categoryCode     : 'CAT_18',
+      quantity         : 1,
+      unit             : 'lump sum',
+      recommendedGrade : '—',
+      unitRate         : accelerationCost,
+      lineCost         : accelerationCost,
+      isApproximate    : true,
+      approximateNote  : `Target timeline ${bi.targetTimelineMonths} months vs normal ${normalTimelineMonths} months (${(compressionRatio * 100).toFixed(0)}% compression). Multi-shift operations & fast-curing admixtures.`,
+    };
+  }
+
+  const allLineItems = accelLineItem ? [...lineItems, miscLineItem, accelLineItem] : [...lineItems, miscLineItem];
+  const grandTotal   = Math.round((subTotal + catMap['CAT_18']) * 100) / 100;
 
   // Category totals for all 18 standard categories in consistent sequence
   const categoryTotals: CategoryTotal[] = Object.entries(CATEGORY_NAMES)
