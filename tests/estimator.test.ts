@@ -8,6 +8,7 @@ import {
 } from '../lib/engine/estimator';
 import { DEFAULT_DATASET } from '../lib/engine/coefficients';
 import { classifyBuilding } from '../lib/engine/classifier';
+import { FullInputSchema } from '../lib/validation/input-schema';
 import type { FullInput } from '../lib/engine/types';
 
 describe('Geometry & Room Dimensions Derivation', () => {
@@ -388,6 +389,55 @@ describe('validateDatasetCompleteness (NF-2)', () => {
     assert.ok(res.missingCodes.includes('MAT_FOUND_EXCAV'));
   });
 });
+
+describe('L-40: soilBearingCapacity Schema Validation', () => {
+  const baseValidInput = {
+    lengthFt: 40,
+    breadthFt: 30,
+    heightFt: 22,
+    plotAreaSqft: 2400,
+    numFloors: 2,
+    typology: 'Residential' as const,
+    buildingUse: 'Villa',
+    soilType: 'Normal' as const,
+    locationRegion: 'Bengaluru',
+    qualityTier: 'Standard' as const,
+  };
+
+  it('accepts valid soilBearingCapacity within (0, 1000]', () => {
+    const validResult = FullInputSchema.safeParse({
+      ...baseValidInput,
+      soilBearingCapacity: 250,
+    });
+    assert.equal(validResult.success, true);
+
+    const maxResult = FullInputSchema.safeParse({
+      ...baseValidInput,
+      soilBearingCapacity: 1000,
+    });
+    assert.equal(maxResult.success, true);
+  });
+
+  it('rejects soilBearingCapacity > 1000 kN/m²', () => {
+    const invalidResult = FullInputSchema.safeParse({
+      ...baseValidInput,
+      soilBearingCapacity: 1500,
+    });
+    assert.equal(invalidResult.success, false);
+    if (!invalidResult.success) {
+      assert.ok(invalidResult.error.issues.some(i => i.path.includes('soilBearingCapacity')));
+    }
+  });
+
+  it('rejects non-positive soilBearingCapacity', () => {
+    const invalidResult = FullInputSchema.safeParse({
+      ...baseValidInput,
+      soilBearingCapacity: -50,
+    });
+    assert.equal(invalidResult.success, false);
+  });
+});
+
 
 
 

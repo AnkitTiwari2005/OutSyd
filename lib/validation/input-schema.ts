@@ -56,7 +56,7 @@ export const Tier2BaseSchema = Tier1BaseSchema.extend({
 });
 
 export const Tier3BaseSchema = Tier2BaseSchema.extend({
-  soilBearingCapacity  : optionalNumber(z.number().finite().positive()),
+  soilBearingCapacity  : optionalNumber(z.number().finite().positive().max(1000, 'Safe bearing capacity cannot exceed 1000 kN/m²')),
   windLoadZone         : z.enum(['Low', 'Moderate', 'High', 'Cyclone_prone', 'Not_sure']).default('Not_sure'),
   serviceFloors        : z.coerce.number().finite().int().min(0).max(10).default(0),
   podiumLevels         : z.coerce.number().finite().int().min(0).max(5).default(0),
