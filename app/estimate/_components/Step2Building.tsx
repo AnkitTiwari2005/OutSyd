@@ -19,11 +19,11 @@ export function Step2Building() {
           <h3 className="section-label">1. Structural System & Substructure</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             label="Structural Frame System"
             error={errors.structuralSystem?.message}
-            hint="Determines concrete grade and reinforcement ratio"
+            hint="Concrete grade & rebar ratio"
           >
             <div className="flex items-center gap-1.5">
               <select {...register('structuralSystem')} className="form-input cursor-pointer">
@@ -40,7 +40,7 @@ export function Step2Building() {
           <FormField
             label="Foundation Type"
             error={errors.foundationType?.message}
-            hint="Determines excavation depth and concrete volume"
+            hint="Excavation & footing depth"
           >
             <div className="flex items-center gap-1.5">
               <select {...register('foundationType')} className="form-input cursor-pointer">
@@ -50,6 +50,34 @@ export function Step2Building() {
                 <option value="Pile">Bored Cast-in-situ Piles</option>
               </select>
               <InfoTooltip content="Conservative default assumes isolated pad footings excavated to 1.8m depth on firm soil (150 kN/m²). For soft/waterlogged soil, the engine automatically upgrades to raft/piles." />
+            </div>
+          </FormField>
+
+          <FormField
+            label="Soil Bearing Capacity (SBC)"
+            error={errors.soilBearingCapacity?.message}
+            hint="kN/m² (< 100 auto-forces raft)"
+          >
+            <div className="flex items-center gap-1.5">
+              <Controller
+                control={control}
+                name="soilBearingCapacity"
+                render={({ field }) => (
+                  <NumberStepperInput
+                    min={25}
+                    max={1000}
+                    step={25}
+                    placeholder="e.g. 150 (firm soil)"
+                    value={field.value ?? ''}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      field.onChange(raw === '' ? undefined : Number(raw));
+                    }}
+                    onValueChange={(val) => field.onChange(val || undefined)}
+                  />
+                )}
+              />
+              <InfoTooltip content="Safe Bearing Capacity (SBC) of site soil in kN/m². Firm dry soils range 150–250 kN/m². If geotechnical investigation reports SBC < 100 kN/m² (soft clay/loose silt), the engine automatically mandates a raft/mat foundation." />
             </div>
           </FormField>
         </div>
@@ -104,7 +132,7 @@ export function Step2Building() {
           <h3 className="section-label">3. Circulation & Vertical Transport</h3>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <FormField label="Staircases" error={errors.numStaircases?.message} hint="NBC requires 2 for G+3+">
             <Controller
               control={control}
@@ -139,7 +167,7 @@ export function Step2Building() {
             />
           </FormField>
 
-          <FormField label="Basement Parking Levels" error={errors.parkingLevels?.message} hint="Basement floors">
+          <FormField label="Basement Parking Levels" error={errors.parkingLevels?.message} hint="Subterranean floors">
             <Controller
               control={control}
               name="parkingLevels"
@@ -154,6 +182,46 @@ export function Step2Building() {
                 />
               )}
             />
+          </FormField>
+
+          <FormField label="Above-Ground Podium Levels" error={errors.podiumLevels?.message} hint="Elevated parking / amenity">
+            <div className="flex items-center gap-1.5">
+              <Controller
+                control={control}
+                name="podiumLevels"
+                render={({ field }) => (
+                  <NumberStepperInput
+                    min={0}
+                    max={5}
+                    step={1}
+                    value={field.value ?? 0}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    onValueChange={(val) => field.onChange(val)}
+                  />
+                )}
+              />
+              <InfoTooltip content="Number of above-ground podium levels for parking or amenities. Increases vertical circulation and stair core concrete/steel requirements." />
+            </div>
+          </FormField>
+
+          <FormField label="Service / Plant Floors" error={errors.serviceFloors?.message} hint="Dedicated MEP transfer levels">
+            <div className="flex items-center gap-1.5">
+              <Controller
+                control={control}
+                name="serviceFloors"
+                render={({ field }) => (
+                  <NumberStepperInput
+                    min={0}
+                    max={10}
+                    step={1}
+                    value={field.value ?? 0}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    onValueChange={(val) => field.onChange(val)}
+                  />
+                )}
+              />
+              <InfoTooltip content="Dedicated MEP service floors, plant rooms, or transfer floors requiring full vertical staircase connectivity." />
+            </div>
           </FormField>
 
           <FormField label="Units per Floor" error={errors.unitsPerFloor?.message} hint="Flats or offices (optional)">
@@ -179,10 +247,10 @@ export function Step2Building() {
         </div>
       </div>
 
-      {/* ── Group 4: Exterior & Engineering Services ────────────────── */}
+      {/* ── Group 4: Exterior Facade, MEP, Sustainability & Schedule ── */}
       <div>
         <div className="flex items-center gap-2 pb-2 mb-4 border-b border-[#E2E8F0]">
-          <h3 className="section-label">4. Exterior Facade, MEP & Engineering Drawings</h3>
+          <h3 className="section-label">4. Facade, MEP, Sustainability & Schedule</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -201,6 +269,41 @@ export function Step2Building() {
               <option value="Basic">Basic Split AC + Wet Riser Hydrants</option>
               <option value="Full_Central">Full Central VRF / AHU + Automatic Sprinklers</option>
             </select>
+          </FormField>
+
+          <FormField label="Green Building Certification Target" error={errors.greenCertTarget?.message} hint="Sustainability & conservation norms">
+            <div className="flex items-center gap-1.5">
+              <select {...register('greenCertTarget')} className="form-input cursor-pointer">
+                <option value="None">None (Standard NBC 2016 baseline)</option>
+                <option value="IGBC">IGBC Green Building Certified</option>
+                <option value="GRIHA">GRIHA National Green Rating</option>
+              </select>
+              <InfoTooltip content="Targets IGBC or GRIHA sustainability norms. Automatically provisions rooftop solar PV capacity, rainwater harvesting filtration pits, and water-saving dual-flush valves." />
+            </div>
+          </FormField>
+
+          <FormField label="Target Timeline (Months, Optional)" error={errors.targetTimelineMonths?.message} hint="Fast-track compressed schedule">
+            <div className="flex items-center gap-1.5">
+              <Controller
+                control={control}
+                name="targetTimelineMonths"
+                render={({ field }) => (
+                  <NumberStepperInput
+                    min={3}
+                    max={120}
+                    step={1}
+                    placeholder="e.g. 12 (standard auto-sized)"
+                    value={field.value ?? ''}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      field.onChange(raw === '' ? undefined : Number(raw));
+                    }}
+                    onValueChange={(val) => field.onChange(val || undefined)}
+                  />
+                )}
+              />
+              <InfoTooltip content="Desired construction duration in months. Accelerated schedules (< normal baseline) automatically account for fast-track mobilization, shift work, and early-curing measures." />
+            </div>
           </FormField>
         </div>
 
