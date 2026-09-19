@@ -453,6 +453,7 @@ export function runEstimationEngine(
 
   // ── CAT_01: Substructure & Excavation ─────────────────────────────────────
   const fndType = bi.foundationType ?? 'Not_sure';
+  // TODO(verify): Substructure threshold (< 100 kN/m²) for mandatory raft vs IS 1904:1986 shallow foundations design guidelines
   const isRaft  = fndType === 'Raft' || bi.soilType === 'Waterlogged-prone' || (bi.soilBearingCapacity !== undefined && bi.soilBearingCapacity < 100);
   const isPile  = fndType === 'Pile';
   const isRocky = bi.soilType === 'Rocky';
@@ -817,6 +818,7 @@ export function runEstimationEngine(
 
   // ── CAT_13: Staircase, Railings & Lifts ───────────────────────────────────
   const numStairs = bi.numStaircases ?? 1;
+  // TODO(verify): Staircase takeoff allowance per podium & service floor vs IS 456 / NBC 2016 Part 4 means of egress norms
   const stairFloors = numFloors + (bi.parkingLevels ?? 0) + (bi.podiumLevels ?? 0) + (bi.serviceFloors ?? 0);
   if (!isPEB || numFloors > 1) {
     addItem('MAT_STAIR_CONC', 1.4 * numStairs * stairFloors, 'cu.m');
@@ -901,6 +903,7 @@ export function runEstimationEngine(
     addItem('MAT_CLUB_FINISH', totalBuaSqft * 0.35, 'sqft', true, 'Clubhouse / recreation facility finishing');
     addItem('MAT_GYM_EQUIP', Math.min(2500, totalBuaSqft * 0.15), 'sqft', true, 'Fitness & gym equipment');
     if (totalBuaSqft >= 8000 || qt === 'Premium') {
+      // TODO(verify): Swimming pool civil and filtration rates (MAT_POOL_CIVIL, MAT_POOL_FILTRATION) vs specialised aquatic contractor subcontracts
       addItem('MAT_POOL_EXCAV', 140, 'cu.m', true, 'Swimming pool excavation');
       addItem('MAT_POOL_RCC', 70, 'cu.m', true, 'M35 waterproof concrete pool shell');
       addItem('MAT_POOL_TILE', 1100, 'sqft', true, 'Vitrified anti-slip pool tile');
@@ -913,6 +916,7 @@ export function runEstimationEngine(
   const greenCert = bi.greenCertTarget && bi.greenCertTarget !== 'None';
   const shouldAddSolar = greenCert || qt === 'Premium' || (totalBuaSqft > 25000 && !isIndustrial);
   if (shouldAddSolar && buaPerFloor >= 200) {
+    // TODO(verify): Solar PV sizing ratio (1 kWp per 400 sqft roof) vs MNRE grid-connected rooftop solar guidelines
     const rawKw = Math.floor(buaPerFloor / 400);
     const solarKw = Math.min(Math.max(1, rawKw), 30);
     if (solarKw > 0) {
@@ -924,6 +928,7 @@ export function runEstimationEngine(
   // Rainwater harvesting
   const plotSqft = bi.plotAreaSqft ?? 0;
   if (greenCert || plotSqft >= 1500 || totalBuaSqft >= 5000) {
+    // TODO(verify): RWH pit thumb-rule (1 unit per 25,000 sqft BUA) vs Central Ground Water Authority (CGWA) rainwater harvesting manual
     const rwhUnits = Math.max(1, Math.round(totalBuaSqft / 25000));
     addItem('MAT_GREEN_RAINWATER', rwhUnits, 'units', true, 'Rainwater harvesting pit & filtration');
   }

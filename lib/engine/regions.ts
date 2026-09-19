@@ -7,6 +7,7 @@ import type { SeismicZone } from './types';
 // REGIONAL RATE INDEX — 160+ cities
 // Index 1.000 = national average baseline (roughly Tier-2 city mid-market)
 // Sources: CPWD Cost Index circulars, NBO price data, JLL/Knight Frank 2024
+// TODO(verify): Tier 2 & Tier 3 regional indices vs latest CPWD Zonal Cost Index circulars (2025/2026)
 // ═══════════════════════════════════════════════════════════════════════════════
 export const REGIONAL_RATE_INDEX: Record<string, number> = {
   // ── Mega cities (Tier 1) ─────────────────────────────────────────────────
