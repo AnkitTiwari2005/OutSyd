@@ -32,7 +32,7 @@ export function Step2Building() {
     <div className="space-y-8">
       {/* ── Group 1: Structural Framing & Substructure ──────────────── */}
       <div>
-        <div className="flex items-center gap-2 pb-2 mb-4 border-b border-[#E2E8F0]">
+        <div className="flex items-center gap-2 pb-2 mb-4 border-b border-[var(--border-color)]">
           <h3 className="section-label">1. Structural System & Substructure</h3>
         </div>
 
@@ -102,7 +102,7 @@ export function Step2Building() {
 
       {/* ── Group 2: Seismic Zone Compliance ────────────────────────── */}
       <div>
-        <div className="flex items-center gap-2 pb-2 mb-4 border-b border-[#E2E8F0]">
+        <div className="flex items-center gap-2 pb-2 mb-4 border-b border-[var(--border-color)]">
           <h3 className="section-label">2. Seismic Zone Compliance (IS 1893:2016)</h3>
         </div>
 
@@ -145,7 +145,7 @@ export function Step2Building() {
 
       {/* ── Group 3: Building Configuration ─────────────────────────── */}
       <div>
-        <div className="flex items-center gap-2 pb-2 mb-4 border-b border-[#E2E8F0]">
+        <div className="flex items-center gap-2 pb-2 mb-4 border-b border-[var(--border-color)]">
           <h3 className="section-label">3. Circulation & Vertical Transport</h3>
         </div>
 
@@ -266,7 +266,7 @@ export function Step2Building() {
 
       {/* ── Group 4: Exterior Facade, MEP, Sustainability & Schedule ── */}
       <div>
-        <div className="flex items-center gap-2 pb-2 mb-4 border-b border-[#E2E8F0]">
+        <div className="flex items-center gap-2 pb-2 mb-4 border-b border-[var(--border-color)]">
           <h3 className="section-label">4. Facade, MEP, Sustainability & Schedule</h3>
         </div>
 
@@ -322,7 +322,7 @@ export function Step2Building() {
               <InfoTooltip content="Desired construction duration in months. Accelerated schedules (< normal baseline) automatically account for fast-track mobilization, shift work, and early-curing measures." />
             </div>
             {isHighlyCompressed && (
-              <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mt-2 leading-relaxed">
+              <p className="text-[11px] text-[var(--warning-text)] bg-[var(--warning-bg)] border border-[var(--warning-border)] rounded p-2 mt-2 leading-relaxed">
                 ⚠️ Target timeline is exceptionally compressed ({targetTimelineMonths} months vs ~{standardTimelineMonths} mo standard); consider consulting a structural contractor.
               </p>
             )}
@@ -330,20 +330,20 @@ export function Step2Building() {
         </div>
 
         {/* Structural Drawing URL */}
-        <div className="p-3.5 rounded-lg bg-[#F7F8FA] border border-[#E2E8F0]">
+        <div className="p-3.5 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-color)]">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-[#1E3A5F]">
+            <span className="text-xs font-bold text-[var(--accent-navy)]">
               Structural Drawing Link (Optional — Unlocks ±5–10% Advanced Band)
             </span>
-            <span className="text-[11px] font-semibold text-[#16A34A] bg-[#F0FDF4] px-2 py-0.5 rounded border border-[#BBF7D0]">
+            <span className="text-[11px] font-semibold text-[var(--success-text)] bg-[var(--success-bg)] px-2 py-0.5 rounded border border-[var(--success-border)]">
               Advanced Band Trigger
             </span>
           </div>
-          <p className="text-[11px] text-[#64748B] mb-2 leading-relaxed">
+          <p className="text-[11px] text-[var(--text-muted)] mb-2 leading-relaxed">
             Provide a Google Drive, Dropbox, or OneDrive share link to approved structural architectural drawings or layout PDFs.
           </p>
           <div className="relative">
-            <Link2 size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+            <Link2 size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
               {...register('structuralDrawingUrl')}
               type="url"

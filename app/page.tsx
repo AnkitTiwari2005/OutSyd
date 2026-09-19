@@ -39,10 +39,10 @@ function StatCounter({ value, suffix = '', label }: { value: number; suffix?: st
 
   return (
     <div ref={ref} className="text-center p-3">
-      <div className="text-3xl sm:text-4xl font-bold text-[#1E3A5F] tabular-nums tracking-tight">
+      <div className="text-3xl sm:text-4xl font-bold text-[var(--accent-navy)] tabular-nums tracking-tight">
         {count}{suffix}
       </div>
-      <div className="text-xs sm:text-sm text-[#64748B] mt-1 font-medium">{label}</div>
+      <div className="text-xs sm:text-sm text-[var(--text-muted)] mt-1 font-medium">{label}</div>
     </div>
   );
 }
@@ -97,29 +97,29 @@ const METHOD_STEPS = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <Navbar />
 
       {/* ── Compact Hero Section (~30% height reduction for 1440x900 viewports) ── */}
-      <section className="border-b border-[#E2E8F0] bg-white py-10 sm:py-14">
+      <section className="border-b border-[var(--border-color)] bg-[var(--bg-primary)] py-10 sm:py-14">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
             {/* Top Indicator */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F7F8FA] border border-[#E2E8F0] rounded-md text-xs font-semibold text-[#1E3A5F] mb-4">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-md text-xs font-semibold text-[var(--accent-navy)] mb-4">
               <span>CPWD DSR 2024 Calibrated</span>
-              <span className="text-[#CBD5E1]">·</span>
+              <span className="text-[var(--border-muted)]">·</span>
               <span>160+ Indian Cities</span>
-              <span className="text-[#CBD5E1]">·</span>
+              <span className="text-[var(--border-muted)]">·</span>
               <span>18 Categories</span>
             </div>
 
             {/* H1 Headline (48px/1.1 per typography scale) */}
-            <h1 className="text-3xl sm:text-4xl md:text-[44px] font-bold text-[#1E3A5F] leading-[1.15] tracking-tight mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-[44px] font-bold text-[var(--accent-navy)] leading-[1.15] tracking-tight mb-4">
               Precision Construction Cost & BOQ Estimator for India
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base text-[#64748B] leading-normal mb-6 max-w-2xl mx-auto font-normal">
+            <p className="text-base text-[var(--text-muted)] leading-normal mb-6 max-w-2xl mx-auto font-normal">
               Statistically calibrated material quantities, turnkey costs, and contractor-ready schedules across 18 building categories.
             </p>
 
@@ -141,45 +141,45 @@ export default function HomePage() {
             </div>
 
             {/* ── Sample Estimate Preview Card (Explicitly labeled) ── */}
-            <div className="card-standard p-4 sm:p-5 text-left max-w-2xl mx-auto bg-white border border-[#E2E8F0]">
-              <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#E2E8F0]">
+            <div className="card-standard p-4 sm:p-5 text-left max-w-2xl mx-auto bg-[var(--bg-card)] border border-[var(--border-color)]">
+              <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--border-color)]">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider bg-[#EFF4FA] text-[#1E3A5F] px-2 py-0.5 rounded">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider bg-[var(--accent-navy-subtle)] text-[var(--accent-navy)] px-2 py-0.5 rounded">
                       Sample Estimate Output
                     </span>
-                    <span className="text-xs text-[#64748B]">Residential Apartment (G+5) — Bengaluru</span>
+                    <span className="text-xs text-[var(--text-muted)]">Residential Apartment (G+5) — Bengaluru</span>
                   </div>
-                  <p className="text-xs text-[#64748B] mt-0.5">8,400 sqft BUA · Standard Fe500D RCC · 18 Categories</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">8,400 sqft BUA · Standard Fe500D RCC · 18 Categories</p>
                 </div>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A]">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded bg-[var(--success-bg)] border border-[var(--success-border)] text-[var(--success-text)]">
                   ±5–10% Advanced Band
                 </span>
               </div>
 
               {/* 4 Summary Figures */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
-                <div className="p-2.5 rounded bg-[#F7F8FA] border border-[#E2E8F0]">
-                  <p className="text-[11px] font-medium text-[#64748B]">Material Cost</p>
-                  <p className="text-base font-semibold text-[#0F172A] tabular-nums mt-0.5">₹1.48 Cr</p>
+                <div className="p-2.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                  <p className="text-[11px] font-medium text-[var(--text-muted)]">Material Cost</p>
+                  <p className="text-base font-semibold text-[var(--text-primary)] tabular-nums mt-0.5">₹1.48 Cr</p>
                 </div>
-                <div className="p-2.5 rounded bg-[#F7F8FA] border border-[#E2E8F0]">
-                  <p className="text-[11px] font-medium text-[#64748B]">With Labour (+30%)</p>
-                  <p className="text-base font-semibold text-[#1E3A5F] tabular-nums mt-0.5">₹1.92 Cr</p>
+                <div className="p-2.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                  <p className="text-[11px] font-medium text-[var(--text-muted)]">With Labour (+30%)</p>
+                  <p className="text-base font-semibold text-[var(--accent-navy)] tabular-nums mt-0.5">₹1.92 Cr</p>
                 </div>
-                <div className="p-2.5 rounded bg-[#F7F8FA] border border-[#E2E8F0]">
-                  <p className="text-[11px] font-medium text-[#64748B]">Material / sqft</p>
-                  <p className="text-base font-semibold text-[#0F172A] tabular-nums mt-0.5">₹1,762</p>
+                <div className="p-2.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                  <p className="text-[11px] font-medium text-[var(--text-muted)]">Material / sqft</p>
+                  <p className="text-base font-semibold text-[var(--text-primary)] tabular-nums mt-0.5">₹1,762</p>
                 </div>
-                <div className="p-2.5 rounded bg-[#F7F8FA] border border-[#E2E8F0]">
-                  <p className="text-[11px] font-medium text-[#64748B]">Turnkey / sqft</p>
-                  <p className="text-base font-semibold text-[#0F172A] tabular-nums mt-0.5">₹2,291</p>
+                <div className="p-2.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                  <p className="text-[11px] font-medium text-[var(--text-muted)]">Turnkey / sqft</p>
+                  <p className="text-base font-semibold text-[var(--text-primary)] tabular-nums mt-0.5">₹2,291</p>
                 </div>
               </div>
 
               {/* Top 3 Category Drivers */}
               <div className="space-y-1.5 text-xs">
-                <p className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-1">
+                <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1">
                   Primary Cost Drivers
                 </p>
                 {[
@@ -189,9 +189,9 @@ export default function HomePage() {
                 ].map((item) => (
                   <div key={item.name} className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ background: item.color }} />
-                    <span className="text-[#0F172A] font-medium flex-1 truncate">{item.name}</span>
-                    <span className="text-[#64748B] tabular-nums">{item.pct}%</span>
-                    <span className="font-semibold text-[#0F172A] tabular-nums w-16 text-right">{item.cost}</span>
+                    <span className="text-[var(--text-primary)] font-medium flex-1 truncate">{item.name}</span>
+                    <span className="text-[var(--text-muted)] tabular-nums">{item.pct}%</span>
+                    <span className="font-semibold text-[var(--text-primary)] tabular-nums w-16 text-right">{item.cost}</span>
                   </div>
                 ))}
               </div>
@@ -201,7 +201,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Stats Bar ─────────────────────────────────────────────── */}
-      <section className="bg-[#F7F8FA] border-b border-[#E2E8F0] py-6">
+      <section className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)] py-6">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCounter value={18} label="Material Categories" />
           <StatCounter value={200} suffix="+" label="Line Items Tracked" />
@@ -211,34 +211,34 @@ export default function HomePage() {
       </section>
 
       {/* ── 18 Categories Grouped Dense View (< 5 sec scan) ──────── */}
-      <section id="categories" className="py-16 bg-white">
+      <section id="categories" className="py-16 bg-[var(--bg-primary)]">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="mb-10 text-center">
             <span className="section-label block mb-1">Scope of Works</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#1E3A5F]">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--accent-navy)]">
               All 18 Construction Categories
             </h2>
-            <p className="text-sm text-[#64748B] mt-1.5 max-w-xl mx-auto">
+            <p className="text-sm text-[var(--text-muted)] mt-1.5 max-w-xl mx-auto">
               Structured according to standard CPWD specification phases for complete BOQ coverage.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {CATEGORY_GROUPS.map((grp) => (
-              <div key={grp.phase} className="card-standard p-4 bg-[#F7F8FA]">
-                <h3 className="text-xs font-bold text-[#1E3A5F] uppercase tracking-wider pb-2 mb-3 border-b border-[#E2E8F0]">
+              <div key={grp.phase} className="card-standard p-4 bg-[var(--bg-secondary)]">
+                <h3 className="text-xs font-bold text-[var(--accent-navy)] uppercase tracking-wider pb-2 mb-3 border-b border-[var(--border-color)]">
                   {grp.phase}
                 </h3>
                 <div className="space-y-2.5">
                   {grp.items.map((cat) => (
-                    <div key={cat.id} className="p-2.5 rounded bg-white border border-[#E2E8F0]">
+                    <div key={cat.id} className="p-2.5 rounded bg-[var(--bg-card)] border border-[var(--border-color)]">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono font-bold text-[#1E3A5F] bg-[#EFF4FA] px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] font-mono font-bold text-[var(--accent-navy)] bg-[var(--accent-navy-subtle)] px-1.5 py-0.5 rounded">
                           CAT_{cat.id}
                         </span>
-                        <p className="text-xs font-bold text-[#0F172A] leading-tight truncate">{cat.name}</p>
+                        <p className="text-xs font-bold text-[var(--text-primary)] leading-tight truncate">{cat.name}</p>
                       </div>
-                      <p className="text-[11px] text-[#64748B] mt-1 leading-snug">{cat.desc}</p>
+                      <p className="text-[11px] text-[var(--text-muted)] mt-1 leading-snug">{cat.desc}</p>
                     </div>
                   ))}
                 </div>
@@ -249,26 +249,26 @@ export default function HomePage() {
       </section>
 
       {/* ── Methodology (3 Steps) ─────────────────────────────────── */}
-      <section id="how-it-works" className="py-16 bg-[#F7F8FA] border-y border-[#E2E8F0]">
+      <section id="how-it-works" className="py-16 bg-[var(--bg-secondary)] border-y border-[var(--border-color)]">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="mb-10 text-center">
             <span className="section-label block mb-1">Methodology</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#1E3A5F]">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--accent-navy)]">
               From Footprint to Bill of Quantities
             </h2>
-            <p className="text-sm text-[#64748B] mt-1 max-w-lg mx-auto">
+            <p className="text-sm text-[var(--text-muted)] mt-1 max-w-lg mx-auto">
               Three deterministic steps based on IS codes and national building norms.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {METHOD_STEPS.map((s) => (
-              <div key={s.n} className="card-standard p-6 bg-white">
-                <div className="w-8 h-8 rounded-md bg-[#EFF4FA] text-[#1E3A5F] font-bold text-sm flex items-center justify-center mb-4">
+              <div key={s.n} className="card-standard p-6 bg-[var(--bg-card)]">
+                <div className="w-8 h-8 rounded-md bg-[var(--accent-navy-subtle)] text-[var(--accent-navy)] font-bold text-sm flex items-center justify-center mb-4">
                   {s.n}
                 </div>
-                <h3 className="text-base font-bold text-[#0F172A] mb-2">{s.title}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">{s.desc}</p>
+                <h3 className="text-base font-bold text-[var(--text-primary)] mb-2">{s.title}</h3>
+                <p className="text-sm text-[var(--text-muted)] leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -276,45 +276,45 @@ export default function HomePage() {
       </section>
 
       {/* ── Accuracy & Standards ──────────────────────────────────── */}
-      <section id="features" className="py-16 bg-white">
+      <section id="features" className="py-16 bg-[var(--bg-primary)]">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="mb-10 text-center">
             <span className="section-label block mb-1">Confidence Bands</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#1E3A5F]">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--accent-navy)]">
               Adaptive Accuracy Determination
             </h2>
-            <p className="text-sm text-[#64748B] mt-1 max-w-xl mx-auto">
+            <p className="text-sm text-[var(--text-muted)] mt-1 max-w-xl mx-auto">
               Confidence intervals adapt automatically based on the engineering detail of your input.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-5 mb-12">
-            <div className="card-standard p-5 bg-[#FEF3C7] border-[#FDE68A]">
-              <span className="text-xs font-bold text-[#B45309] uppercase tracking-wider block mb-1">
+            <div className="card-standard p-5 bg-[var(--warning-bg)] border-[var(--warning-border)]">
+              <span className="text-xs font-bold text-[var(--warning-text)] uppercase tracking-wider block mb-1">
                 Tier 1 Basics
               </span>
-              <p className="text-lg font-bold text-[#B45309] mb-1.5">±15–20% Preliminary</p>
-              <p className="text-xs text-[#B45309] leading-relaxed">
+              <p className="text-lg font-bold text-[var(--warning-text)] mb-1.5">±15–20% Preliminary</p>
+              <p className="text-xs text-[var(--warning-text)] leading-relaxed">
                 Calculated using gross dimensions, typology, location, and quality tier. Designed for feasibility checks.
               </p>
             </div>
 
-            <div className="card-standard p-5 bg-[#EFF4FA] border-[#CBD5E1]">
-              <span className="text-xs font-bold text-[#1E3A5F] uppercase tracking-wider block mb-1">
+            <div className="card-standard p-5 bg-[var(--accent-navy-subtle)] border-[var(--border-muted)]">
+              <span className="text-xs font-bold text-[var(--accent-navy)] uppercase tracking-wider block mb-1">
                 Tier 2 Structural
               </span>
-              <p className="text-lg font-bold text-[#1E3A5F] mb-1.5">±10–15% Standard</p>
-              <p className="text-xs text-[#1E3A5F] leading-relaxed">
+              <p className="text-lg font-bold text-[var(--accent-navy)] mb-1.5">±10–15% Standard</p>
+              <p className="text-xs text-[var(--accent-navy)] leading-relaxed">
                 Incorporates framing system, foundation type, lift counts, and IS 1893 seismic zoning. Ready for budget approvals.
               </p>
             </div>
 
-            <div className="card-standard p-5 bg-[#F0FDF4] border-[#BBF7D0]">
-              <span className="text-xs font-bold text-[#16A34A] uppercase tracking-wider block mb-1">
+            <div className="card-standard p-5 bg-[var(--success-bg)] border-[var(--success-border)]">
+              <span className="text-xs font-bold text-[var(--success-text)] uppercase tracking-wider block mb-1">
                 Tier 3 Detailed
               </span>
-              <p className="text-lg font-bold text-[#16A34A] mb-1.5">±5–10% Advanced</p>
-              <p className="text-xs text-[#16A34A] leading-relaxed">
+              <p className="text-lg font-bold text-[var(--success-text)] mb-1.5">±5–10% Advanced</p>
+              <p className="text-xs text-[var(--success-text)] leading-relaxed">
                 Includes facade specifications, central HVAC/fire requirements, and structural drawing links.
               </p>
             </div>
@@ -322,23 +322,23 @@ export default function HomePage() {
 
           {/* Export Formats */}
           <div className="grid sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg border border-[#E2E8F0] bg-[#F7F8FA] flex items-center gap-3">
-              <div className="p-2.5 rounded bg-white border border-[#E2E8F0] text-[#1E3A5F]">
+            <div className="p-4 rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] flex items-center gap-3">
+              <div className="p-2.5 rounded bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--accent-navy)]">
                 <FileText size={20} />
               </div>
               <div>
-                <p className="text-sm font-bold text-[#0F172A]">Formal PDF BOQ Report</p>
-                <p className="text-xs text-[#64748B]">Formatted according to CPWD engineering and tender norms.</p>
+                <p className="text-sm font-bold text-[var(--text-primary)]">Formal PDF BOQ Report</p>
+                <p className="text-xs text-[var(--text-muted)]">Formatted according to CPWD engineering and tender norms.</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-lg border border-[#E2E8F0] bg-[#F7F8FA] flex items-center gap-3">
-              <div className="p-2.5 rounded bg-white border border-[#E2E8F0] text-[#1E3A5F]">
+            <div className="p-4 rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] flex items-center gap-3">
+              <div className="p-2.5 rounded bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--accent-navy)]">
                 <BarChart3 size={20} />
               </div>
               <div>
-                <p className="text-sm font-bold text-[#0F172A]">3-Sheet Excel (.xlsx) Workbook</p>
-                <p className="text-xs text-[#64748B]">Executive summary, formulaic line-item BOQ, and timeline.</p>
+                <p className="text-sm font-bold text-[var(--text-primary)]">3-Sheet Excel (.xlsx) Workbook</p>
+                <p className="text-xs text-[var(--text-muted)]">Executive summary, formulaic line-item BOQ, and timeline.</p>
               </div>
             </div>
           </div>
@@ -346,12 +346,12 @@ export default function HomePage() {
       </section>
 
       {/* ── Final Action Callout ──────────────────────────────────── */}
-      <section className="py-14 bg-[#F7F8FA] border-t border-[#E2E8F0] text-center">
+      <section className="py-14 bg-[var(--bg-secondary)] border-t border-[var(--border-color)] text-center">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#1E3A5F] mb-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[var(--accent-navy)] mb-2">
             Calculate Your Construction BOQ Now
           </h2>
-          <p className="text-sm text-[#64748B] mb-6 max-w-md mx-auto">
+          <p className="text-sm text-[var(--text-muted)] mb-6 max-w-md mx-auto">
             Get instant itemized quantities across 18 categories for any Indian city.
           </p>
           <Link
@@ -365,16 +365,16 @@ export default function HomePage() {
       </section>
 
       {/* ── Footer ──────────────────────────────────────────────── */}
-      <footer className="border-t border-[#E2E8F0] bg-white py-8 text-xs text-[#64748B]">
+      <footer className="border-t border-[var(--border-color)] bg-[var(--bg-primary)] py-8 text-xs text-[var(--text-muted)]">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Image src="/outsyd-logo.png" alt="OUTSYD" width={90} height={22} className="h-5 w-auto" />
             <span>— Smart Yield-based Design Estimation for India</span>
           </div>
           <div className="flex items-center gap-6">
-            <Link href="/disclaimer" className="hover:text-[#1E3A5F]">Disclaimer</Link>
-            <Link href="/privacy" className="hover:text-[#1E3A5F]">Privacy</Link>
-            <Link href="/terms" className="hover:text-[#1E3A5F]">Terms</Link>
+            <Link href="/disclaimer" className="hover:text-[var(--accent-navy)]">Disclaimer</Link>
+            <Link href="/privacy" className="hover:text-[var(--accent-navy)]">Privacy</Link>
+            <Link href="/terms" className="hover:text-[var(--accent-navy)]">Terms</Link>
             <span>Ideated & created by <strong>Ankit Kumar Tiwari</strong></span>
           </div>
         </div>

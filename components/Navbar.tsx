@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { ArrowRight, Menu, X, Calculator, User, LogOut, Shield } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -24,7 +25,7 @@ export function Navbar() {
   const isEstimate = pathname.startsWith('/estimate');
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-white border-b border-[#E2E8F0]">
+    <header className="sticky top-0 z-40 h-16 bg-[var(--bg-card)] border-b border-[var(--border-color)]">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
         {/* Brand Logo */}
         <div className="flex items-center gap-8">
@@ -44,7 +45,7 @@ export function Navbar() {
             <Link
               href="/estimate"
               className={`flex items-center gap-1.5 transition-colors ${
-                isEstimate ? 'text-[#1E3A5F] font-semibold' : 'text-[#64748B] hover:text-[#1E3A5F]'
+                isEstimate ? 'text-[var(--accent-navy)] font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--accent-navy)]'
               }`}
             >
               <Calculator size={15} />
@@ -52,19 +53,19 @@ export function Navbar() {
             </Link>
             <Link
               href="/#categories"
-              className="text-[#64748B] hover:text-[#1E3A5F] transition-colors"
+              className="text-[var(--text-muted)] hover:text-[var(--accent-navy)] transition-colors"
             >
               18 Categories
             </Link>
             <Link
               href="/#how-it-works"
-              className="text-[#64748B] hover:text-[#1E3A5F] transition-colors"
+              className="text-[var(--text-muted)] hover:text-[var(--accent-navy)] transition-colors"
             >
               Methodology
             </Link>
             <Link
               href="/#features"
-              className="text-[#64748B] hover:text-[#1E3A5F] transition-colors"
+              className="text-[var(--text-muted)] hover:text-[var(--accent-navy)] transition-colors"
             >
               Accuracy & Standards
             </Link>
@@ -73,11 +74,13 @@ export function Navbar() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
+
           {session?.user ? (
             <>
               <Link
                 href="/dashboard"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E3A5F] hover:bg-[#EFF4FA] rounded-md transition-colors border border-[#CBD5E1]"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--accent-navy)] hover:bg-[var(--accent-navy-subtle)] rounded-md transition-colors border border-[var(--border-muted)] bg-[var(--bg-card)]"
               >
                 <User size={13} />
                 <span className="max-w-[120px] truncate">{session.user.name || session.user.email}</span>
@@ -96,7 +99,7 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#64748B] hover:text-[#B91C1C] hover:bg-[#FEF2F2] rounded-md transition-colors cursor-pointer"
+                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--error-text)] hover:bg-[var(--error-bg)] rounded-md transition-colors cursor-pointer"
                 title="Sign out"
               >
                 <LogOut size={13} />
@@ -106,7 +109,7 @@ export function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E3A5F] hover:bg-[#F7F8FA] rounded-md transition-colors"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-md transition-colors"
             >
               Sign In
             </Link>
@@ -125,7 +128,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 text-[#64748B] hover:text-[#0F172A] rounded-md"
+            className="md:hidden p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-md"
             aria-label="Toggle navigation menu"
             aria-expanded={mobileOpen}
           >
@@ -142,39 +145,44 @@ export function Navbar() {
           onKeyDown={(e) => {
             if (e.key === 'Escape') setMobileOpen(false);
           }}
-          className="md:hidden border-b border-[#E2E8F0] bg-white px-4 py-4 space-y-2 shadow-sm animate-in slide-in-from-top-2"
+          className="md:hidden border-b border-[var(--border-color)] bg-[var(--bg-card)] px-4 py-4 space-y-2 shadow-sm animate-in slide-in-from-top-2"
         >
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--border-color)] pb-2 mb-2">
+            <span className="text-xs font-semibold text-[var(--text-muted)]">Theme</span>
+            <ThemeToggle />
+          </div>
+
           <Link
             href="/estimate"
             onClick={() => setMobileOpen(false)}
-            className="block px-3 py-2 text-sm font-medium text-[#0F172A] hover:bg-[#F7F8FA] rounded-md"
+            className="block px-3 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-md"
           >
             Estimator (18 Categories)
           </Link>
           <Link
             href="/#categories"
             onClick={() => setMobileOpen(false)}
-            className="block px-3 py-2 text-sm font-medium text-[#64748B] hover:bg-[#F7F8FA] rounded-md"
+            className="block px-3 py-2 text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] rounded-md"
           >
             18 Construction Categories
           </Link>
           <Link
             href="/#how-it-works"
             onClick={() => setMobileOpen(false)}
-            className="block px-3 py-2 text-sm font-medium text-[#64748B] hover:bg-[#F7F8FA] rounded-md"
+            className="block px-3 py-2 text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] rounded-md"
           >
             Methodology & Standards
           </Link>
           {session?.user ? (
             <>
-              <div className="px-3 py-2 border-t border-b border-slate-100 my-1 bg-slate-50 rounded-md">
-                <p className="text-xs text-slate-500">Signed in as</p>
-                <p className="text-sm font-semibold text-[#1E3A5F] truncate">{session.user.name || session.user.email}</p>
+              <div className="px-3 py-2 border-t border-b border-[var(--border-color)] my-1 bg-[var(--bg-secondary)] rounded-md">
+                <p className="text-xs text-[var(--text-muted)]">Signed in as</p>
+                <p className="text-sm font-semibold text-[var(--accent-navy)] truncate">{session.user.name || session.user.email}</p>
               </div>
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#1E3A5F] hover:bg-[#F7F8FA] rounded-md"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-md"
               >
                 <User size={16} />
                 Dashboard
@@ -195,7 +203,7 @@ export function Navbar() {
                   setMobileOpen(false);
                   signOut({ callbackUrl: '/' });
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#B91C1C] hover:bg-[#FEF2F2] rounded-md transition-colors text-left cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--error-text)] hover:bg-[var(--error-bg)] rounded-md transition-colors text-left cursor-pointer"
               >
                 <LogOut size={16} />
                 Sign out
@@ -205,7 +213,7 @@ export function Navbar() {
             <Link
               href="/login"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2 text-sm font-medium text-[#1E3A5F] hover:bg-[#F7F8FA] rounded-md"
+              className="block px-3 py-2 text-sm font-medium text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-md"
             >
               Sign In / Register
             </Link>

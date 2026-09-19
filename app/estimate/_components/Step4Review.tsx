@@ -86,8 +86,8 @@ export function Step4Review({ onNavigateToStep }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-[#1E3A5F]">Review Input Summary</h2>
-        <p className="text-xs text-[#64748B] mt-0.5">
+        <h2 className="text-xl font-bold text-[var(--accent-navy)]">Review Input Summary</h2>
+        <p className="text-xs text-[var(--text-muted)] mt-0.5">
           Verify all specifications before running the quantification algorithm. Click any section to edit.
         </p>
       </div>
@@ -98,7 +98,7 @@ export function Step4Review({ onNavigateToStep }: Props) {
         <div>
           <div className="flex items-center gap-2">
             <span className="font-bold text-sm">{acc.label}</span>
-            <span className="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-white/70">
+            <span className="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-[var(--bg-card)]/70">
               {acc.band}
             </span>
           </div>
@@ -108,8 +108,8 @@ export function Step4Review({ onNavigateToStep }: Props) {
 
       {/* Plot Coverage Warning if Invalid */}
       {(isFootprintOver || isCoverageOver) && (
-        <div className="p-3.5 rounded-lg bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-[#B91C1C]">
+        <div className="p-3.5 rounded-lg bg-[var(--error-bg)] border border-[var(--error-border)] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-[var(--error-text)]">
             <AlertTriangle size={16} className="shrink-0" />
             <span>
               {isFootprintOver
@@ -121,7 +121,7 @@ export function Step4Review({ onNavigateToStep }: Props) {
             <button
               type="button"
               onClick={() => onNavigateToStep(0)}
-              className="text-xs font-bold text-[#B91C1C] underline cursor-pointer hover:opacity-80 shrink-0 ml-3"
+              className="text-xs font-bold text-[var(--error-text)] underline cursor-pointer hover:opacity-80 shrink-0 ml-3"
             >
               Fix in Step 1
             </button>
@@ -132,14 +132,14 @@ export function Step4Review({ onNavigateToStep }: Props) {
       {/* Review Sections with Inline Click-to-Edit */}
       <div className="space-y-4">
         {sections.map(({ heading, stepIndex, rows }) => (
-          <div key={heading} className="card-standard overflow-hidden bg-white border border-[#E2E8F0]">
-            <div className="px-4 py-2.5 bg-[#F7F8FA] border-b border-[#E2E8F0] flex items-center justify-between">
-              <h3 className="text-xs font-bold text-[#1E3A5F] uppercase tracking-wider">{heading}</h3>
+          <div key={heading} className="card-standard overflow-hidden bg-[var(--bg-card)] border border-[var(--border-color)]">
+            <div className="px-4 py-2.5 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] flex items-center justify-between">
+              <h3 className="text-xs font-bold text-[var(--accent-navy)] uppercase tracking-wider">{heading}</h3>
               {onNavigateToStep && (
                 <button
                   type="button"
                   onClick={() => onNavigateToStep(stepIndex)}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#1E3A5F] hover:underline cursor-pointer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--accent-navy)] hover:underline cursor-pointer"
                 >
                   <Edit2 size={11} />
                   <span>Edit Step {stepIndex + 1}</span>
@@ -147,19 +147,19 @@ export function Step4Review({ onNavigateToStep }: Props) {
               )}
             </div>
 
-            <div className="divide-y divide-[#E2E8F0]">
+            <div className="divide-y divide-[var(--border-color)]">
               {rows.map(([label, val]) => (
                 <div
                   key={label}
                   onClick={() => onNavigateToStep && onNavigateToStep(stepIndex)}
-                  className="px-4 py-2.5 flex items-center justify-between text-xs hover:bg-[#F7F8FA] transition-colors cursor-pointer group"
+                  className="px-4 py-2.5 flex items-center justify-between text-xs hover:bg-[var(--bg-secondary)] transition-colors cursor-pointer group"
                 >
-                  <span className="text-[#64748B]">{label}</span>
+                  <span className="text-[var(--text-muted)]">{label}</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[#0F172A] tabular-nums text-right">
+                    <span className="font-semibold text-[var(--text-primary)] tabular-nums text-right">
                       {val || '—'}
                     </span>
-                    <Edit2 size={10} className="text-[#94A3B8] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Edit2 size={10} className="text-[var(--text-subtle)] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </div>
               ))}

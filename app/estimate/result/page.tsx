@@ -15,14 +15,15 @@ import {
   AlertTriangle, CheckCircle2, Gauge, Layers, FileSpreadsheet, FileText,
   RotateCcw
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { getCategoryColor, BAND_CONFIG, PHASE_COLORS } from '@/lib/constants';
 import type { EstimateLineItem } from '@/lib/engine/types';
 
 function SectionCard({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`card-standard bg-white border border-[#E2E8F0] overflow-hidden ${className}`}>
-      <div className="px-5 py-3 border-b border-[#E2E8F0] bg-[#F7F8FA]">
-        <h3 className="font-bold text-[#1E3A5F] text-sm tracking-tight">{title}</h3>
+    <div className={`card-standard bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden ${className}`}>
+      <div className="px-5 py-3 border-b border-[var(--border-color)] bg-[var(--bg-secondary)]">
+        <h3 className="font-bold text-[var(--accent-navy)] text-sm tracking-tight">{title}</h3>
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -34,21 +35,21 @@ function CollapseSection({ title, badge, children, defaultOpen = true }: {
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="card-standard bg-white border border-[#E2E8F0] overflow-hidden">
+    <div className="card-standard bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between hover:bg-[#F7F8FA] transition-colors cursor-pointer"
+        className="w-full px-5 py-3.5 border-b border-[var(--border-color)] flex items-center justify-between hover:bg-[var(--bg-secondary)] transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-2.5">
-          <h3 className="font-bold text-[#1E3A5F] text-sm">{title}</h3>
+          <h3 className="font-bold text-[var(--accent-navy)] text-sm">{title}</h3>
           {badge && (
-            <span className="text-[11px] bg-[#EFF4FA] text-[#1E3A5F] font-semibold px-2 py-0.5 rounded border border-[#CBD5E1]">
+            <span className="text-[11px] bg-[var(--accent-navy-subtle)] text-[var(--accent-navy)] font-semibold px-2 py-0.5 rounded border border-[var(--border-muted)]">
               {badge}
             </span>
           )}
         </div>
-        {open ? <ChevronUp size={16} className="text-[#64748B]" /> : <ChevronDown size={16} className="text-[#64748B]" />}
+        {open ? <ChevronUp size={16} className="text-[var(--text-muted)]" /> : <ChevronDown size={16} className="text-[var(--text-muted)]" />}
       </button>
       {open && <div className="p-5">{children}</div>}
     </div>
@@ -66,40 +67,40 @@ function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false
   const topDrivers = [...items].sort((a, b) => b.lineCost - a.lineCost).slice(0, 3);
 
   return (
-    <div className="rounded-lg border border-[#E2E8F0] bg-white overflow-hidden">
+    <div className="rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
-        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#F7F8FA] transition-colors cursor-pointer text-left"
+        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[var(--bg-secondary)] transition-colors cursor-pointer text-left"
       >
         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-        <span className="text-[11px] font-mono font-bold text-[#64748B] shrink-0">{code}</span>
-        <span className="text-sm font-semibold text-[#0F172A] flex-1 truncate">{name}</span>
+        <span className="text-[11px] font-mono font-bold text-[var(--text-muted)] shrink-0">{code}</span>
+        <span className="text-sm font-semibold text-[var(--text-primary)] flex-1 truncate">{name}</span>
 
         {isHighCost && (
-          <span className="hidden sm:inline-flex text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#EFF4FA] text-[#1E3A5F] border border-[#CBD5E1]">
+          <span className="hidden sm:inline-flex text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--accent-navy-subtle)] text-[var(--accent-navy)] border border-[var(--border-muted)]">
             High Driver ({pct}%)
           </span>
         )}
 
         {subtotal === 0 ? (
-          <span className="text-xs font-semibold text-[#64748B] italic">Not applicable (₹0)</span>
+          <span className="text-xs font-semibold text-[var(--text-muted)] italic">Not applicable (₹0)</span>
         ) : (
-          <span className="text-xs font-bold text-[#0F172A] tabular-nums">{formatINR(subtotal)}</span>
+          <span className="text-xs font-bold text-[var(--text-primary)] tabular-nums">{formatINR(subtotal)}</span>
         )}
-        <span className="text-[11px] font-medium text-[#64748B] w-10 text-right tabular-nums">{pct}%</span>
-        {open ? <ChevronUp size={14} className="text-[#64748B] shrink-0" /> : <ChevronDown size={14} className="text-[#64748B] shrink-0" />}
+        <span className="text-[11px] font-medium text-[var(--text-muted)] w-10 text-right tabular-nums">{pct}%</span>
+        {open ? <ChevronUp size={14} className="text-[var(--text-muted)] shrink-0" /> : <ChevronDown size={14} className="text-[var(--text-muted)] shrink-0" />}
       </button>
 
       {open && (
-        <div className="border-t border-[#E2E8F0] bg-[#F7F8FA]/40">
+        <div className="border-t border-[var(--border-color)] bg-[var(--bg-secondary)]/40">
           {/* Why affordance callout if high cost category */}
           {isHighCost && (
-            <div className="px-4 py-2 bg-[#EFF4FA] border-b border-[#E2E8F0] text-xs text-[#1E3A5F]">
+            <div className="px-4 py-2 bg-[var(--accent-navy-subtle)] border-b border-[var(--border-color)] text-xs text-[var(--accent-navy)]">
               <span className="font-bold">Primary cost drivers: </span>
               {topDrivers.map((d, i) => (
-                <span key={`${d.materialItemCode}-${i}`} className="text-[#0F172A]">
+                <span key={`${d.materialItemCode}-${i}`} className="text-[var(--text-primary)]">
                   {d.name} ({formatINR(d.lineCost)}){i < topDrivers.length - 1 ? ' · ' : ''}
                 </span>
               ))}
@@ -108,14 +109,14 @@ function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false
 
           {/* Desktop Table or Empty Note */}
           {items.length === 0 ? (
-            <div className="p-4 text-xs text-[#64748B] italic bg-[#F7F8FA]">
+            <div className="p-4 text-xs text-[var(--text-muted)] italic bg-[var(--bg-secondary)]">
               No scope or itemized specifications required for this project category based on building inputs (₹0).
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs min-w-[600px]">
               <thead>
-                <tr className="bg-[#F7F8FA] text-[#64748B] border-b border-[#E2E8F0] font-semibold">
+                <tr className="bg-[var(--bg-secondary)] text-[var(--text-muted)] border-b border-[var(--border-color)] font-semibold">
                   <th className="px-4 py-2 text-left">Item Description</th>
                   <th className="px-3 py-2 text-left">Recommended Specification</th>
                   <th className="px-3 py-2 text-right">Quantity</th>
@@ -124,24 +125,24 @@ function CategorySection({ code, name, subtotal, pct, items, defaultOpen = false
                   <th className="px-4 py-2 text-right">Total (₹)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E2E8F0]">
+              <tbody className="divide-y divide-[var(--border-color)]">
                 {items.map((item, idx) => (
-                  <tr key={`${item.materialItemCode}-${idx}`} className="hover:bg-white transition-colors bg-white/70">
+                  <tr key={`${item.materialItemCode}-${idx}`} className="hover:bg-[var(--bg-card-hover)] transition-colors bg-[var(--bg-card)]/70">
                     <td className="px-4 py-2.5">
-                      <p className="font-semibold text-[#0F172A]">{item.name}</p>
-                      {item.isApproximate && <p className="text-[10px] text-[#B45309] mt-0.5">~ {item.approximateNote}</p>}
+                      <p className="font-semibold text-[var(--text-primary)]">{item.name}</p>
+                      {item.isApproximate && <p className="text-[10px] text-[var(--warning-text)] mt-0.5">~ {item.approximateNote}</p>}
                     </td>
-                    <td className="px-3 py-2.5 text-[#64748B] max-w-[200px]">
+                    <td className="px-3 py-2.5 text-[var(--text-muted)] max-w-[200px]">
                       <span className="whitespace-normal leading-snug">{item.recommendedGrade}</span>
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[#0F172A] tabular-nums font-medium">
+                    <td className="px-3 py-2.5 text-right text-[var(--text-primary)] tabular-nums font-medium">
                       {item.quantity.toLocaleString('en-IN')}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[#64748B]">{item.unit}</td>
-                    <td className="px-3 py-2.5 text-right text-[#0F172A] tabular-nums font-medium">
+                    <td className="px-3 py-2.5 text-right text-[var(--text-muted)]">{item.unit}</td>
+                    <td className="px-3 py-2.5 text-right text-[var(--text-primary)] tabular-nums font-medium">
                       ₹{item.unitRate.toLocaleString('en-IN')}
                     </td>
-                    <td className="px-4 py-2.5 text-right font-bold text-[#0F172A] tabular-nums">
+                    <td className="px-4 py-2.5 text-right font-bold text-[var(--text-primary)] tabular-nums">
                       {formatINR(item.lineCost)}
                     </td>
                   </tr>
@@ -174,10 +175,10 @@ function ChartCustomTooltip({
   const item = payload[0];
   const pct = totalCost && totalCost > 0 ? ((item.value / totalCost) * 100).toFixed(1) : '0';
   return (
-    <div className="bg-[#0F172A] text-white p-2.5 rounded-md shadow-lg text-xs">
+    <div className="bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-color)] p-2.5 rounded-md shadow-lg text-xs">
       <p className="font-bold mb-0.5">{item.payload.full}</p>
       <p className="font-mono text-sm font-semibold">{formatINRFull(item.value)}</p>
-      <p className="text-[#94A3B8] text-[11px] mt-0.5">
+      <p className="text-[var(--text-subtle)] text-[11px] mt-0.5">
         {pct}% of materials
       </p>
     </div>
@@ -229,14 +230,14 @@ export default function ResultPage() {
 
   if (!isReady || !result) {
     return (
-      <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[var(--bg-secondary)] flex items-center justify-center p-4">
         <div className="text-center max-w-sm">
-          <div className="w-10 h-10 border-2 border-[#1E3A5F] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-[#0F172A] font-semibold text-sm">Loading calculated estimate…</p>
+          <div className="w-10 h-10 border-2 border-[var(--accent-navy)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[var(--text-primary)] font-semibold text-sm">Loading calculated estimate…</p>
           {isReady && (
             <button
               onClick={() => router.push('/estimate')}
-              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold bg-[#1E3A5F] text-white hover:bg-[#0F172A] transition-colors"
+              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold bg-[var(--accent-navy)] text-white hover:bg-[var(--accent-navy-hover)] transition-colors"
             >
               <RotateCcw size={13} /> Return to Form
             </button>
@@ -374,16 +375,15 @@ export default function ResultPage() {
   const BandIcon = ICONS[band.icon as keyof typeof ICONS] ?? Info;
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] text-[#0F172A]">
+    <main className="min-h-screen bg-[var(--bg-secondary)] text-[var(--text-primary)]">
       {/* ── Fixed Position Header Toolbar (Fixes Overlap Defect) ── */}
-      {/* Defined height: 64px, solid white background, z-index 40, border bottom #E2E8F0 */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-[#E2E8F0] z-40 shadow-xs">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-[var(--bg-card)] border-b border-[var(--border-color)] z-40 shadow-xs">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => router.push('/estimate?mode=edit&step=3')}
-              className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[#1E3A5F] hover:underline cursor-pointer"
+              className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[var(--accent-navy)] hover:underline cursor-pointer"
             >
               <ArrowLeft size={15} />
               <span>Modify Inputs</span>
@@ -395,12 +395,12 @@ export default function ResultPage() {
                 clearResult();
                 router.push('/estimate');
               }}
-              className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 text-[#1E3A5F] bg-[#EFF4FA] border border-[#CBD5E1] rounded hover:bg-[#E2E8F0] cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 text-[var(--accent-navy)] bg-[var(--accent-navy-subtle)] border border-[var(--border-muted)] rounded hover:bg-[var(--border-color)] cursor-pointer"
             >
               <RotateCcw size={12} />
               <span>Start New Estimate</span>
             </button>
-            <div className="w-px h-5 bg-[#E2E8F0]" />
+            <div className="w-px h-5 bg-[var(--border-color)]" />
             <Link href="/">
               <Image
                 src="/outsyd-logo.png"
@@ -419,7 +419,7 @@ export default function ResultPage() {
               type="button"
               onClick={handleShare}
               title="Copy link"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E3A5F] bg-white border border-[#CBD5E1] rounded-md hover:bg-[#F7F8FA] cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--accent-navy)] bg-[var(--bg-card)] border border-[var(--border-muted)] rounded-md hover:bg-[var(--bg-secondary)] cursor-pointer"
             >
               <Share2 size={13} />
               <span>Share</span>
@@ -429,7 +429,7 @@ export default function ResultPage() {
             <button
               type="button"
               onClick={() => setSaveOpen(true)}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E3A5F] bg-white border border-[#CBD5E1] rounded-md hover:bg-[#F7F8FA] cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--accent-navy)] bg-[var(--bg-card)] border border-[var(--border-muted)] rounded-md hover:bg-[var(--bg-secondary)] cursor-pointer"
             >
               <Save size={13} />
               <span>Save</span>
@@ -440,13 +440,13 @@ export default function ResultPage() {
               type="button"
               onClick={() => handleDownload('xlsx')}
               disabled={xlsxLoading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1E3A5F] bg-white border border-[#CBD5E1] rounded-md hover:bg-[#F7F8FA] cursor-pointer disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--accent-navy)] bg-[var(--bg-card)] border border-[var(--border-muted)] rounded-md hover:bg-[var(--bg-secondary)] cursor-pointer disabled:opacity-40"
             >
               {xlsxLoading ? <Loader2 size={13} className="animate-spin" /> : <FileSpreadsheet size={13} />}
               <span className="hidden sm:inline">Excel Workbook</span>
             </button>
 
-            {/* Single Primary Action: PDF BOQ (Amber #D97706) */}
+            {/* Single Primary Action: PDF BOQ */}
             <button
               type="button"
               onClick={() => handleDownload('pdf')}
@@ -456,6 +456,8 @@ export default function ResultPage() {
               {pdfLoading ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
               <span>PDF BOQ</span>
             </button>
+
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -485,9 +487,9 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* Disclaimer Callout (Semantic Warning Palette: #B45309 on #FEF3C7) */}
-        <div className="p-3 rounded-lg bg-[#FEF3C7] border border-[#FDE68A] text-xs text-[#B45309] flex items-start gap-2.5">
-          <AlertTriangle size={15} className="shrink-0 mt-0.5 text-[#B45309]" />
+        {/* Disclaimer Callout */}
+        <div className="p-3 rounded-lg bg-[var(--warning-bg)] border border-[var(--warning-border)] text-xs text-[var(--warning-text)] flex items-start gap-2.5">
+          <AlertTriangle size={15} className="shrink-0 mt-0.5 text-[var(--warning-text)]" />
           <p className="leading-relaxed">
             <strong>Planning estimate:</strong> Quantities and unit rates reflect CPWD DSR 2024 specifications and regional cost indices. Not a substitute for a licensed structural engineer&apos;s BOQ. <Link href="/disclaimer" className="underline font-semibold">Full disclaimer →</Link>
           </p>
@@ -495,11 +497,11 @@ export default function ResultPage() {
 
         {/* Macro Benchmark Sanity-Check Warning when BOQ diverges from plinth rate by > 20% */}
         {isDivergent && (
-          <div className="p-3.5 rounded-lg bg-[#FFFBEB] border border-[#FDE68A] text-xs text-[#92400E] flex items-start gap-3">
-            <Info size={16} className="shrink-0 mt-0.5 text-[#D97706]" />
+          <div className="p-3.5 rounded-lg bg-[var(--warning-bg)] border border-[var(--warning-border)] text-xs text-[var(--warning-text)] flex items-start gap-3">
+            <Info size={16} className="shrink-0 mt-0.5 text-[var(--accent-cta)]" />
             <div>
               <p className="font-bold">Macro Benchmark Sanity-Check Notice ({(divergenceRatio * 100).toFixed(0)}% methodology variance)</p>
-              <p className="mt-0.5 leading-relaxed text-[#78350F]">
+              <p className="mt-0.5 leading-relaxed text-[var(--warning-text)]">
                 The bottom-up itemized BOQ turnkey total ({formatINR(result.grandTotalWithLabor)}) varies from the macro plinth area rate benchmark ({formatINR(result.plinthAreaEstimate)}) by {(divergenceRatio * 100).toFixed(0)}%. Detailed BOQ aggregates individual elemental takeoff quantities (soil conditions, seismic detailing, facade specs, and MEP systems) rather than top-down flat-area approximations.
               </p>
             </div>
@@ -508,46 +510,46 @@ export default function ResultPage() {
 
         {/* ── 4 Key Figures Grid ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="card-standard p-4 bg-white border border-[#E2E8F0]">
-            <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Material Cost</p>
-            <p className="text-2xl font-bold text-[#0F172A] tabular-nums mt-1">{formatINR(result.grandTotalMaterialCost)}</p>
-            <p className="text-xs text-[#64748B] mt-0.5">Direct materials (18 categories)</p>
+          <div className="card-standard p-4 bg-[var(--bg-card)] border border-[var(--border-color)]">
+            <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Material Cost</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)] tabular-nums mt-1">{formatINR(result.grandTotalMaterialCost)}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">Direct materials (18 categories)</p>
           </div>
 
-          <div className="card-standard p-4 bg-[#EFF4FA] border-2 border-[#CBD5E1]">
-            <p className="text-[11px] font-bold text-[#1E3A5F] uppercase tracking-wider">Total Turnkey Cost</p>
-            <p className="text-2xl font-bold text-[#1E3A5F] tabular-nums mt-1">{formatINR(result.grandTotalWithLabor)}</p>
-            <p className="text-xs text-[#1E3A5F] mt-0.5">Includes standard +30% labour</p>
+          <div className="card-standard p-4 bg-[var(--accent-navy-subtle)] border-2 border-[var(--border-muted)]">
+            <p className="text-[11px] font-bold text-[var(--accent-navy)] uppercase tracking-wider">Total Turnkey Cost</p>
+            <p className="text-2xl font-bold text-[var(--accent-navy)] tabular-nums mt-1">{formatINR(result.grandTotalWithLabor)}</p>
+            <p className="text-xs text-[var(--accent-navy)] mt-0.5">Includes standard +30% labour</p>
           </div>
 
-          <div className="card-standard p-4 bg-white border border-[#E2E8F0]">
-            <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Material / sqft</p>
-            <p className="text-2xl font-bold text-[#0F172A] tabular-nums mt-1">₹{costPerSqft.toLocaleString('en-IN')}</p>
-            <p className="text-xs text-[#64748B] mt-0.5">Per sqft built-up area</p>
+          <div className="card-standard p-4 bg-[var(--bg-card)] border border-[var(--border-color)]">
+            <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Material / sqft</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)] tabular-nums mt-1">₹{costPerSqft.toLocaleString('en-IN')}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">Per sqft built-up area</p>
           </div>
 
-          <div className="card-standard p-4 bg-white border border-[#E2E8F0]">
-            <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">All-in / sqft</p>
-            <p className="text-2xl font-bold text-[#0F172A] tabular-nums mt-1">₹{costPerSqftLabour.toLocaleString('en-IN')}</p>
-            <p className="text-xs text-[#64748B] mt-0.5">Turnkey execution rate</p>
+          <div className="card-standard p-4 bg-[var(--bg-card)] border border-[var(--border-color)]">
+            <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">All-in / sqft</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)] tabular-nums mt-1">₹{costPerSqftLabour.toLocaleString('en-IN')}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">Turnkey execution rate</p>
           </div>
         </div>
 
         {/* Input Scope Metadata Pills */}
         <div className="flex flex-wrap gap-2 text-xs">
-          <span className="px-2.5 py-1 rounded bg-white border border-[#E2E8F0] font-medium text-[#0F172A]">
+          <span className="px-2.5 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-color)] font-medium text-[var(--text-primary)]">
             BUA: <strong>{result.derivedDimensions.totalBuaSqft.toLocaleString('en-IN')} sqft</strong>
           </span>
-          <span className="px-2.5 py-1 rounded bg-white border border-[#E2E8F0] font-medium text-[#0F172A]">
+          <span className="px-2.5 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-color)] font-medium text-[var(--text-primary)]">
             Location: <strong>{formData?.locationRegion}</strong> ({result.regionalIndexApplied}× index)
           </span>
-          <span className="px-2.5 py-1 rounded bg-white border border-[#E2E8F0] font-medium text-[#0F172A]">
+          <span className="px-2.5 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-color)] font-medium text-[var(--text-primary)]">
             Quality: <strong>{formData?.qualityTier}</strong>
           </span>
-          <span className="px-2.5 py-1 rounded bg-white border border-[#E2E8F0] font-medium text-[#0F172A]">
+          <span className="px-2.5 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-color)] font-medium text-[var(--text-primary)]">
             Structure: <strong>{(formData?.structuralSystem || 'RCC Frame').replace(/_/g, ' ')}</strong>
           </span>
-          <span className="px-2.5 py-1 rounded bg-white border border-[#E2E8F0] font-medium text-[#0F172A]">
+          <span className="px-2.5 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-color)] font-medium text-[var(--text-primary)]">
             Line Items: <strong>{result.lineItems.length} items</strong>
           </span>
         </div>
@@ -575,7 +577,7 @@ export default function ResultPage() {
                         key={d.code}
                         fill={d.color}
                         opacity={activeIndex === null || activeIndex === i ? 1 : 0.4}
-                        stroke="#FFFFFF"
+                        stroke="var(--bg-card)"
                         strokeWidth={1}
                       />
                     ))}
@@ -594,19 +596,19 @@ export default function ResultPage() {
                 return (
                   <div
                     key={d.categoryCode}
-                    className="flex items-center justify-between text-xs py-1 px-1.5 rounded hover:bg-[#F7F8FA]"
+                    className="flex items-center justify-between text-xs py-1 px-1.5 rounded hover:bg-[var(--bg-secondary)]"
                   >
                     <div className="flex items-center gap-2 truncate mr-2">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: getCategoryColor(d.categoryCode) }} />
-                      <span className="text-[#0F172A] truncate font-medium">{d.name.split(' / ')[0]}</span>
+                      <span className="text-[var(--text-primary)] truncate font-medium">{d.name.split(' / ')[0]}</span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 tabular-nums">
                       {isLarge && (
-                        <span className="text-[10px] font-bold text-[#1E3A5F] bg-[#EFF4FA] px-1 rounded">
+                        <span className="text-[10px] font-bold text-[var(--accent-navy)] bg-[var(--accent-navy-subtle)] px-1 rounded">
                           Key Driver
                         </span>
                       )}
-                      <span className="font-semibold text-[#0F172A]">{pctVal}%</span>
+                      <span className="font-semibold text-[var(--text-primary)]">{pctVal}%</span>
                     </div>
                   </div>
                 );
@@ -626,13 +628,13 @@ export default function ResultPage() {
                 return (
                   <div key={cat.categoryCode} className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-[#0F172A] truncate flex-1 mr-3">
-                        <span className="font-mono text-[#64748B] text-[11px] mr-1.5 font-bold">{cat.categoryCode}</span>
+                      <span className="font-medium text-[var(--text-primary)] truncate flex-1 mr-3">
+                        <span className="font-mono text-[var(--text-muted)] text-[11px] mr-1.5 font-bold">{cat.categoryCode}</span>
                         {cat.name}
                       </span>
                       <div className="flex items-center gap-2 shrink-0">
                         {isZero ? (
-                          <span className="text-[11px] text-[#64748B] italic bg-[#F1F5F9] px-2 py-0.5 rounded">
+                          <span className="text-[11px] text-[var(--text-muted)] italic bg-[var(--bg-secondary)] px-2 py-0.5 rounded">
                             Not applicable (₹0)
                           </span>
                         ) : (
@@ -642,21 +644,21 @@ export default function ResultPage() {
                                 type="button"
                                 onClick={() => setExpandedWhyCode(expandedWhyCode === cat.categoryCode ? null : cat.categoryCode)}
                                 title="View primary line-item cost drivers"
-                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#1E3A5F] bg-[#EFF4FA] px-1.5 py-0.5 rounded cursor-pointer hover:underline"
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--accent-navy)] bg-[var(--accent-navy-subtle)] px-1.5 py-0.5 rounded cursor-pointer hover:underline"
                               >
                                 <Info size={11} />
                                 <span>Why?</span>
                               </button>
                             )}
-                            <span className="font-bold text-[#0F172A] tabular-nums">{formatINR(cat.subtotal)}</span>
-                            <span className="text-[11px] text-[#64748B] w-8 text-right tabular-nums">{pct.toFixed(1)}%</span>
+                            <span className="font-bold text-[var(--text-primary)] tabular-nums">{formatINR(cat.subtotal)}</span>
+                            <span className="text-[11px] text-[var(--text-muted)] w-8 text-right tabular-nums">{pct.toFixed(1)}%</span>
                           </>
                         )}
                       </div>
                     </div>
 
                     {/* Progress Track */}
-                    <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                    <div className="h-2 bg-[var(--border-color)] rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-300"
                         style={{ width: `${isZero ? 0 : Math.max(pct, 0.5)}%`, background: getCategoryColor(cat.categoryCode) }}
@@ -665,8 +667,8 @@ export default function ResultPage() {
 
                     {/* Inline Why Expansion Box */}
                     {expandedWhyCode === cat.categoryCode && (
-                      <div className="p-2.5 rounded bg-[#F7F8FA] border border-[#E2E8F0] text-xs text-[#1E3A5F] mt-1.5 animate-in fade-in">
-                        <p className="font-bold mb-1 text-[11px] uppercase tracking-wider text-[#64748B]">
+                      <div className="p-2.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)] text-xs text-[var(--accent-navy)] mt-1.5 animate-in fade-in">
+                        <p className="font-bold mb-1 text-[11px] uppercase tracking-wider text-[var(--text-muted)]">
                           Primary Cost Contributors for {cat.name}:
                         </p>
                         <div className="space-y-1">
@@ -675,7 +677,7 @@ export default function ResultPage() {
                             .sort((a, b) => b.lineCost - a.lineCost)
                             .slice(0, 3)
                             .map((top, idx) => (
-                              <div key={`${top.materialItemCode}-${idx}`} className="flex justify-between text-[#0F172A]">
+                              <div key={`${top.materialItemCode}-${idx}`} className="flex justify-between text-[var(--text-primary)]">
                                 <span>{top.name}</span>
                                 <span className="font-bold tabular-nums">{formatINR(top.lineCost)}</span>
                               </div>
@@ -688,9 +690,9 @@ export default function ResultPage() {
               })}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-[#E2E8F0] flex justify-between items-center">
-              <span className="text-sm font-bold text-[#1E3A5F]">Total Material BOQ</span>
-              <span className="text-base font-bold text-[#0F172A] tabular-nums">
+            <div className="mt-4 pt-3 border-t border-[var(--border-color)] flex justify-between items-center">
+              <span className="text-sm font-bold text-[var(--accent-navy)]">Total Material BOQ</span>
+              <span className="text-base font-bold text-[var(--text-primary)] tabular-nums">
                 {formatINRFull(result.grandTotalMaterialCost)}
               </span>
             </div>
@@ -703,31 +705,31 @@ export default function ResultPage() {
             {labourRows.map(r => (
               <div key={r.trade}>
                 <div className="flex items-center justify-between mb-1 text-xs">
-                  <span className="font-medium text-[#0F172A]">{r.trade}</span>
+                  <span className="font-medium text-[var(--text-primary)]">{r.trade}</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#0F172A] tabular-nums">{formatINR(r.amount)}</span>
-                    <span className="text-[#64748B] text-[11px] w-8 text-right tabular-nums">{r.pct}%</span>
+                    <span className="font-bold text-[var(--text-primary)] tabular-nums">{formatINR(r.amount)}</span>
+                    <span className="text-[var(--text-muted)] text-[11px] w-8 text-right tabular-nums">{r.pct}%</span>
                   </div>
                 </div>
-                <div className="h-1.5 bg-[#E2E8F0] rounded-full overflow-hidden">
+                <div className="h-1.5 bg-[var(--border-color)] rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-[#1E3A5F]"
+                    className="h-full rounded-full bg-[var(--accent-navy)]"
                     style={{ width: `${(r.pct / 28) * 100}%` }}
                   />
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-4 pt-3 border-t border-[#E2E8F0] flex justify-between items-center text-sm font-bold">
-            <span className="text-[#1E3A5F]">Total Labour Component</span>
-            <span className="tabular-nums text-[#0F172A]">{formatINRFull(labourTotal)}</span>
+          <div className="mt-4 pt-3 border-t border-[var(--border-color)] flex justify-between items-center text-sm font-bold">
+            <span className="text-[var(--accent-navy)]">Total Labour Component</span>
+            <span className="tabular-nums text-[var(--text-primary)]">{formatINRFull(labourTotal)}</span>
           </div>
         </CollapseSection>
 
         {/* ── Timeline Schedule ── */}
         <CollapseSection title={`Construction Phasing Schedule · ~${timeline.totalMonths[0]}–${timeline.totalMonths[1]} Months Estimated`} defaultOpen={false}>
           <div className="space-y-4">
-            <div className="flex h-7 rounded-md overflow-hidden gap-px bg-[#E2E8F0] p-0.5">
+            <div className="flex h-7 rounded-md overflow-hidden gap-px bg-[var(--border-color)] p-0.5">
               {timeline.phases.map((p, i) => (
                 <div
                   key={p.name}
@@ -742,15 +744,15 @@ export default function ResultPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {timeline.phases.map((p, i) => (
-                <div key={p.name} className="p-2.5 rounded bg-[#F7F8FA] border border-[#E2E8F0] text-xs flex items-center justify-between">
+                <div key={p.name} className="p-2.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)] text-xs flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: PHASE_COLORS[i % PHASE_COLORS.length] }} />
                     <div>
-                      <p className="font-semibold text-[#0F172A]">{p.name}</p>
-                      <p className="text-[11px] text-[#64748B]">Month {p.months[0]}–{p.months[1]}</p>
+                      <p className="font-semibold text-[var(--text-primary)]">{p.name}</p>
+                      <p className="text-[11px] text-[var(--text-muted)]">Month {p.months[0]}–{p.months[1]}</p>
                     </div>
                   </div>
-                  <span className="font-bold text-[#0F172A] tabular-nums">{p.pct}%</span>
+                  <span className="font-bold text-[var(--text-primary)] tabular-nums">{p.pct}%</span>
                 </div>
               ))}
             </div>
@@ -760,11 +762,11 @@ export default function ResultPage() {
         {/* ── Complete 18-Category Itemized BOQ ── */}
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h2 className="font-bold text-base text-[#1E3A5F] flex items-center gap-2">
+            <h2 className="font-bold text-base text-[var(--accent-navy)] flex items-center gap-2">
               <Layers size={17} />
               <span>Full Itemized Bill of Quantities ({result.lineItems.length} Line Items)</span>
             </h2>
-            <span className="text-xs text-[#64748B]">Click category to expand line items</span>
+            <span className="text-xs text-[var(--text-muted)]">Click category to expand line items</span>
           </div>
 
           {result.categoryTotals.map(cat => {
@@ -789,10 +791,10 @@ export default function ResultPage() {
         </div>
 
         {/* ── Bottom Export Actions ── */}
-        <div className="p-6 rounded-lg bg-white border border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="p-6 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h4 className="text-base font-bold text-[#1E3A5F]">Export Formal Documentation</h4>
-            <p className="text-xs text-[#64748B] mt-0.5">
+            <h4 className="text-base font-bold text-[var(--accent-navy)]">Export Formal Documentation</h4>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
               Available as a formal CPWD-formatted PDF report or formulaic 3-sheet Excel (.xlsx) workbook.
             </p>
           </div>
@@ -821,7 +823,7 @@ export default function ResultPage() {
               <span>Export Excel (.xlsx)</span>
             </button>
 
-            {/* Primary Action Button (Amber #D97706) */}
+            {/* Primary Action Button */}
             <button
               type="button"
               onClick={() => handleDownload('pdf')}
@@ -835,7 +837,7 @@ export default function ResultPage() {
         </div>
 
         {/* Footer Credit */}
-        <div className="text-center text-xs text-[#64748B] pt-4">
+        <div className="text-center text-xs text-[var(--text-muted)] pt-4">
           <span>Engine v{result.coefficientDatasetVersion} · CPWD DSR 2024 & NBC 2016 Specification Norms</span>
         </div>
       </div>
@@ -849,14 +851,14 @@ export default function ResultPage() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           onClick={e => { if (e.target === e.currentTarget) setSaveOpen(false); }}
         >
-          <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-xl w-full max-w-sm p-6 space-y-4 animate-in fade-in">
+          <div className="bg-[var(--bg-card)] rounded-lg border border-[var(--border-color)] shadow-xl w-full max-w-sm p-6 space-y-4 animate-in fade-in">
             <div>
-              <h3 id="save-modal-title" className="text-base font-bold text-[#1E3A5F]">Save Estimate Project</h3>
-              <p className="text-xs text-[#64748B] mt-1">Assign a project name to track and reload this BOQ in your dashboard.</p>
+              <h3 id="save-modal-title" className="text-base font-bold text-[var(--accent-navy)]">Save Estimate Project</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Assign a project name to track and reload this BOQ in your dashboard.</p>
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-[#0F172A] block mb-1.5">Project Name</label>
+              <label className="text-xs font-semibold text-[var(--text-primary)] block mb-1.5">Project Name</label>
               <input
                 value={saveName}
                 onChange={e => setSaveName(e.target.value)}

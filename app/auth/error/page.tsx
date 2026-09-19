@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AlertTriangle, ArrowLeft, LogIn } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const ERROR_MESSAGES: Record<string, { title: string; description: string }> = {
   Configuration: {
@@ -50,13 +51,13 @@ function AuthErrorContent() {
         </Link>
       </div>
 
-      <div className="card-standard p-6 sm:p-8 bg-white border border-[#E2E8F0] text-center">
-        <div className="w-12 h-12 rounded-full bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center mx-auto mb-4 text-[#B91C1C]">
+      <div className="card-standard p-6 sm:p-8 bg-[var(--bg-card)] border border-[var(--border-color)] text-center">
+        <div className="w-12 h-12 rounded-full bg-[var(--error-bg)] border border-[var(--error-border)] flex items-center justify-center mx-auto mb-4 text-[var(--error-text)]">
           <AlertTriangle size={24} />
         </div>
 
-        <h1 className="text-xl font-bold text-[#0F172A] mb-2">{errorInfo.title}</h1>
-        <p className="text-xs text-[#64748B] mb-6 leading-relaxed">{errorInfo.description}</p>
+        <h1 className="text-xl font-bold text-[var(--text-primary)] mb-2">{errorInfo.title}</h1>
+        <p className="text-xs text-[var(--text-muted)] mb-6 leading-relaxed">{errorInfo.description}</p>
 
         <div className="space-y-3">
           <Link
@@ -82,10 +83,13 @@ function AuthErrorContent() {
 
 export default function AuthErrorPage() {
   return (
-    <main className="min-h-screen bg-[#F7F8FA] text-[#0F172A] flex flex-col items-center justify-center px-4">
+    <main className="relative min-h-screen bg-[var(--bg-secondary)] text-[var(--text-primary)] flex flex-col items-center justify-center px-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <Suspense
         fallback={
-          <div className="text-xs text-[#64748B]">Loading authentication status…</div>
+          <div className="text-xs text-[var(--text-muted)]">Loading authentication status…</div>
         }
       >
         <AuthErrorContent />

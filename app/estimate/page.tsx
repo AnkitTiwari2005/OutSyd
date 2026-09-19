@@ -9,11 +9,11 @@ export const metadata = {
 
 export default function EstimatePage() {
   return (
-    <main className="min-h-screen bg-[#F7F8FA] text-[#0F172A]">
+    <main className="min-h-screen bg-[var(--bg-secondary)] text-[var(--text-primary)]">
       <Navbar />
 
       <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <Suspense fallback={<div className="card-standard bg-white border border-[#E2E8F0] p-12 text-center text-sm text-[#64748B]">Loading estimator wizard...</div>}>
+        <Suspense fallback={<div className="card-standard bg-[var(--bg-card)] border border-[var(--border-color)] p-12 text-center text-sm text-[var(--text-muted)]">Loading estimator wizard...</div>}>
           <EstimateFormShell />
         </Suspense>
       </div>

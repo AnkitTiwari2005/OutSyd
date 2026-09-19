@@ -50,8 +50,8 @@ export const ACCURACY_BANDS = {
     label: 'Preliminary Estimate',
     fullDisplay: '± 15–20% (Preliminary Estimate)',
     color: 'amber' as const,
-    cls: 'bg-[#FEF3C7] border-[#FDE68A] text-[#B45309]',
-    iconCls: 'text-[#B45309]',
+    cls: 'bg-[var(--warning-bg)] border-[var(--warning-border)] text-[var(--warning-text)]',
+    iconCls: 'text-[var(--warning-text)]',
     note: 'Based on macro dimensions and regional baseline rates. Suitable for high-level feasibility.',
   },
   Standard_10_15: {
@@ -59,8 +59,8 @@ export const ACCURACY_BANDS = {
     label: 'Standard Estimate',
     fullDisplay: '± 10–15% (Standard Estimate)',
     color: 'blue' as const,
-    cls: 'bg-[#EFF4FA] border-[#CBD5E1] text-[#1E3A5F]',
-    iconCls: 'text-[#1E3A5F]',
+    cls: 'bg-[var(--accent-navy-subtle)] border-[var(--border-muted)] text-[var(--accent-navy)]',
+    iconCls: 'text-[var(--accent-navy)]',
     note: 'Incorporates framing system, foundation type, and IS 1893 seismic zoning.',
   },
   Advanced_5_10: {
@@ -68,8 +68,8 @@ export const ACCURACY_BANDS = {
     label: 'Advanced Estimate',
     fullDisplay: '± 5–10% (Advanced Estimate)',
     color: 'green' as const,
-    cls: 'bg-[#F0FDF4] border-[#BBF7D0] text-[#16A34A]',
-    iconCls: 'text-[#16A34A]',
+    cls: 'bg-[var(--success-bg)] border-[var(--success-border)] text-[var(--success-text)]',
+    iconCls: 'text-[var(--success-text)]',
     note: 'Calibrated with full structural framing, envelope facade specifications, and MEP scope.',
   },
 } as const;
@@ -120,20 +120,20 @@ export const BAND_CONFIG: Record<string, {
   Preliminary_15_20: {
     icon: 'Gauge',
     label: '±15–20% Preliminary Estimate',
-    cls: 'bg-[#FEF3C7] border-[#FDE68A] text-[#B45309]',
-    iconCls: 'text-[#B45309]',
+    cls: 'bg-[var(--warning-bg)] border-[var(--warning-border)] text-[var(--warning-text)]',
+    iconCls: 'text-[var(--warning-text)]',
   },
   Standard_10_15: {
     icon: 'Info',
     label: '±10–15% Standard Estimate',
-    cls: 'bg-[#EFF4FA] border-[#CBD5E1] text-[#1E3A5F]',
-    iconCls: 'text-[#1E3A5F]',
+    cls: 'bg-[var(--accent-navy-subtle)] border-[var(--border-muted)] text-[var(--accent-navy)]',
+    iconCls: 'text-[var(--accent-navy)]',
   },
   Advanced_5_10: {
     icon: 'CheckCircle2',
     label: '±5–10% Advanced Estimate',
-    cls: 'bg-[#F0FDF4] border-[#BBF7D0] text-[#16A34A]',
-    iconCls: 'text-[#16A34A]',
+    cls: 'bg-[var(--success-bg)] border-[var(--success-border)] text-[var(--success-text)]',
+    iconCls: 'text-[var(--success-text)]',
   },
 };
 

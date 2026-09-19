@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { User, Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 function RegisterForm() {
   const router = useRouter();
@@ -63,7 +64,10 @@ function RegisterForm() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] text-[#0F172A] flex flex-col items-center justify-center px-4">
+    <main className="relative min-h-screen bg-[var(--bg-secondary)] text-[var(--text-primary)] flex flex-col items-center justify-center px-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <Link href="/" className="inline-block mb-4">
@@ -76,21 +80,21 @@ function RegisterForm() {
               priority
             />
           </Link>
-          <h1 className="text-2xl font-bold text-[#1E3A5F]">Create Account</h1>
-          <p className="mt-1 text-xs text-[#64748B]">Save custom building estimates and export reports</p>
+          <h1 className="text-2xl font-bold text-[var(--accent-navy)]">Create Account</h1>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">Save custom building estimates and export reports</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="card-standard p-6 space-y-4 bg-white border border-[#E2E8F0]">
+        <form onSubmit={handleSubmit} className="card-standard p-6 space-y-4 bg-[var(--bg-card)] border border-[var(--border-color)]">
           {error && (
-            <div className="p-3 rounded-md bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#B91C1C] font-medium">
+            <div className="p-3 rounded-md bg-[var(--error-bg)] border border-[var(--error-border)] text-xs text-[var(--error-text)] font-medium">
               {error}
             </div>
           )}
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-[#0F172A]">Full Name</label>
+            <label className="text-xs font-semibold text-[var(--text-primary)]">Full Name</label>
             <div className="relative">
-              <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+              <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <input
                 type="text"
                 autoComplete="name"
@@ -104,9 +108,9 @@ function RegisterForm() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-[#0F172A]">Email Address</label>
+            <label className="text-xs font-semibold text-[var(--text-primary)]">Email Address</label>
             <div className="relative">
-              <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+              <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <input
                 type="email"
                 autoComplete="email"
@@ -120,9 +124,9 @@ function RegisterForm() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-[#0F172A]">Password</label>
+            <label className="text-xs font-semibold text-[var(--text-primary)]">Password</label>
             <div className="relative">
-              <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+              <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <input
                 type="password"
                 autoComplete="new-password"
@@ -152,15 +156,15 @@ function RegisterForm() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-xs text-[#64748B]">
+        <p className="mt-4 text-center text-xs text-[var(--text-muted)]">
           Already registered?{' '}
-          <Link href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'} className="text-[#1E3A5F] font-semibold hover:underline">
+          <Link href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'} className="text-[var(--accent-navy)] font-semibold hover:underline">
             Sign in
           </Link>
         </p>
 
         <p className="mt-2 text-center">
-          <Link href="/estimate" className="inline-flex items-center gap-1 text-xs text-[#64748B] hover:text-[#1E3A5F]">
+          <Link href="/estimate" className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--accent-navy)]">
             <ArrowLeft size={12} /> Estimate without signing in
           </Link>
         </p>
@@ -172,8 +176,8 @@ function RegisterForm() {
 export default function RegisterPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#1E3A5F]" size={24} />
+      <main className="min-h-screen bg-[var(--bg-secondary)] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[var(--accent-navy)]" size={24} />
       </main>
     }>
       <RegisterForm />

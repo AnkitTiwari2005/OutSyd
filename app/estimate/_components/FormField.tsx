@@ -34,19 +34,19 @@ export function FormField({ label, htmlFor, error, hint, required, children, cla
 
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <label htmlFor={fieldId} className="text-xs font-semibold text-[#0F172A] flex items-center gap-1 select-none">
+      <label htmlFor={fieldId} className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1 select-none">
         {label}
-        {required && <span className="text-[#B91C1C] text-xs font-bold" aria-label="required">*</span>}
+        {required && <span className="text-[var(--error-text)] text-xs font-bold" aria-label="required">*</span>}
       </label>
       {hint && (
-        <p id={hintId} className="text-[11px] text-[#64748B] leading-normal flex items-start gap-1 -mt-0.5">
-          <Info size={11} className="mt-0.5 shrink-0 text-[#94A3B8]" aria-hidden />
+        <p id={hintId} className="text-[11px] text-[var(--text-muted)] leading-normal flex items-start gap-1 -mt-0.5">
+          <Info size={11} className="mt-0.5 shrink-0 text-[var(--text-subtle)]" aria-hidden />
           {hint}
         </p>
       )}
       {renderedChild}
       {error && (
-        <p id={errorId} role="alert" className="text-[11px] text-[#B91C1C] flex items-start gap-1 mt-0.5 font-medium">
+        <p id={errorId} role="alert" className="text-[11px] text-[var(--error-text)] flex items-start gap-1 mt-0.5 font-medium">
           <AlertCircle size={11} className="mt-0.5 shrink-0" aria-hidden />
           {error}
         </p>

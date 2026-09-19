@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
 import { Mail, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail]     = useState('');
@@ -38,7 +39,10 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] text-[#0F172A] flex flex-col items-center justify-center px-4">
+    <main className="relative min-h-screen bg-[var(--bg-secondary)] text-[var(--text-primary)] flex flex-col items-center justify-center px-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <Link href="/" className="inline-block mb-4">
@@ -51,25 +55,25 @@ export default function ForgotPasswordPage() {
               priority
             />
           </Link>
-          <h1 className="text-2xl font-bold text-[#1E3A5F]">Reset Password</h1>
-          <p className="mt-1 text-xs text-[#64748B]">
+          <h1 className="text-2xl font-bold text-[var(--accent-navy)]">Reset Password</h1>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
             Enter your email to receive a secure password reset link
           </p>
         </div>
 
-        <div className="card-standard p-6 bg-white border border-[#E2E8F0]">
+        <div className="card-standard p-6 bg-[var(--bg-card)] border border-[var(--border-color)]">
           {submitted ? (
             <div className="text-center space-y-4 py-2">
-              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200">
+              <div className="w-12 h-12 bg-[var(--success-bg)] text-[var(--success-text)] rounded-full flex items-center justify-center mx-auto border border-[var(--success-border)]">
                 <CheckCircle2 size={24} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[#1E3A5F]">Check your inbox</h3>
-                <p className="text-xs text-[#64748B] mt-1 leading-relaxed">
-                  If an account exists for <span className="font-semibold text-[#0F172A]">{email}</span>, we have sent instructions to reset your password.
+                <h3 className="text-sm font-bold text-[var(--accent-navy)]">Check your inbox</h3>
+                <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
+                  If an account exists for <span className="font-semibold text-[var(--text-primary)]">{email}</span>, we have sent instructions to reset your password.
                 </p>
               </div>
-              <div className="p-3 rounded-md bg-[#F8FAFC] border border-[#E2E8F0] text-[11px] text-[#64748B] text-left">
+              <div className="p-3 rounded-md bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[11px] text-[var(--text-muted)] text-left">
                 <strong>Note:</strong> Check your spam folder if the email does not arrive within a few minutes. Reset links remain valid for 60 minutes.
               </div>
               <Link
@@ -82,15 +86,15 @@ export default function ForgotPasswordPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="p-3 rounded-md bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#B91C1C] font-medium">
+                <div className="p-3 rounded-md bg-[var(--error-bg)] border border-[var(--error-border)] text-xs text-[var(--error-text)] font-medium">
                   {error}
                 </div>
               )}
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-[#0F172A]">Account Email</label>
+                <label className="text-xs font-semibold text-[var(--text-primary)]">Account Email</label>
                 <div className="relative">
-                  <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+                  <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                   <input
                     type="email"
                     autoComplete="email"
@@ -121,7 +125,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         <p className="mt-4 text-center">
-          <Link href="/login" className="inline-flex items-center gap-1 text-xs text-[#64748B] hover:text-[#1E3A5F]">
+          <Link href="/login" className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--accent-navy)]">
             <ArrowLeft size={12} /> Back to Sign In
           </Link>
         </p>

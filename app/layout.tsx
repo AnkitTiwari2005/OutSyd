@@ -25,8 +25,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="font-sans antialiased bg-white text-[#0F172A] min-h-screen">
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <head>
+        {/* Flash-prevention script: sets data-theme on <html> before first paint */}
+        {/* Note: next.config.ts uses Content-Security-Policy-Report-Only. If CSP is switched to enforcing, add nonce or hash. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('outsyd-theme');if(s==='dark'||s==='light'){document.documentElement.setAttribute('data-theme',s)}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-theme','dark')}else{document.documentElement.setAttribute('data-theme','light')}}catch(e){}})()`,
+          }}
+        />
+      </head>
+      <body className="font-sans antialiased bg-[var(--bg-primary)] text-[var(--text-primary)] min-h-screen">
         <Providers>
           {children}
         </Providers>

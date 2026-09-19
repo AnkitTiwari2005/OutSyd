@@ -49,7 +49,7 @@ export const NumberStepperInput = React.forwardRef<HTMLInputElement, NumberStepp
             tabIndex={-1}
             onClick={() => handleStep(1)}
             aria-label="Increase value"
-            className="flex-1 flex items-center justify-center text-slate-500 hover:text-[#1E3A5F] hover:bg-slate-100 rounded-tr cursor-pointer"
+            className="flex-1 flex items-center justify-center text-slate-500 hover:text-[var(--accent-navy)] hover:bg-slate-100 rounded-tr cursor-pointer"
           >
             <ChevronUp size={12} strokeWidth={2.5} />
           </button>
@@ -58,7 +58,7 @@ export const NumberStepperInput = React.forwardRef<HTMLInputElement, NumberStepp
             tabIndex={-1}
             onClick={() => handleStep(-1)}
             aria-label="Decrease value"
-            className="flex-1 flex items-center justify-center text-slate-500 hover:text-[#1E3A5F] hover:bg-slate-100 rounded-br border-t border-slate-200 cursor-pointer"
+            className="flex-1 flex items-center justify-center text-slate-500 hover:text-[var(--accent-navy)] hover:bg-slate-100 rounded-br border-t border-slate-200 cursor-pointer"
           >
             <ChevronDown size={12} strokeWidth={2.5} />
           </button>

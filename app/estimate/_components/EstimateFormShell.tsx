@@ -252,29 +252,29 @@ export function EstimateFormShell() {
 
   return (
     <FormProvider {...methods}>
-      <div className="card-standard bg-white border border-[#E2E8F0] overflow-hidden">
+      <div className="card-standard bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden">
         {/* ── Compact Sub-Header: Stepper + One-line Step Title + Persistent Badge ── */}
-        <div className="border-b border-[#E2E8F0] bg-[#F7F8FA] px-4 sm:px-6 pt-3 pb-3 sticky top-16 z-20">
+        <div className="border-b border-[var(--border-color)] bg-[var(--bg-secondary)] px-4 sm:px-6 pt-3 pb-3 sticky top-16 z-20">
           <ProgressStepper
             steps={STEPS}
             currentStep={currentStep}
             onStepClick={handleNavigateToStep}
           />
-          <div className="flex items-center justify-between mt-1 pt-2 border-t border-[#E2E8F0]">
-            <h2 className="text-sm font-bold text-[#1E3A5F]">
+          <div className="flex items-center justify-between mt-1 pt-2 border-t border-[var(--border-color)]">
+            <h2 className="text-sm font-bold text-[var(--accent-navy)]">
               {STEP_TITLES[currentStep]}
             </h2>
             <div className="flex items-center gap-2">
               {accuracyBand === 'Advanced_5_10' ? (
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A]">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[var(--success-bg)] border border-[var(--success-border)] text-[var(--success-text)]">
                   Tier 3 · ±5–10%
                 </span>
               ) : accuracyBand === 'Standard_10_15' ? (
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#EFF4FA] border border-[#CBD5E1] text-[#1E3A5F]">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[var(--accent-navy-subtle)] border border-[var(--border-muted)] text-[var(--accent-navy)]">
                   Tier 2 · ±10–15%
                 </span>
               ) : (
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#FEF3C7] border border-[#FDE68A] text-[#B45309]">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[var(--warning-bg)] border border-[var(--warning-border)] text-[var(--warning-text)]">
                   Tier 1 · ±15–20%
                 </span>
               )}
@@ -302,14 +302,14 @@ export function EstimateFormShell() {
 
           {/* Error Notice */}
           {error && (
-            <div className="mx-4 sm:mx-8 mb-4 p-3.5 rounded-lg bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#B91C1C] flex items-center gap-2">
+            <div className="mx-4 sm:mx-8 mb-4 p-3.5 rounded-lg bg-[var(--error-bg)] border border-[var(--error-border)] text-xs text-[var(--error-text)] flex items-center gap-2">
               <AlertCircle size={15} className="shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {/* ── Navigation Actions Bar ──────────────────────────────────── */}
-          <div className="border-t border-[#E2E8F0] bg-[#F7F8FA] px-4 sm:px-8 py-4 flex items-center justify-between">
+          <div className="border-t border-[var(--border-color)] bg-[var(--bg-secondary)] px-4 sm:px-8 py-4 flex items-center justify-between">
             <button
               type="button"
               onClick={handleBack}
@@ -320,7 +320,7 @@ export function EstimateFormShell() {
               <span>Back</span>
             </button>
 
-            <div className="text-xs text-[#64748B] font-medium hidden sm:block">
+            <div className="text-xs text-[var(--text-muted)] font-medium hidden sm:block">
               Step {currentStep + 1} of 3
             </div>
 
