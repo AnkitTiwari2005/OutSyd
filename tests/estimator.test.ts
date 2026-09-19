@@ -1,6 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { deriveDimensions, deriveRoomCounts, runEstimationEngine } from '../lib/engine/estimator';
+import {
+  deriveDimensions,
+  deriveRoomCounts,
+  runEstimationEngine,
+  validateDatasetCompleteness,
+} from '../lib/engine/estimator';
 import { DEFAULT_DATASET } from '../lib/engine/coefficients';
 import { classifyBuilding } from '../lib/engine/classifier';
 import type { FullInput } from '../lib/engine/types';
@@ -350,5 +355,39 @@ describe('Quantification Engine (runEstimationEngine)', () => {
     assert.equal(igbcDual, true, 'Expected MAT_GREEN_DUAL_FLUSH when greenCertTarget is IGBC');
   });
 });
+
+describe('validateDatasetCompleteness (NF-2)', () => {
+  it('passes on complete DEFAULT_DATASET rates', () => {
+    const res = validateDatasetCompleteness(DEFAULT_DATASET.rates);
+    assert.equal(res.isValid, true);
+    assert.deepEqual(res.missingCodes, []);
+  });
+
+  it('fails and reports missing item codes when rates dictionary is incomplete or invalid', () => {
+    const incompleteRates: Record<string, number> = {
+      MAT_FOUND_EXCAV: 150,
+      MAT_FOUND_CONC: 5500,
+    };
+    const res = validateDatasetCompleteness(incompleteRates);
+    assert.equal(res.isValid, false);
+    assert.ok(res.missingCodes.length > 50);
+    assert.ok(res.missingCodes.includes('MAT_RCC_STEEL'));
+  });
+
+  it('flags items with non-positive or NaN rates', () => {
+    const mockRates = {
+      ...DEFAULT_DATASET.rates,
+      MAT_RCC_STEEL: 0,
+      MAT_MASON_BRICK: -10,
+      MAT_FOUND_EXCAV: NaN,
+    };
+    const res = validateDatasetCompleteness(mockRates);
+    assert.equal(res.isValid, false);
+    assert.ok(res.missingCodes.includes('MAT_RCC_STEEL'));
+    assert.ok(res.missingCodes.includes('MAT_MASON_BRICK'));
+    assert.ok(res.missingCodes.includes('MAT_FOUND_EXCAV'));
+  });
+});
+
 
 

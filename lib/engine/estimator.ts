@@ -6,7 +6,6 @@ import type {
   FullInput, EstimateLineItem, CoefficientDataset,
   ClassificationResult, DerivedDimensions, RoomCounts, FloorTier, QualityTier,
 } from './types';
-import { DEFAULT_DATASET } from './coefficients';
 import { CATEGORY_NAMES } from '../constants';
 
 // ─── Item name map ────────────────────────────────────────────────────────────
@@ -261,16 +260,23 @@ const ITEM_NAMES: Record<string, { name: string; category: string }> = {
   MAT_MISC_SCAFFOLD      : { name: 'High-Rise Suspended Scaffold / Cradle',category: 'CAT_18' },
 };
 
-// Dev-time invariant: verify every ITEM_NAMES key resolves to a valid rate in DEFAULT_DATASET.rates
-if (process.env.NODE_ENV !== 'production') {
+/**
+ * Validates that a dictionary of rates contains non-zero positive numbers
+ * for all required engine item codes (NF-2).
+ */
+export function validateDatasetCompleteness(rates: Record<string, unknown>): {
+  isValid: boolean;
+  missingCodes: string[];
+} {
+  const missingCodes: string[] = [];
   for (const itemCode of Object.keys(ITEM_NAMES)) {
     if (itemCode === 'MAT_MISC_TOTAL') continue;
-    if (typeof DEFAULT_DATASET.rates[itemCode] !== 'number') {
-      throw new Error(
-        `Engine Invariant Violation (C-6): ITEM_NAMES key '${itemCode}' lacks a rate in DEFAULT_DATASET.rates.`,
-      );
+    const val = rates[itemCode];
+    if (typeof val !== 'number' || Number.isNaN(val) || val <= 0) {
+      missingCodes.push(itemCode);
     }
   }
+  return { isValid: missingCodes.length === 0, missingCodes };
 }
 
 

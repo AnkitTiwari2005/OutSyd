@@ -6,6 +6,7 @@ import { coefficientDatasets } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { invalidateRateCache } from '@/lib/db/active-rates';
+import { validateDatasetCompleteness } from '@/lib/engine/estimator';
 
 const PublishSchema = z.object({
   version: z.string().min(3).max(64),
@@ -41,11 +42,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.errors[0]?.message ?? 'Invalid payload' }, { status: 400 });
     }
 
-    // Verify ratesJson is valid JSON
+    // Verify ratesJson is valid JSON and contains all required item codes (NF-2)
+    let parsedRatesJson: unknown;
     try {
-      JSON.parse(parsed.data.ratesJson);
+      parsedRatesJson = JSON.parse(parsed.data.ratesJson);
     } catch {
       return NextResponse.json({ error: 'ratesJson must be valid JSON' }, { status: 400 });
+    }
+
+    const ratesDict =
+      typeof parsedRatesJson === 'object' &&
+      parsedRatesJson !== null &&
+      'rates' in parsedRatesJson &&
+      typeof (parsedRatesJson as { rates: unknown }).rates === 'object' &&
+      (parsedRatesJson as { rates: unknown }).rates !== null
+        ? ((parsedRatesJson as { rates: Record<string, unknown> }).rates)
+        : (parsedRatesJson as Record<string, unknown>);
+
+    const { isValid, missingCodes } = validateDatasetCompleteness(ratesDict);
+    if (!isValid) {
+      return NextResponse.json(
+        {
+          error: `Dataset is missing rates for ${missingCodes.length} required item(s): ${missingCodes.slice(0, 5).join(', ')}${missingCodes.length > 5 ? '...' : ''}`,
+          missingCodes,
+        },
+        { status: 400 },
+      );
     }
 
     // Deactivate currently active datasets (BR-6 immutable versioning)
