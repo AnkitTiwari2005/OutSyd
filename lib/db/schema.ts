@@ -11,9 +11,10 @@ export const users = pgTable('users', {
   name         : text('name'),
   image        : text('image'),
   passwordHash : text('password_hash'),
-  role         : text('role').default('registered').notNull(), // 'guest' | 'registered' | 'admin'
-  createdAt    : timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt    : timestamp('updated_at', { withTimezone: true }).defaultNow().$onUpdate(() => new Date()).notNull(),
+  role             : text('role').default('registered').notNull(), // 'guest' | 'registered' | 'admin'
+  passwordChangedAt: timestamp('password_changed_at', { withTimezone: true }),
+  createdAt        : timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt        : timestamp('updated_at', { withTimezone: true }).defaultNow().$onUpdate(() => new Date()).notNull(),
 });
 
 // Auth.js v5 required adapter tables

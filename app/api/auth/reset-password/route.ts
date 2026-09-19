@@ -1,7 +1,7 @@
 // app/api/auth/reset-password/route.ts — reset password completion endpoint
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { users, verificationTokens } from '@/lib/db/schema';
+import { users, verificationTokens, sessions } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
@@ -60,11 +60,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Hash new password and update user record
+    // Hash new password and update user record with invalidation timestamp (NF-1)
+    const now = new Date();
     const passwordHash = await bcrypt.hash(password, 12);
-    await db.update(users)
-      .set({ passwordHash, updatedAt: new Date() })
-      .where(eq(users.email, email));
+    const [updatedUser] = await db.update(users)
+      .set({ passwordHash, passwordChangedAt: now, updatedAt: now })
+      .where(eq(users.email, email))
+      .returning({ id: users.id });
+
+    // Invalidate database sessions if any exist
+    if (updatedUser?.id) {
+      await db.delete(sessions).where(eq(sessions.userId, updatedUser.id));
+    }
 
     // Invalidate the used token
     await db.delete(verificationTokens).where(and(

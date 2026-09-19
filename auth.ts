@@ -40,4 +40,41 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as { role?: string }).role ?? 'registered';
+        return token;
+      }
+
+      // NF-1: Invalidate existing token if password was changed after token was issued
+      if (token.id) {
+        const [dbUser] = await db
+          .select({ passwordChangedAt: users.passwordChangedAt })
+          .from(users)
+          .where(eq(users.id, token.id as string))
+          .limit(1);
+
+        if (dbUser?.passwordChangedAt) {
+          const tokenIssuedAtMs = ((token.iat as number) || 0) * 1000;
+          const passwordChangedAtMs = dbUser.passwordChangedAt.getTime();
+          // 1-second clock skew tolerance
+          if (passwordChangedAtMs > tokenIssuedAtMs + 1000) {
+            return null;
+          }
+        }
+      }
+
+      return token;
+    },
+    session({ session, token }) {
+      if (!token || !token.id) {
+        return null as unknown as typeof session;
+      }
+      session.user.id = token.id as string;
+      session.user.role = token.role as string;
+      return session;
+    },
+  },
 });

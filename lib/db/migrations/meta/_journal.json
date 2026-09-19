@@ -8,6 +8,13 @@
       "when": 1789757509810,
       "tag": "0000_omniscient_big_bertha",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789781389554,
+      "tag": "0001_lovely_patriot",
+      "breakpoints": true
     }
   ]
 }
