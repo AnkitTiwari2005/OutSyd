@@ -418,7 +418,7 @@ export function OutsydReportDocument({ result, inputSummary, rawInput }: Props) 
               • {detail}
             </Text>
           ))}
-          <Text style={{ fontSize: 6.5, color: '#64748b', marginTop: 3.5, fontStyle: 'italic' }}>
+          <Text style={{ fontSize: 6.5, color: '#64748b', marginTop: 3.5 }}>
             {wallAnalysis.bestApproachRecommendation.whenToUseAlternative}
           </Text>
         </View>
