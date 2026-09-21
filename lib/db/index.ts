@@ -13,12 +13,12 @@ export function getPool(): Pool {
       throw new Error('DATABASE_URL environment variable is not set');
     }
 
-    const isProduction = process.env.NODE_ENV === 'production';
     const isLocalhost = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+    const sslRejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true';
 
     pool = new Pool({
       connectionString,
-      ssl: isProduction && !isLocalhost ? { rejectUnauthorized: true } : undefined,
+      ssl: !isLocalhost ? { rejectUnauthorized: sslRejectUnauthorized } : undefined,
       max: 5,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,

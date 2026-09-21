@@ -191,7 +191,7 @@ function useIsClient() {
 }
 
 export default function ResultPage() {
-  const { result, estimateId, guestToken, formData, clearResult, resetForm, _hasHydrated } = useEstimateStore();
+  const { result, estimateId, guestToken, formData, clearResult, resetForm, _hasHydrated, setResult } = useEstimateStore();
   const router = useRouter();
   const isClient = useIsClient();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -209,6 +209,32 @@ export default function ResultPage() {
       router.replace('/estimate');
     }
   }, [isReady, result, router]);
+
+  // Self-healing background sync: If estimateId was not obtained on calculation (e.g. transient DB error),
+  // attempt to persist silently so export / share / save work seamlessly without user having to recalculate.
+  useEffect(() => {
+    if (isReady && result && !estimateId && formData && Object.keys(formData).length > 0) {
+      let isSubscribed = true;
+      fetch('/api/estimate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((json) => {
+          if (isSubscribed && json?.estimateId) {
+            setResult(json, json.estimateId, json.guestToken);
+          }
+        })
+        .catch((err) => {
+          console.warn('[ResultPage] Background estimate persistence failed:', err);
+        });
+
+      return () => {
+        isSubscribed = false;
+      };
+    }
+  }, [isReady, result, estimateId, formData, setResult]);
 
   useEffect(() => {
     if (!saveOpen) return;
@@ -272,9 +298,31 @@ export default function ResultPage() {
   const labourTotal = labourRows.reduce((s, r) => s + r.amount, 0);
   const timeline = estimateTimeline(buaSqft, formData?.numFloors ?? 1, formData?.typology ?? 'Residential');
 
-  // Idempotent estimate ID reference check (H-10: prevents duplicate DB records on export/share)
-  const ensureEstimateId = (): string | null => {
+  // Idempotent estimate ID reference check with on-demand self-healing
+  const ensureEstimateId = async (): Promise<string | null> => {
     if (estimateId) return estimateId;
+
+    // Self-healing: If estimateId is missing but formData is available in the store,
+    // persist now to obtain a persistent database ID seamlessly.
+    if (formData && Object.keys(formData).length > 0) {
+      try {
+        const res = await fetch('/api/estimate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.estimateId) {
+            setResult(json, json.estimateId, json.guestToken);
+            return json.estimateId as string;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not auto-generate estimate reference:', err);
+      }
+    }
+
     toast.error('Could not obtain estimate reference', {
       description: 'Please click "Modify Inputs" and recalculate to generate a persistent estimate ID.',
     });
@@ -282,7 +330,7 @@ export default function ResultPage() {
   };
 
   const handleShare = async () => {
-    const id = ensureEstimateId();
+    const id = await ensureEstimateId();
     if (!id) return;
     const url = `${window.location.origin}/estimate/${id}`;
     try {
@@ -299,12 +347,7 @@ export default function ResultPage() {
 
     try {
       const id = await ensureEstimateId();
-      if (!id) {
-        toast.error('Could not obtain estimate reference', {
-          description: 'Please click "Modify Inputs" and recalculate.',
-        });
-        return;
-      }
+      if (!id) return;
 
       const endpoint = type === 'pdf' ? `/api/estimate/${id}/report` : `/api/estimate/${id}/excel`;
       const ext = type === 'pdf' ? 'pdf' : 'xlsx';
@@ -337,10 +380,7 @@ export default function ResultPage() {
     setSaveLoading(true);
     try {
       const id = await ensureEstimateId();
-      if (!id) {
-        toast.error('Save failed');
-        return;
-      }
+      if (!id) return;
 
       const res = await fetch(`/api/estimate/${id}/save`, {
         method: 'POST',
