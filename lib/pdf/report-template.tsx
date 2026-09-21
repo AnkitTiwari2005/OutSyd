@@ -9,6 +9,7 @@ import {
   Document, Page, Text, View, StyleSheet, Font,
 } from '@react-pdf/renderer';
 import type { EstimateResult } from '@/lib/engine/types';
+import { calculateWallAnalysis } from '@/lib/engine';
 
 function resolveFontPath(filename: string): string | null {
   const candidates = [
@@ -118,12 +119,54 @@ const styles = StyleSheet.create({
 interface Props {
   result  : EstimateResult;
   inputSummary: Record<string, string>;
+  rawInput?: {
+    lengthFt: number;
+    breadthFt: number;
+    heightFt: number;
+    numFloors: number;
+  };
 }
 
-export function OutsydReportDocument({ result, inputSummary }: Props) {
+export function OutsydReportDocument({ result, inputSummary, rawInput }: Props) {
   const bandStyle =
     result.accuracyBandColor === 'green' ? styles.bandGreen :
     result.accuracyBandColor === 'blue'  ? styles.bandBlue  : styles.bandAmber;
+
+  // Extract dimensions for wall quantity takeoff analysis
+  const cat03 = result.categoryTotals.find((c) => c.categoryCode === 'CAT_03')?.subtotal ?? 0;
+  let lengthFt = 40;
+  let breadthFt = 30;
+  let heightFt = 20;
+  let numFloors = 2;
+
+  if (rawInput) {
+    lengthFt = rawInput.lengthFt;
+    breadthFt = rawInput.breadthFt;
+    heightFt = rawInput.heightFt;
+    numFloors = rawInput.numFloors;
+  } else if (inputSummary['Dimensions']) {
+    const m = inputSummary['Dimensions'].match(/(\d+(\.\d+)?)\s*ft\s*[×x]\s*(\d+(\.\d+)?)\s*ft\s*[×x]\s*(\d+(\.\d+)?)\s*ft/i);
+    if (m) {
+      lengthFt = parseFloat(m[1]);
+      breadthFt = parseFloat(m[3]);
+      heightFt = parseFloat(m[5]);
+    }
+    if (inputSummary['Floors']) {
+      const fl = parseInt(inputSummary['Floors'], 10);
+      if (!isNaN(fl) && fl > 0) numFloors = fl;
+    }
+  }
+
+  const wallAnalysis = calculateWallAnalysis(
+    {
+      lengthFt,
+      breadthFt,
+      heightFt,
+      numFloors,
+      typology: inputSummary['Typology']?.split(' — ')[0] || 'Residential',
+    },
+    cat03,
+  );
 
   return (
     <Document title="OUTSYD Estimate Report" author="OUTSYD — Ankit Kumar Tiwari">
@@ -209,7 +252,188 @@ export function OutsydReportDocument({ result, inputSummary }: Props) {
         </View>
       </Page>
 
-      {/* ── Page 2+: Detailed Categorized Line Items BOQ ── */}
+      {/* ── Page 2: Wall Quantity Survey & Method Analysis (IS 1200 / CPWD) ── */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header} fixed>
+          <View>
+            <Text style={styles.brand}>OUTSYD</Text>
+            <Text style={styles.tagline}>Wall Quantity Survey & Method Analysis (IS 1200 / CPWD DSR)</Text>
+          </View>
+          <View style={{ textAlign: 'right' }}>
+            <Text style={styles.subtitle}>Superstructure Masonry & Enclosure</Text>
+            <Text style={styles.subtitle}>Method Comparison & Reconciliation</Text>
+          </View>
+        </View>
+
+        <Text style={[styles.sectionTitle, { marginTop: 2 }]}>
+          Superstructure Wall Takeoff & Per-Wall Costing
+        </Text>
+        <Text style={{ fontSize: 7, color: '#64748b', marginBottom: 8, lineHeight: 1.3 }}>
+          Comparative engineering takeoff using classical Indian quantity surveying methods.
+          Nominal envelope wall thickness: {wallAnalysis.inputs.wallThicknessMm}mm ({wallAnalysis.inputs.wallThicknessFt} ft / 9 in.) · Clear floor height: {wallAnalysis.inputs.floorHeightFt} ft.
+        </Text>
+
+        {/* Dimension & Rate Summary Cards */}
+        <View style={styles.summaryCard}>
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>Centerline Perimeter</Text>
+            <Text style={styles.cardValue}>{wallAnalysis.centerToCenter.totalCenterLinePerFloorFt} ft</Text>
+            <Text style={{ fontSize: 6.5, color: '#64748b', marginTop: 2 }}>
+              Total: {wallAnalysis.centerToCenter.totalCenterLineAllFloorsFt} RFT across {wallAnalysis.inputs.numFloors} floor(s)
+            </Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>Total Wall Area</Text>
+            <Text style={styles.cardValue}>{wallAnalysis.reconciliation.totalWallAreaSqft.toLocaleString('en-IN')} sqft</Text>
+            <Text style={{ fontSize: 6.5, color: '#64748b', marginTop: 2 }}>
+              Gross surface face area
+            </Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>Linear Rate (Material)</Text>
+            <Text style={styles.cardValue}>{INR(wallAnalysis.rates.materialCostPerRft)} / RFT</Text>
+            <Text style={{ fontSize: 6.5, color: '#64748b', marginTop: 2 }}>
+              Turnkey (+30%): {INR(wallAnalysis.rates.turnkeyCostPerRft)} / RFT
+            </Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>Total Masonry Cost</Text>
+            <Text style={styles.cardValue}>{INR(wallAnalysis.totalWallMaterialCost)}</Text>
+            <Text style={{ fontSize: 6.5, color: '#64748b', marginTop: 2 }}>
+              Turnkey: {INR(wallAnalysis.totalWallTurnkeyCost)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Method 1: Long Wall - Short Wall Method */}
+        <Text style={[styles.sectionTitle, { marginTop: 6 }]}>
+          1. Long Wall - Short Wall Method (Separate Wall Method)
+        </Text>
+        <Text style={{ fontSize: 6.8, color: '#64748b', marginBottom: 4 }}>
+          {wallAnalysis.longShortWallMethod.description}
+        </Text>
+
+        <View style={styles.thead}>
+          <Text style={[styles.theadText, { flex: 2 }]}>Wall Orientation</Text>
+          <Text style={[styles.theadText, { flex: 1.6 }]}>Measurement Rule</Text>
+          <Text style={[styles.theadText, styles.colNarrow]}>Length (ft)</Text>
+          <Text style={[styles.theadText, styles.colNarrow]}>Walls/Flr</Text>
+          <Text style={[styles.theadText, styles.colNarrow]}>Cost/Wall (Mat)</Text>
+          <Text style={[styles.theadText, styles.colRight]}>Cost/Wall (Turnkey)</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={[{ flex: 2 }, { fontWeight: 'bold' }]}>Long Wall (Lengthwise)</Text>
+          <Text style={[{ flex: 1.6 }, { color: '#64748b', fontSize: 7.5 }]}>Out-to-out (c/c + T)</Text>
+          <Text style={styles.colNarrow}>{wallAnalysis.longShortWallMethod.longWallLengthFt} ft</Text>
+          <Text style={styles.colNarrow}>2 walls</Text>
+          <Text style={styles.colNarrow}>{INR(wallAnalysis.longShortWallMethod.costPerLongWallMat)}</Text>
+          <Text style={[styles.colRight, { fontWeight: 'bold' }]}>{INR(wallAnalysis.longShortWallMethod.costPerLongWallTurnkey)}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={[{ flex: 2 }, { fontWeight: 'bold' }]}>Short Wall (Crosswise)</Text>
+          <Text style={[{ flex: 1.6 }, { color: '#64748b', fontSize: 7.5 }]}>In-to-in (c/c - T)</Text>
+          <Text style={styles.colNarrow}>{wallAnalysis.longShortWallMethod.shortWallLengthFt} ft</Text>
+          <Text style={styles.colNarrow}>2 walls</Text>
+          <Text style={styles.colNarrow}>{INR(wallAnalysis.longShortWallMethod.costPerShortWallMat)}</Text>
+          <Text style={[styles.colRight, { fontWeight: 'bold' }]}>{INR(wallAnalysis.longShortWallMethod.costPerShortWallTurnkey)}</Text>
+        </View>
+
+        <View style={styles.totalRow}>
+          <Text style={[{ flex: 3.6 }, { fontWeight: 'bold' }]}>
+            Total ({wallAnalysis.inputs.numFloors * 4} envelope walls across {wallAnalysis.inputs.numFloors} floor(s))
+          </Text>
+          <Text style={[styles.colNarrow, { fontWeight: 'bold' }]}>
+            {wallAnalysis.longShortWallMethod.totalRunningLengthFt} RFT
+          </Text>
+          <Text style={[styles.colNarrow, { fontWeight: 'bold' }]}>
+            {INR(wallAnalysis.longShortWallMethod.totalCostMat)}
+          </Text>
+          <Text style={[styles.colRight, { fontWeight: 'bold', color: '#1e3a5f' }]}>
+            {INR(wallAnalysis.longShortWallMethod.totalCostTurnkey)}
+          </Text>
+        </View>
+
+        {/* Method 2: Center Line Method */}
+        <Text style={[styles.sectionTitle, { marginTop: 10 }]}>
+          2. Center Line Method (Continuous Centerline Axis)
+        </Text>
+        <Text style={{ fontSize: 6.8, color: '#64748b', marginBottom: 4 }}>
+          {wallAnalysis.centerLineMethod.description}
+        </Text>
+
+        <View style={styles.thead}>
+          <Text style={[styles.theadText, { flex: 2 }]}>Wall Axis</Text>
+          <Text style={[styles.theadText, { flex: 1.6 }]}>Centerline Dimension</Text>
+          <Text style={[styles.theadText, styles.colNarrow]}>Length (ft)</Text>
+          <Text style={[styles.theadText, styles.colNarrow]}>Axes/Flr</Text>
+          <Text style={[styles.theadText, styles.colNarrow]}>Cost/Axis (Mat)</Text>
+          <Text style={[styles.theadText, styles.colRight]}>Cost/Axis (Turnkey)</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={[{ flex: 2 }, { fontWeight: 'bold' }]}>Long Wall Axis</Text>
+          <Text style={[{ flex: 1.6 }, { color: '#64748b', fontSize: 7.5 }]}>L_cc = L - T</Text>
+          <Text style={styles.colNarrow}>{wallAnalysis.centerToCenter.lengthCcFt} ft</Text>
+          <Text style={styles.colNarrow}>2 axes</Text>
+          <Text style={styles.colNarrow}>{INR(wallAnalysis.centerLineMethod.costPerLongWallMat)}</Text>
+          <Text style={[styles.colRight, { fontWeight: 'bold' }]}>{INR(wallAnalysis.centerLineMethod.costPerLongWallTurnkey)}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={[{ flex: 2 }, { fontWeight: 'bold' }]}>Short Wall Axis</Text>
+          <Text style={[{ flex: 1.6 }, { color: '#64748b', fontSize: 7.5 }]}>B_cc = B - T</Text>
+          <Text style={styles.colNarrow}>{wallAnalysis.centerToCenter.breadthCcFt} ft</Text>
+          <Text style={styles.colNarrow}>2 axes</Text>
+          <Text style={styles.colNarrow}>{INR(wallAnalysis.centerLineMethod.costPerShortWallMat)}</Text>
+          <Text style={[styles.colRight, { fontWeight: 'bold' }]}>{INR(wallAnalysis.centerLineMethod.costPerShortWallTurnkey)}</Text>
+        </View>
+
+        <View style={styles.totalRow}>
+          <Text style={[{ flex: 3.6 }, { fontWeight: 'bold' }]}>
+            Total Centerline Takeoff (2 × [L_cc + B_cc] × {wallAnalysis.inputs.numFloors} floors)
+          </Text>
+          <Text style={[styles.colNarrow, { fontWeight: 'bold' }]}>
+            {wallAnalysis.centerLineMethod.totalRunningLengthFt} RFT
+          </Text>
+          <Text style={[styles.colNarrow, { fontWeight: 'bold' }]}>
+            {INR(wallAnalysis.centerLineMethod.totalCostMat)}
+          </Text>
+          <Text style={[styles.colRight, { fontWeight: 'bold', color: '#1e3a5f' }]}>
+            {INR(wallAnalysis.centerLineMethod.totalCostTurnkey)}
+          </Text>
+        </View>
+
+        {/* Best Approach Recommendation Box */}
+        <View style={[styles.bandBox, styles.bandBlue, { marginTop: 10, padding: 7 }]}>
+          <Text style={[styles.bandText, { color: '#1e3a5f', fontSize: 8.5 }]}>
+            ★ BEST APPROACH RECOMMENDATION: {wallAnalysis.bestApproachRecommendation.verdictTitle}
+          </Text>
+          <Text style={{ fontSize: 7.5, color: '#1e293b', marginTop: 2.5, fontWeight: 'bold' }}>
+            {wallAnalysis.bestApproachRecommendation.primaryReason}
+          </Text>
+          {wallAnalysis.bestApproachRecommendation.rationaleDetails.map((detail, idx) => (
+            <Text key={idx} style={{ fontSize: 6.8, color: '#334155', marginTop: 1.5 }}>
+              • {detail}
+            </Text>
+          ))}
+          <Text style={{ fontSize: 6.5, color: '#64748b', marginTop: 3.5, fontStyle: 'italic' }}>
+            {wallAnalysis.bestApproachRecommendation.whenToUseAlternative}
+          </Text>
+        </View>
+
+        {/* Page 2 Footer */}
+        <View style={styles.pageFooter} fixed>
+          <Text style={styles.pageFooterText}>OUTSYD Construction Cost & BOQ Report</Text>
+          <Text
+            style={styles.pageFooterText}
+            render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
+          />
+        </View>
+      </Page>
+
+      {/* ── Page 3+: Detailed Categorized Line Items BOQ ── */}
       <Page size="A4" style={styles.page}>
         <View style={styles.header} fixed>
           <View>

@@ -18,6 +18,7 @@ import {
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { getCategoryColor, BAND_CONFIG, PHASE_COLORS } from '@/lib/constants';
 import type { EstimateLineItem } from '@/lib/engine/types';
+import { calculateWallAnalysis } from '@/lib/engine';
 
 function SectionCard({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
   return (
@@ -297,6 +298,18 @@ export default function ResultPage() {
   const labourRows = computeLabourBreakdown(Math.max(0, result.grandTotalWithLabor - result.grandTotalMaterialCost));
   const labourTotal = labourRows.reduce((s, r) => s + r.amount, 0);
   const timeline = estimateTimeline(buaSqft, formData?.numFloors ?? 1, formData?.typology ?? 'Residential');
+
+  const cat03Subtotal = result.categoryTotals.find(c => c.categoryCode === 'CAT_03')?.subtotal ?? 0;
+  const wallAnalysis = calculateWallAnalysis(
+    {
+      lengthFt: formData?.lengthFt ?? 40,
+      breadthFt: formData?.breadthFt ?? 30,
+      heightFt: formData?.heightFt ?? 20,
+      numFloors: formData?.numFloors ?? 1,
+      typology: formData?.typology ?? 'Residential',
+    },
+    cat03Subtotal,
+  );
 
   // Idempotent estimate ID reference check with on-demand self-healing
   const ensureEstimateId = async (): Promise<string | null> => {
@@ -795,6 +808,228 @@ export default function ResultPage() {
                   <span className="font-bold text-[var(--text-primary)] tabular-nums">{p.pct}%</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </CollapseSection>
+
+        {/* ── Wall Quantity Survey & Method Analysis (IS 1200 / CPWD DSR) ── */}
+        <CollapseSection
+          title="Wall Quantity Survey & Method Analysis"
+          badge="IS 1200 / CPWD DSR"
+          defaultOpen={true}
+        >
+          <div className="space-y-6">
+            <div>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Superstructure wall quantity takeoff and per-wall costing comparing classical Indian quantity surveying methods.
+                Envelope: <span className="font-semibold text-[var(--text-primary)]">{wallAnalysis.inputs.outerLengthFt} ft × {wallAnalysis.inputs.outerBreadthFt} ft</span> ·
+                Nominal wall thickness: <span className="font-semibold text-[var(--text-primary)]">{wallAnalysis.inputs.wallThicknessMm} mm ({wallAnalysis.inputs.wallThicknessFt} ft / 9&quot;)</span> ·
+                Clear height: <span className="font-semibold text-[var(--text-primary)]">{wallAnalysis.inputs.floorHeightFt} ft</span> ({wallAnalysis.inputs.numFloors} floor{wallAnalysis.inputs.numFloors > 1 ? 's' : ''}).
+              </p>
+            </div>
+
+            {/* Dimension & Linear Rate Metric Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="p-3.5 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                <p className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Centerline Perimeter</p>
+                <p className="text-lg font-bold text-[var(--text-primary)] mt-1 tabular-nums">{wallAnalysis.centerToCenter.totalCenterLinePerFloorFt} ft</p>
+                <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 tabular-nums">
+                  Total: {wallAnalysis.centerToCenter.totalCenterLineAllFloorsFt} RFT across all floors
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                <p className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Gross Wall Face Area</p>
+                <p className="text-lg font-bold text-[var(--text-primary)] mt-1 tabular-nums">{wallAnalysis.reconciliation.totalWallAreaSqft.toLocaleString('en-IN')} sqft</p>
+                <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                  Superficial vertical face area
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                <p className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Linear Rate / RFT</p>
+                <p className="text-lg font-bold text-[var(--text-primary)] mt-1 tabular-nums">{formatINR(wallAnalysis.rates.materialCostPerRft)} <span className="text-xs font-normal text-[var(--text-muted)]">/ RFT</span></p>
+                <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 tabular-nums">
+                  Turnkey (+30%): {formatINR(wallAnalysis.rates.turnkeyCostPerRft)} / RFT
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                <p className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Masonry Material Cost</p>
+                <p className="text-lg font-bold text-[var(--accent-orange)] mt-1 tabular-nums">{formatINR(wallAnalysis.totalWallMaterialCost)}</p>
+                <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 tabular-nums">
+                  Turnkey: {formatINR(wallAnalysis.totalWallTurnkeyCost)}
+                </p>
+              </div>
+            </div>
+
+            {/* Method 1: Long Wall - Short Wall Method */}
+            <div className="space-y-2.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <div>
+                  <h4 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                    1. Long Wall - Short Wall Method (Separate Wall Method)
+                  </h4>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                    {wallAnalysis.longShortWallMethod.description}
+                  </p>
+                </div>
+                <span className="text-[11px] text-[var(--text-muted)] font-mono shrink-0">
+                  Total RFT: {wallAnalysis.longShortWallMethod.totalRunningLengthFt} ft
+                </span>
+              </div>
+
+              <div className="overflow-x-auto border border-[var(--border-color)] rounded-lg">
+                <table className="w-full text-xs">
+                  <thead className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)] text-[var(--text-muted)]">
+                    <tr>
+                      <th className="py-2.5 px-3 text-left font-semibold">Wall Orientation</th>
+                      <th className="py-2.5 px-3 text-left font-semibold">Measurement Rule</th>
+                      <th className="py-2.5 px-3 text-right font-semibold">Length (ft)</th>
+                      <th className="py-2.5 px-3 text-center font-semibold">Qty / Flr</th>
+                      <th className="py-2.5 px-3 text-right font-semibold">Cost / Wall (Mat)</th>
+                      <th className="py-2.5 px-3 text-right font-semibold">Cost / Wall (Turnkey)</th>
+                      <th className="py-2.5 px-3 text-right font-semibold">Total All Floors</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-primary)]">
+                    <tr className="hover:bg-[var(--bg-secondary)]/50 transition-colors">
+                      <td className="py-2.5 px-3 font-semibold text-[var(--text-primary)]">Long Wall (Lengthwise)</td>
+                      <td className="py-2.5 px-3 text-[var(--text-muted)] font-mono text-[11px]">Out-to-out (c/c + T)</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-medium">{wallAnalysis.longShortWallMethod.longWallLengthFt} ft</td>
+                      <td className="py-2.5 px-3 text-center tabular-nums">2 walls</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-medium">{formatINR(wallAnalysis.longShortWallMethod.costPerLongWallMat)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[var(--accent-orange)]">{formatINR(wallAnalysis.longShortWallMethod.costPerLongWallTurnkey)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[var(--accent-navy)]">{formatINR(wallAnalysis.longShortWallMethod.totalLongWallsCostMat)}</td>
+                    </tr>
+                    <tr className="hover:bg-[var(--bg-secondary)]/50 transition-colors">
+                      <td className="py-2.5 px-3 font-semibold text-[var(--text-primary)]">Short Wall (Crosswise)</td>
+                      <td className="py-2.5 px-3 text-[var(--text-muted)] font-mono text-[11px]">In-to-in (c/c - T)</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-medium">{wallAnalysis.longShortWallMethod.shortWallLengthFt} ft</td>
+                      <td className="py-2.5 px-3 text-center tabular-nums">2 walls</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-medium">{formatINR(wallAnalysis.longShortWallMethod.costPerShortWallMat)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[var(--accent-orange)]">{formatINR(wallAnalysis.longShortWallMethod.costPerShortWallTurnkey)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[var(--accent-navy)]">{formatINR(wallAnalysis.longShortWallMethod.totalShortWallsCostMat)}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot className="bg-[var(--bg-secondary)] border-t border-[var(--border-color)] font-bold text-[var(--text-primary)]">
+                    <tr>
+                      <td className="py-2.5 px-3" colSpan={2}>
+                        Total Long Wall - Short Wall Method ({wallAnalysis.inputs.numFloors * 4} envelope walls)
+                      </td>
+                      <td className="py-2.5 px-3 text-right tabular-nums">{wallAnalysis.longShortWallMethod.effectivePerimeterPerFloorFt} ft/flr</td>
+                      <td className="py-2.5 px-3 text-center tabular-nums">{wallAnalysis.inputs.numFloors * 4} walls</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-semibold">{formatINR(wallAnalysis.longShortWallMethod.totalCostMat)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums text-[var(--accent-orange)]">{formatINR(wallAnalysis.longShortWallMethod.totalCostTurnkey)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums text-[var(--accent-navy)]">{formatINR(wallAnalysis.longShortWallMethod.totalCostMat)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            {/* Method 2: Center Line Method */}
+            <div className="space-y-2.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <div>
+                  <h4 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                    2. Center Line Method (Continuous Centerline Axis)
+                  </h4>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                    {wallAnalysis.centerLineMethod.description}
+                  </p>
+                </div>
+                <span className="text-[11px] text-[var(--text-muted)] font-mono shrink-0">
+                  Total RFT: {wallAnalysis.centerLineMethod.totalRunningLengthFt} ft
+                </span>
+              </div>
+
+              <div className="overflow-x-auto border border-[var(--border-color)] rounded-lg">
+                <table className="w-full text-xs">
+                  <thead className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)] text-[var(--text-muted)]">
+                    <tr>
+                      <th className="py-2.5 px-3 text-left font-semibold">Wall Axis</th>
+                      <th className="py-2.5 px-3 text-left font-semibold">Centerline Dimension</th>
+                      <th className="py-2.5 px-3 text-right font-semibold">Length (ft)</th>
+                      <th className="py-2.5 px-3 text-center font-semibold">Axes / Flr</th>
+                      <th className="py-2.5 px-3 text-right font-semibold">Cost / Axis (Mat)</th>
+                      <th className="py-2.5 px-3 text-right font-semibold">Cost / Axis (Turnkey)</th>
+                      <th className="py-2.5 px-3 text-right font-semibold">Total All Floors</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-primary)]">
+                    <tr className="hover:bg-[var(--bg-secondary)]/50 transition-colors">
+                      <td className="py-2.5 px-3 font-semibold text-[var(--text-primary)]">Long Wall Axis</td>
+                      <td className="py-2.5 px-3 text-[var(--text-muted)] font-mono text-[11px]">L_cc = L - T</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-medium">{wallAnalysis.centerToCenter.lengthCcFt} ft</td>
+                      <td className="py-2.5 px-3 text-center tabular-nums">2 axes</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-medium">{formatINR(wallAnalysis.centerLineMethod.costPerLongWallMat)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-blue-600 dark:text-blue-400">{formatINR(wallAnalysis.centerLineMethod.costPerLongWallTurnkey)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[var(--accent-navy)]">{formatINR(wallAnalysis.centerLineMethod.totalLongWallsCostMat)}</td>
+                    </tr>
+                    <tr className="hover:bg-[var(--bg-secondary)]/50 transition-colors">
+                      <td className="py-2.5 px-3 font-semibold text-[var(--text-primary)]">Short Wall Axis</td>
+                      <td className="py-2.5 px-3 text-[var(--text-muted)] font-mono text-[11px]">B_cc = B - T</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-medium">{wallAnalysis.centerToCenter.breadthCcFt} ft</td>
+                      <td className="py-2.5 px-3 text-center tabular-nums">2 axes</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-medium">{formatINR(wallAnalysis.centerLineMethod.costPerShortWallMat)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-blue-600 dark:text-blue-400">{formatINR(wallAnalysis.centerLineMethod.costPerShortWallTurnkey)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[var(--accent-navy)]">{formatINR(wallAnalysis.centerLineMethod.totalShortWallsCostMat)}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot className="bg-[var(--bg-secondary)] border-t border-[var(--border-color)] font-bold text-[var(--text-primary)]">
+                    <tr>
+                      <td className="py-2.5 px-3" colSpan={2}>
+                        Total Centerline Takeoff (2 × [L_cc + B_cc] × {wallAnalysis.inputs.numFloors} floors)
+                      </td>
+                      <td className="py-2.5 px-3 text-right tabular-nums">{wallAnalysis.centerLineMethod.effectivePerimeterPerFloorFt} ft/flr</td>
+                      <td className="py-2.5 px-3 text-center tabular-nums">{wallAnalysis.inputs.numFloors * 4} axes</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-semibold">{formatINR(wallAnalysis.centerLineMethod.totalCostMat)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums text-blue-600 dark:text-blue-400">{formatINR(wallAnalysis.centerLineMethod.totalCostTurnkey)}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums text-[var(--accent-navy)]">{formatINR(wallAnalysis.centerLineMethod.totalCostMat)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            {/* Reconciliation Confirmation Note */}
+            <div className="flex items-center gap-2 text-xs px-3 py-2 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-secondary)]">
+              <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+              <span>
+                <strong className="text-[var(--text-primary)]">Mathematical Reconciliation:</strong> Both methods converge with 100% precision ({wallAnalysis.longShortWallMethod.totalRunningLengthFt} RFT total). Effective long wall out-to-out addition perfectly balances short wall in-to-in corner deductions: <code className="font-mono text-[11px] bg-[var(--bg-card)] px-1 py-0.5 rounded border border-[var(--border-color)]">2×L_out + 2×B_in ≡ 2×(L_cc + B_cc)</code>.
+              </span>
+            </div>
+
+            {/* Best Approach Recommendation Card */}
+            <div className="p-4 rounded-lg bg-emerald-500/5 dark:bg-emerald-950/20 border border-emerald-500/20 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500 text-white">
+                  Recommended Best Approach
+                </span>
+                <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                  {wallAnalysis.bestApproachRecommendation.verdictTitle}
+                </span>
+              </div>
+
+              <p className="text-xs font-semibold text-[var(--text-primary)]">
+                {wallAnalysis.bestApproachRecommendation.primaryReason}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[var(--text-secondary)]">
+                {wallAnalysis.bestApproachRecommendation.rationaleDetails.map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-1.5">
+                    <span className="text-emerald-600 dark:text-emerald-400 shrink-0 font-bold">•</span>
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-[11px] text-[var(--text-muted)] italic pt-1 border-t border-emerald-500/10">
+                {wallAnalysis.bestApproachRecommendation.whenToUseAlternative}
+              </p>
             </div>
           </div>
         </CollapseSection>

@@ -5,6 +5,7 @@
 import ExcelJS from 'exceljs';
 import type { EstimateResult } from '@/lib/engine/types';
 import { computeLabourBreakdown, estimateTimeline } from '@/lib/utils';
+import { calculateWallAnalysis } from '@/lib/engine';
 
 const NAVY  = '1E2D4E';
 const ORANGE = 'F97316';
@@ -445,6 +446,239 @@ export async function generateEstimateExcel(
   note.font = { name: 'Calibri', size: 9, color: { argb: 'FF94A3B8' }, italic: true };
   note.alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
   ws3.getRow(lr).height = 32;
+
+  // ── Sheet 4: Wall Analysis (IS 1200 / CPWD DSR) ──────────────────────────────
+  const ws4 = wb.addWorksheet('Wall Analysis', { properties: { tabColor: { argb: 'FF10B981' } } });
+  ws4.getColumn(1).width = 28;  // Parameter / Wall Orientation
+  ws4.getColumn(2).width = 30;  // Formula / Rule
+  ws4.getColumn(3).width = 16;  // Dimension / Length
+  ws4.getColumn(4).width = 14;  // Qty / Floor
+  ws4.getColumn(5).width = 20;  // Cost/Wall (Material)
+  ws4.getColumn(6).width = 20;  // Cost/Wall (Turnkey)
+  ws4.getColumn(7).width = 22;  // Total All Floors (₹)
+
+  // Header banner
+  ws4.mergeCells('A1:G1');
+  const wallBrand = ws4.getCell('A1');
+  wallBrand.value = 'OUTSYD — Wall Quantity Survey & Method Analysis';
+  wallBrand.font = { name: 'Calibri', bold: true, size: 16, color: { argb: `FF${WHITE}` } };
+  wallBrand.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${NAVY}` } };
+  wallBrand.alignment = { horizontal: 'left', vertical: 'middle' };
+  ws4.getRow(1).height = 36;
+
+  ws4.mergeCells('A2:G2');
+  const wallSub = ws4.getCell('A2');
+  wallSub.value = 'IS 1200 / CPWD DSR Superstructure Masonry Takeoff · Long Wall - Short Wall vs Center Line Method';
+  wallSub.font = { name: 'Calibri', size: 9, color: { argb: 'FF94A3B8' }, italic: true };
+  wallSub.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${NAVY}` } };
+  wallSub.alignment = { horizontal: 'left', vertical: 'middle' };
+  ws4.getRow(2).height = 18;
+
+  ws4.getRow(3).height = 8; // spacer
+
+  // Calculate Wall Analysis
+  const cat03Subtotal = result.categoryTotals.find(c => c.categoryCode === 'CAT_03')?.subtotal ?? 0;
+  let lenFt = 40;
+  let brdFt = 30;
+  let htFt = 20;
+
+  if (inputSummary['Dimensions']) {
+    const m = inputSummary['Dimensions'].match(/(\d+(\.\d+)?)\s*ft\s*[×x]\s*(\d+(\.\d+)?)\s*ft\s*[×x]\s*(\d+(\.\d+)?)\s*ft/i);
+    if (m) {
+      lenFt = parseFloat(m[1]);
+      brdFt = parseFloat(m[3]);
+      htFt = parseFloat(m[5]);
+    }
+  }
+
+  const wallAnalysis = calculateWallAnalysis(
+    {
+      lengthFt: lenFt,
+      breadthFt: brdFt,
+      heightFt: htFt,
+      numFloors,
+      typology,
+    },
+    cat03Subtotal,
+  );
+
+  let wr = 4;
+
+  // Section 1: Dimensions & Rate Summary
+  ws4.mergeCells(`A${wr}:G${wr}`);
+  const sec1Hdr = ws4.getCell(`A${wr}`);
+  sec1Hdr.value = 'WALL DIMENSIONS & LINEAR RATES';
+  sec1Hdr.font = { name: 'Calibri', bold: true, size: 11, color: { argb: `FF${WHITE}` } };
+  sec1Hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${NAVY}` } };
+  sec1Hdr.alignment = { horizontal: 'left', vertical: 'middle' };
+  ws4.getRow(wr).height = 22;
+  wr++;
+
+  const dimMetrics = [
+    ['Envelope Dimensions (Out-to-Out)', `${wallAnalysis.inputs.outerLengthFt} ft × ${wallAnalysis.inputs.outerBreadthFt} ft`, 'Floors / Clear Height', `${wallAnalysis.inputs.numFloors} floor(s) · ${wallAnalysis.inputs.floorHeightFt} ft clear ht`],
+    ['Nominal Wall Thickness', `${wallAnalysis.inputs.wallThicknessMm} mm (${wallAnalysis.inputs.wallThicknessFt} ft / 9")`, 'Centerline Perimeter / Flr', `${wallAnalysis.centerToCenter.totalCenterLinePerFloorFt} ft / floor`],
+    ['Total Centerline Running Length', `${wallAnalysis.centerToCenter.totalCenterLineAllFloorsFt} RFT (All floors)`, 'Gross Surface Wall Area', `${wallAnalysis.reconciliation.totalWallAreaSqft.toLocaleString('en-IN')} sqft`],
+    ['Wall Material Cost / RFT', wallAnalysis.rates.materialCostPerRft, 'Turnkey Cost / RFT (+30%)', wallAnalysis.rates.turnkeyCostPerRft],
+    ['Total Masonry Material Cost', wallAnalysis.totalWallMaterialCost, 'Total Turnkey Wall Cost', wallAnalysis.totalWallTurnkeyCost],
+  ];
+
+  dimMetrics.forEach((m, idx) => {
+    const bg = idx % 2 === 0 ? WHITE : GRAY_BG;
+    setCell(ws4, 1, wr, m[0], { size: 10, color: GRAY_TEXT, bg, border: true });
+    if (typeof m[1] === 'number') {
+      setCell(ws4, 2, wr, m[1], { bold: true, size: 10, align: 'right', bg, numFmt: INR_FORMAT, border: true });
+    } else {
+      setCell(ws4, 2, wr, m[1], { bold: true, size: 10, bg, border: true });
+    }
+    setCell(ws4, 3, wr, m[2], { size: 10, color: GRAY_TEXT, bg, border: true });
+    if (typeof m[3] === 'number') {
+      ws4.mergeCells(`D${wr}:G${wr}`);
+      setCell(ws4, 4, wr, m[3], { bold: true, size: 10, align: 'right', bg, numFmt: INR_FORMAT, border: true });
+    } else {
+      ws4.mergeCells(`D${wr}:G${wr}`);
+      setCell(ws4, 4, wr, m[3], { bold: true, size: 10, bg, border: true });
+    }
+    ws4.getRow(wr).height = 20;
+    wr++;
+  });
+
+  wr += 2;
+
+  // Section 2: Method 1 — Long Wall - Short Wall Method
+  ws4.mergeCells(`A${wr}:G${wr}`);
+  const sec2Hdr = ws4.getCell(`A${wr}`);
+  sec2Hdr.value = 'METHOD 1: LONG WALL - SHORT WALL METHOD (SEPARATE WALL TAKEOFF)';
+  sec2Hdr.font = { name: 'Calibri', bold: true, size: 11, color: { argb: `FF${WHITE}` } };
+  sec2Hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F97316' } };
+  sec2Hdr.alignment = { horizontal: 'left', vertical: 'middle' };
+  ws4.getRow(wr).height = 22;
+  wr++;
+
+  headerRow(ws4, wr, ['Wall Orientation', 'Measurement Rule', 'Length (ft)', 'Walls / Flr', 'Cost/Wall (Material)', 'Cost/Wall (Turnkey)', 'Total All Floors (₹)']);
+  ws4.getRow(wr).height = 20;
+  wr++;
+
+  // Long wall row
+  setCell(ws4, 1, wr, 'Long Wall (Lengthwise)', { bold: true, size: 10, bg: WHITE, border: true });
+  setCell(ws4, 2, wr, 'Out-to-out (c/c + T = L)', { size: 10, color: GRAY_TEXT, bg: WHITE, border: true });
+  setCell(ws4, 3, wr, wallAnalysis.longShortWallMethod.longWallLengthFt, { align: 'right', bg: WHITE, border: true });
+  setCell(ws4, 4, wr, 2, { align: 'center', bg: WHITE, border: true });
+  setCell(ws4, 5, wr, wallAnalysis.longShortWallMethod.costPerLongWallMat, { align: 'right', bg: WHITE, numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 6, wr, wallAnalysis.longShortWallMethod.costPerLongWallTurnkey, { align: 'right', bold: true, bg: WHITE, numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 7, wr, wallAnalysis.longShortWallMethod.totalLongWallsCostMat, { align: 'right', bold: true, color: NAVY, bg: WHITE, numFmt: INR_FORMAT, border: true });
+  ws4.getRow(wr).height = 20;
+  wr++;
+
+  // Short wall row
+  setCell(ws4, 1, wr, 'Short Wall (Crosswise)', { bold: true, size: 10, bg: GRAY_BG, border: true });
+  setCell(ws4, 2, wr, 'In-to-in (c/c - T = B - 2T)', { size: 10, color: GRAY_TEXT, bg: GRAY_BG, border: true });
+  setCell(ws4, 3, wr, wallAnalysis.longShortWallMethod.shortWallLengthFt, { align: 'right', bg: GRAY_BG, border: true });
+  setCell(ws4, 4, wr, 2, { align: 'center', bg: GRAY_BG, border: true });
+  setCell(ws4, 5, wr, wallAnalysis.longShortWallMethod.costPerShortWallMat, { align: 'right', bg: GRAY_BG, numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 6, wr, wallAnalysis.longShortWallMethod.costPerShortWallTurnkey, { align: 'right', bold: true, bg: GRAY_BG, numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 7, wr, wallAnalysis.longShortWallMethod.totalShortWallsCostMat, { align: 'right', bold: true, color: NAVY, bg: GRAY_BG, numFmt: INR_FORMAT, border: true });
+  ws4.getRow(wr).height = 20;
+  wr++;
+
+  // Long/Short total row
+  setCell(ws4, 1, wr, 'Total (Long + Short Walls)', { bold: true, size: 10, bg: LIGHT_ORANGE, border: true });
+  setCell(ws4, 2, wr, '2×L_out + 2×B_in', { size: 10, color: GRAY_TEXT, bg: LIGHT_ORANGE, border: true });
+  setCell(ws4, 3, wr, `${wallAnalysis.longShortWallMethod.effectivePerimeterPerFloorFt} ft/flr`, { align: 'right', bold: true, bg: LIGHT_ORANGE, border: true });
+  setCell(ws4, 4, wr, `${numFloors * 4} total`, { align: 'center', bold: true, bg: LIGHT_ORANGE, border: true });
+  setCell(ws4, 5, wr, wallAnalysis.longShortWallMethod.totalCostMat, { align: 'right', bold: true, bg: LIGHT_ORANGE, numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 6, wr, wallAnalysis.longShortWallMethod.totalCostTurnkey, { align: 'right', bold: true, color: ORANGE, bg: LIGHT_ORANGE, numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 7, wr, wallAnalysis.longShortWallMethod.totalCostMat, { align: 'right', bold: true, color: NAVY, bg: LIGHT_ORANGE, numFmt: INR_FORMAT, border: true });
+  ws4.getRow(wr).height = 22;
+  wr++;
+
+  wr += 2;
+
+  // Section 3: Method 2 — Center Line Method
+  ws4.mergeCells(`A${wr}:G${wr}`);
+  const sec3Hdr = ws4.getCell(`A${wr}`);
+  sec3Hdr.value = 'METHOD 2: CENTER LINE METHOD (CONTINUOUS AXIS TAKEOFF)';
+  sec3Hdr.font = { name: 'Calibri', bold: true, size: 11, color: { argb: `FF${WHITE}` } };
+  sec3Hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '3B82F6' } };
+  sec3Hdr.alignment = { horizontal: 'left', vertical: 'middle' };
+  ws4.getRow(wr).height = 22;
+  wr++;
+
+  headerRow(ws4, wr, ['Wall Axis', 'Centerline Dimension', 'Length (ft)', 'Axes / Flr', 'Cost/Axis (Material)', 'Cost/Axis (Turnkey)', 'Total All Floors (₹)']);
+  ws4.getRow(wr).height = 20;
+  wr++;
+
+  // Long wall axis
+  setCell(ws4, 1, wr, 'Long Wall Axis', { bold: true, size: 10, bg: WHITE, border: true });
+  setCell(ws4, 2, wr, 'L_cc = L - T', { size: 10, color: GRAY_TEXT, bg: WHITE, border: true });
+  setCell(ws4, 3, wr, wallAnalysis.centerToCenter.lengthCcFt, { align: 'right', bg: WHITE, border: true });
+  setCell(ws4, 4, wr, 2, { align: 'center', bg: WHITE, border: true });
+  setCell(ws4, 5, wr, wallAnalysis.centerLineMethod.costPerLongWallMat, { align: 'right', bg: WHITE, numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 6, wr, wallAnalysis.centerLineMethod.costPerLongWallTurnkey, { align: 'right', bold: true, bg: WHITE, numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 7, wr, wallAnalysis.centerLineMethod.totalLongWallsCostMat, { align: 'right', bold: true, color: NAVY, bg: WHITE, numFmt: INR_FORMAT, border: true });
+  ws4.getRow(wr).height = 20;
+  wr++;
+
+  // Short wall axis
+  setCell(ws4, 1, wr, 'Short Wall Axis', { bold: true, size: 10, bg: GRAY_BG, border: true });
+  setCell(ws4, 2, wr, 'B_cc = B - T', { size: 10, color: GRAY_TEXT, bg: GRAY_BG, border: true });
+  setCell(ws4, 3, wr, wallAnalysis.centerToCenter.breadthCcFt, { align: 'right', bg: GRAY_BG, border: true });
+  setCell(ws4, 4, wr, 2, { align: 'center', bg: GRAY_BG, border: true });
+  setCell(ws4, 5, wr, wallAnalysis.centerLineMethod.costPerShortWallMat, { align: 'right', bg: GRAY_BG, numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 6, wr, wallAnalysis.centerLineMethod.costPerShortWallTurnkey, { align: 'right', bold: true, bg: GRAY_BG, numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 7, wr, wallAnalysis.centerLineMethod.totalShortWallsCostMat, { align: 'right', bold: true, color: NAVY, bg: GRAY_BG, numFmt: INR_FORMAT, border: true });
+  ws4.getRow(wr).height = 20;
+  wr++;
+
+  // Centerline total row
+  setCell(ws4, 1, wr, 'Total Centerline Takeoff', { bold: true, size: 10, bg: 'EFF6FF', border: true });
+  setCell(ws4, 2, wr, '2×(L_cc + B_cc) × numFloors', { size: 10, color: GRAY_TEXT, bg: 'EFF6FF', border: true });
+  setCell(ws4, 3, wr, `${wallAnalysis.centerLineMethod.effectivePerimeterPerFloorFt} ft/flr`, { align: 'right', bold: true, bg: 'EFF6FF', border: true });
+  setCell(ws4, 4, wr, `${numFloors * 4} axes`, { align: 'center', bold: true, bg: 'EFF6FF', border: true });
+  setCell(ws4, 5, wr, wallAnalysis.centerLineMethod.totalCostMat, { align: 'right', bold: true, bg: 'EFF6FF', numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 6, wr, wallAnalysis.centerLineMethod.totalCostTurnkey, { align: 'right', bold: true, color: '3B82F6', bg: 'EFF6FF', numFmt: INR_FORMAT, border: true });
+  setCell(ws4, 7, wr, wallAnalysis.centerLineMethod.totalCostMat, { align: 'right', bold: true, color: NAVY, bg: 'EFF6FF', numFmt: INR_FORMAT, border: true });
+  ws4.getRow(wr).height = 22;
+  wr++;
+
+  wr += 2;
+
+  // Section 4: Best Approach Recommendation
+  ws4.mergeCells(`A${wr}:G${wr}`);
+  const recHdr = ws4.getCell(`A${wr}`);
+  recHdr.value = `BEST APPROACH RECOMMENDATION: ${wallAnalysis.bestApproachRecommendation.verdictTitle.toUpperCase()}`;
+  recHdr.font = { name: 'Calibri', bold: true, size: 11, color: { argb: `FF${WHITE}` } };
+  recHdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '10B981' } };
+  recHdr.alignment = { horizontal: 'left', vertical: 'middle' };
+  ws4.getRow(wr).height = 24;
+  wr++;
+
+  ws4.mergeCells(`A${wr}:G${wr}`);
+  const recSub = ws4.getCell(`A${wr}`);
+  recSub.value = `Primary Engineering Justification: ${wallAnalysis.bestApproachRecommendation.primaryReason}`;
+  recSub.font = { name: 'Calibri', bold: true, size: 10, color: { argb: 'FF0F172A' } };
+  recSub.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F0FDF4' } };
+  recSub.alignment = { horizontal: 'left', vertical: 'middle' };
+  ws4.getRow(wr).height = 20;
+  wr++;
+
+  wallAnalysis.bestApproachRecommendation.rationaleDetails.forEach((rat) => {
+    ws4.mergeCells(`A${wr}:G${wr}`);
+    const rCell = ws4.getCell(`A${wr}`);
+    rCell.value = `• ${rat}`;
+    rCell.font = { name: 'Calibri', size: 9.5, color: { argb: 'FF334155' } };
+    rCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F0FDF4' } };
+    rCell.alignment = { horizontal: 'left', vertical: 'middle' };
+    ws4.getRow(wr).height = 18;
+    wr++;
+  });
+
+  ws4.mergeCells(`A${wr}:G${wr}`);
+  const altCell = ws4.getCell(`A${wr}`);
+  altCell.value = `When to use Long Wall - Short Wall Method: ${wallAnalysis.bestApproachRecommendation.whenToUseAlternative}`;
+  altCell.font = { name: 'Calibri', size: 9, color: { argb: 'FF64748B' }, italic: true };
+  altCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F0FDF4' } };
+  altCell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+  ws4.getRow(wr).height = 24;
 
   // Return buffer
   const arrayBuffer = await wb.xlsx.writeBuffer();

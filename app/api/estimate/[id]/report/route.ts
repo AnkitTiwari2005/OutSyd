@@ -78,8 +78,16 @@ export async function GET(
     const { OutsydReportDocument } = await import('@/lib/pdf/report-template');
 
     const pdfBuffer = await renderToBuffer(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      React.createElement(OutsydReportDocument as any, { result, inputSummary }) as any
+      React.createElement(OutsydReportDocument, {
+        result,
+        inputSummary,
+        rawInput: input ? {
+          lengthFt: input.lengthFt,
+          breadthFt: input.breadthFt,
+          heightFt: input.heightFt,
+          numFloors: input.numFloors,
+        } : undefined,
+      }) as React.ReactElement<import('@react-pdf/renderer').DocumentProps>
     );
 
     const bytes = new Uint8Array(
