@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
+import { HeroCadBackground } from '@/components/HeroCadBackground';
 import {
   ArrowRight, BarChart3, FileText,
 } from 'lucide-react';
@@ -100,9 +101,10 @@ export default function HomePage() {
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <Navbar />
 
-      {/* ── Compact Hero Section (~30% height reduction for 1440x900 viewports) ── */}
-      <section className="border-b border-[var(--border-color)] bg-[var(--bg-primary)] py-10 sm:py-14">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+      {/* ── Compact Hero Section with Interactive 3D Architectural CAD Background ── */}
+      <section className="relative overflow-hidden border-b border-[var(--border-color)] bg-[var(--bg-primary)] py-10 sm:py-14">
+        <HeroCadBackground />
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
             {/* Top Indicator */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-md text-xs font-semibold text-[var(--text-secondary)] mb-4">
