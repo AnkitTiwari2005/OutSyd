@@ -1005,11 +1005,11 @@ export default function ResultPage() {
 
             {/* Best Approach Recommendation Card */}
             <div className="p-4 rounded-lg bg-emerald-500/5 dark:bg-emerald-950/20 border border-emerald-500/20 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500 text-white">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-600 text-white shadow-xs">
                   Recommended Best Approach
                 </span>
-                <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                <span className="text-sm font-bold text-[var(--accent-navy)]">
                   {wallAnalysis.bestApproachRecommendation.verdictTitle}
                 </span>
               </div>
