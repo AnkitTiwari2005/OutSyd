@@ -62,7 +62,7 @@ export function ProgressStepper({
                   isCompleted
                     ? 'bg-[var(--success-text)] text-white border border-[var(--success-text)]'
                     : isActive
-                    ? 'bg-[var(--accent-navy)] text-white border-2 border-[var(--accent-navy)]'
+                    ? 'bg-[var(--accent-navy)] text-white dark:text-slate-950 border-2 border-[var(--accent-navy)]'
                     : 'bg-[var(--bg-card)] text-[var(--text-subtle)] border-2 border-[var(--border-muted)]'
                 }`}
               >

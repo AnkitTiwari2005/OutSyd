@@ -75,7 +75,7 @@ export const ACCURACY_BANDS = {
 } as const;
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  CAT_01: '#1E3A5F', // Substructure — Deep Navy
+  CAT_01: '#3B82F6', // Substructure — Slate/Cobalt Blue
   CAT_02: '#4E79A7', // RCC Superstructure — Slate Blue
   CAT_03: '#499894', // Masonry — Teal
   CAT_04: '#86BCB6', // Waterproofing — Soft Aqua
@@ -103,7 +103,7 @@ export function getCategoryColor(code: string): string {
 
 // Timeline phase colors — restrained muted progression
 export const PHASE_COLORS = [
-  '#1E3A5F', // Foundations
+  '#3B82F6', // Foundations
   '#4E79A7', // Superstructure
   '#499894', // Masonry & MEP
   '#B07AA1', // Finishes

@@ -277,7 +277,7 @@ export function Step1Basics() {
                   >
                     {/* Top right checkmark badge */}
                     {selected && (
-                      <div className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-[var(--accent-navy)] text-white flex items-center justify-center">
+                      <div className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-[var(--accent-navy)] text-white dark:text-slate-950 flex items-center justify-center">
                         <Check size={11} strokeWidth={3} />
                       </div>
                     )}
@@ -348,7 +348,7 @@ export function Step1Basics() {
                         }`}
                       >
                         {selected && (
-                          <div className="absolute top-2 right-2 w-3.5 h-3.5 rounded-full bg-[var(--accent-navy)] text-white flex items-center justify-center">
+                          <div className="absolute top-2 right-2 w-3.5 h-3.5 rounded-full bg-[var(--accent-navy)] text-white dark:text-slate-950 flex items-center justify-center">
                             <Check size={9} strokeWidth={3} />
                           </div>
                         )}
@@ -469,7 +469,7 @@ export function Step1Basics() {
                     }`}
                   >
                     {selected && (
-                      <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-[var(--accent-navy)] text-white flex items-center justify-center">
+                      <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-[var(--accent-navy)] text-white dark:text-slate-950 flex items-center justify-center">
                         <Check size={10} strokeWidth={3} />
                       </div>
                     )}

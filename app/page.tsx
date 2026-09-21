@@ -105,7 +105,7 @@ export default function HomePage() {
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
             {/* Top Indicator */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-md text-xs font-semibold text-[var(--accent-navy)] mb-4">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-md text-xs font-semibold text-[var(--text-secondary)] mb-4">
               <span>CPWD DSR 2024 Calibrated</span>
               <span className="text-[var(--border-muted)]">·</span>
               <span>160+ Indian Cities</span>
@@ -145,7 +145,7 @@ export default function HomePage() {
               <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--border-color)]">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider bg-[var(--accent-navy-subtle)] text-[var(--accent-navy)] px-2 py-0.5 rounded">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-color)] px-2 py-0.5 rounded">
                       Sample Estimate Output
                     </span>
                     <span className="text-xs text-[var(--text-muted)]">Residential Apartment (G+5) — Bengaluru</span>
@@ -165,7 +165,7 @@ export default function HomePage() {
                 </div>
                 <div className="p-2.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)]">
                   <p className="text-[11px] font-medium text-[var(--text-muted)]">With Labour (+30%)</p>
-                  <p className="text-base font-semibold text-[var(--accent-navy)] tabular-nums mt-0.5">₹1.92 Cr</p>
+                  <p className="text-base font-semibold text-[var(--text-primary)] tabular-nums mt-0.5">₹1.92 Cr</p>
                 </div>
                 <div className="p-2.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-color)]">
                   <p className="text-[11px] font-medium text-[var(--text-muted)]">Material / sqft</p>
@@ -184,7 +184,7 @@ export default function HomePage() {
                 </p>
                 {[
                   { name: 'RCC Superstructure (Fe500D & Cement)', pct: 28, cost: '₹41.4L', color: '#4E79A7' },
-                  { name: 'Substructure & Footings', pct: 21, cost: '₹31.1L', color: '#1E3A5F' },
+                  { name: 'Substructure & Footings', pct: 21, cost: '₹31.1L', color: '#38BDF8' },
                   { name: 'Joinery, Kitchen & Finishes', pct: 16, cost: '₹23.7L', color: '#499894' },
                 ].map((item) => (
                   <div key={item.name} className="flex items-center gap-2">
@@ -304,7 +304,7 @@ export default function HomePage() {
                 Tier 2 Structural
               </span>
               <p className="text-lg font-bold text-[var(--accent-navy)] mb-1.5">±10–15% Standard</p>
-              <p className="text-xs text-[var(--accent-navy)] leading-relaxed">
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 Incorporates framing system, foundation type, lift counts, and IS 1893 seismic zoning. Ready for budget approvals.
               </p>
             </div>

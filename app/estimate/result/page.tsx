@@ -264,7 +264,7 @@ export default function ResultPage() {
           {isReady && (
             <button
               onClick={() => router.push('/estimate')}
-              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold bg-[var(--accent-navy)] text-white hover:bg-[var(--accent-navy-hover)] transition-colors"
+              className="btn-primary mt-4 text-xs py-2 px-4"
             >
               <RotateCcw size={13} /> Return to Form
             </button>
@@ -1009,7 +1009,7 @@ export default function ResultPage() {
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-600 text-white shadow-xs">
                   Recommended Best Approach
                 </span>
-                <span className="text-sm font-bold text-[var(--accent-navy)]">
+                <span className="text-sm font-bold text-[var(--text-primary)]">
                   {wallAnalysis.bestApproachRecommendation.verdictTitle}
                 </span>
               </div>
