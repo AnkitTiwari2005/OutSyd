@@ -284,6 +284,7 @@ export function EstimateFormShell() {
 
         {/* ── Form wrapper enabling Enter key submission (U-10) ─────────── */}
         <form
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
             if (currentStep < 2) {

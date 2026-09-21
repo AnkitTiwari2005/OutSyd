@@ -37,7 +37,7 @@ export const NumberStepperInput = React.forwardRef<HTMLInputElement, NumberStepp
           }}
           value={value ?? ''}
           onChange={onChange}
-          step={step}
+          step="any"
           min={min}
           max={max}
           className={`form-input pr-8 ${className}`}
