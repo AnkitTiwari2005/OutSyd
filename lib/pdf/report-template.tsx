@@ -54,24 +54,24 @@ const INR = (n: number) =>
 
 const styles = StyleSheet.create({
   page         : { padding: 36, paddingBottom: 48, fontFamily: fontName, fontSize: 9, color: '#0f172a' },
-  header       : { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
+  header       : { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   brand        : { fontSize: 18, fontWeight: 'bold', color: '#1e3a5f' },
   tagline      : { fontSize: 7, color: '#64748b', marginTop: 2 },
   title        : { fontSize: 13, fontWeight: 'bold', color: '#0f172a', marginBottom: 2 },
   subtitle     : { fontSize: 8, color: '#64748b' },
-  bandBox      : { padding: 8, borderRadius: 4, marginBottom: 14 },
+  bandBox      : { padding: 6, borderRadius: 4, marginBottom: 10 },
   bandGreen    : { backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#bbf7d0' },
   bandBlue     : { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe' },
   bandAmber    : { backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fde68a' },
-  bandText     : { fontSize: 10, fontWeight: 'bold', color: '#1e3a5f' },
-  sectionTitle : { fontSize: 10, fontWeight: 'bold', color: '#1e3a5f', marginTop: 14, marginBottom: 6, borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingBottom: 3 },
-  row          : { flexDirection: 'row', paddingVertical: 3.5, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  bandText     : { fontSize: 9.5, fontWeight: 'bold', color: '#1e3a5f' },
+  sectionTitle : { fontSize: 9.5, fontWeight: 'bold', color: '#1e3a5f', marginTop: 6, marginBottom: 4, borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingBottom: 2 },
+  row          : { flexDirection: 'row', paddingVertical: 2.2, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   col          : { flex: 1 },
   colRight     : { flex: 1, textAlign: 'right' },
-  colNarrow    : { width: 55, textAlign: 'right' },
-  thead        : { flexDirection: 'row', backgroundColor: '#f8fafc', paddingVertical: 4, paddingHorizontal: 4, borderRadius: 3, borderBottomWidth: 1, borderBottomColor: '#e2e8f0', marginBottom: 4 },
-  theadText    : { fontSize: 7.5, fontWeight: 'bold', color: '#475569' },
-  totalRow     : { flexDirection: 'row', paddingVertical: 6, backgroundColor: '#eff4fa', marginTop: 6, paddingHorizontal: 6, borderRadius: 3 },
+  colNarrow    : { width: 45, textAlign: 'right' },
+  thead        : { flexDirection: 'row', backgroundColor: '#f8fafc', paddingVertical: 2.5, paddingHorizontal: 3, borderRadius: 3, borderBottomWidth: 1, borderBottomColor: '#e2e8f0', marginBottom: 2 },
+  theadText    : { fontSize: 7, fontWeight: 'bold', color: '#475569' },
+  totalRow     : { flexDirection: 'row', paddingVertical: 4, backgroundColor: '#eff4fa', marginTop: 4, paddingHorizontal: 4, borderRadius: 3 },
   disclaimer   : { fontSize: 6.5, color: '#64748b', marginTop: 16, lineHeight: 1.4, borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingTop: 8 },
   summaryCard  : { flexDirection: 'row', gap: 8, marginBottom: 14 },
   card         : { flex: 1, padding: 8, backgroundColor: '#f8fafc', borderRadius: 4, borderWidth: 1, borderColor: '#e2e8f0' },
@@ -208,38 +208,45 @@ export function OutsydReportDocument({ result, inputSummary, rawInput }: Props) 
           </View>
         </View>
 
-        {/* Input Summary */}
-        <Text style={styles.sectionTitle}>Project Specifications</Text>
-        {Object.entries(inputSummary).map(([k, v]) => (
-          <View key={k} style={styles.row}>
-            <Text style={[styles.col, { color: '#64748b' }]}>{k}</Text>
-            <Text style={[styles.col, { fontWeight: 'bold' }]}>{v}</Text>
+        {/* Two-Column Section: Project Specs (Left) & Category Breakdown (Right) */}
+        <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>
+          {/* Left Column: Specifications */}
+          <View style={{ flex: 1 }}>
+            <Text style={styles.sectionTitle}>Project Specifications</Text>
+            {Object.entries(inputSummary).map(([k, v]) => (
+              <View key={k} style={styles.row}>
+                <Text style={[styles.col, { color: '#64748b', fontSize: 7.5 }]}>{k}</Text>
+                <Text style={[{ flex: 1.1, textAlign: 'right', fontWeight: 'bold', fontSize: 7.5 }]}>{v}</Text>
+              </View>
+            ))}
           </View>
-        ))}
 
-        {/* Category Breakdown */}
-        <Text style={styles.sectionTitle}>Category-wise Breakdown</Text>
-        <View style={styles.thead}>
-          <Text style={[styles.theadText, styles.col]}>Category</Text>
-          <Text style={[styles.theadText, styles.colRight]}>Amount</Text>
-          <Text style={[styles.theadText, styles.colNarrow]}>%</Text>
-        </View>
-        {result.categoryTotals.map((cat) => {
-          const pct = result.grandTotalMaterialCost > 0
-            ? ((cat.subtotal / result.grandTotalMaterialCost) * 100).toFixed(1)
-            : '0.0';
-          return (
-            <View key={cat.categoryCode} style={styles.row}>
-              <Text style={styles.col}>{cat.categoryCode} — {cat.name}</Text>
-              <Text style={styles.colRight}>{cat.subtotal > 0 ? INR(cat.subtotal) : '₹0 (N/A)'}</Text>
-              <Text style={styles.colNarrow}>{pct}%</Text>
+          {/* Right Column: Category Breakdown */}
+          <View style={{ flex: 1.35 }}>
+            <Text style={styles.sectionTitle}>Category-wise Breakdown</Text>
+            <View style={styles.thead}>
+              <Text style={[styles.theadText, styles.col]}>Category</Text>
+              <Text style={[styles.theadText, styles.colRight]}>Amount</Text>
+              <Text style={[styles.theadText, styles.colNarrow]}>%</Text>
             </View>
-          );
-        })}
-        <View style={styles.totalRow}>
-          <Text style={[styles.col, { fontWeight: 'bold' }]}>Grand Total (Materials)</Text>
-          <Text style={[styles.colRight, { fontWeight: 'bold', color: '#1e3a5f' }]}>{INR(result.grandTotalMaterialCost)}</Text>
-          <Text style={styles.colNarrow}></Text>
+            {result.categoryTotals.map((cat) => {
+              const pct = result.grandTotalMaterialCost > 0
+                ? ((cat.subtotal / result.grandTotalMaterialCost) * 100).toFixed(1)
+                : '0.0';
+              return (
+                <View key={cat.categoryCode} style={styles.row}>
+                  <Text style={[styles.col, { fontSize: 7 }]}>{cat.categoryCode} — {cat.name.split(' / ')[0]}</Text>
+                  <Text style={[styles.colRight, { fontSize: 7 }]}>{cat.subtotal > 0 ? INR(cat.subtotal) : '₹0'}</Text>
+                  <Text style={[styles.colNarrow, { fontSize: 7 }]}>{pct}%</Text>
+                </View>
+              );
+            })}
+            <View style={styles.totalRow}>
+              <Text style={[styles.col, { fontWeight: 'bold', fontSize: 7.5 }]}>Grand Total (Mat)</Text>
+              <Text style={[styles.colRight, { fontWeight: 'bold', color: '#1e3a5f', fontSize: 7.5 }]}>{INR(result.grandTotalMaterialCost)}</Text>
+              <Text style={styles.colNarrow}></Text>
+            </View>
+          </View>
         </View>
 
         {/* Page 1 Footer */}

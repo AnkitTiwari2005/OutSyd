@@ -28,8 +28,9 @@ export async function GET(
   }
 
   const { id } = await params;
+  const noCache = req.nextUrl.searchParams.has('t') || req.nextUrl.searchParams.has('nocache');
 
-  if (excelCache.has(id)) {
+  if (!noCache && excelCache.has(id)) {
     const cachedBytes = excelCache.get(id)!;
     const filename = `OUTSYD-Estimate-${id.slice(0, 8)}.xlsx`;
     return new NextResponse(Buffer.from(cachedBytes), {
@@ -38,7 +39,7 @@ export async function GET(
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Length': cachedBytes.byteLength.toString(),
-        'Cache-Control': 'public, max-age=86400, immutable',
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
         'X-Cache': 'HIT',
       },
     });
@@ -105,7 +106,7 @@ export async function GET(
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Length': bytes.byteLength.toString(),
-        'Cache-Control': 'public, max-age=86400, immutable',
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
         'X-Cache': 'MISS',
       },
     });
