@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Share2, Download, Save, Loader2 } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
+import { useEstimateStore } from '@/stores/estimate-store';
 
 interface Props {
   estimateId : string;
@@ -14,6 +15,7 @@ interface Props {
 
 export function ShareResultClient({ estimateId, grandTotal }: Props) {
   const router = useRouter();
+  const { guestToken, estimateId: currentStoreId } = useEstimateStore();
   const [saving, setSaving]   = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [name, setName]       = useState('');
@@ -46,7 +48,8 @@ export function ShareResultClient({ estimateId, grandTotal }: Props) {
   };
 
   const handleDownload = () => {
-    const url = `/api/estimate/${estimateId}/report`;
+    const guestParam = (estimateId === currentStoreId && guestToken) ? `?guestToken=${encodeURIComponent(guestToken)}` : '';
+    const url = `/api/estimate/${estimateId}/report${guestParam}`;
     const a   = document.createElement('a');
     a.href    = url;
     a.download = `OUTSYD-Estimate-${estimateId.slice(0, 8)}.pdf`;
@@ -57,10 +60,14 @@ export function ShareResultClient({ estimateId, grandTotal }: Props) {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const activeGuestToken = (estimateId === currentStoreId && guestToken) ? guestToken : undefined;
       const res = await fetch(`/api/estimate/${estimateId}/save`, {
         method : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ projectName: name || 'Untitled Project' }),
+        body   : JSON.stringify({
+          projectName: name || 'Untitled Project',
+          guestToken: activeGuestToken,
+        }),
       });
       if (res.status === 401) {
         toast.info('Sign in to save', { action: { label: 'Sign In', onClick: () => router.push(`/login?redirect=/estimate/${estimateId}`) } });

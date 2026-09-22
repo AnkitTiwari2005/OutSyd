@@ -94,12 +94,8 @@ export async function POST(req: NextRequest) {
       } catch (emailErr) {
         console.warn('[ForgotPassword] Resend delivery failed:', emailErr);
       }
-    } else {
+    } else if (process.env.NODE_ENV !== 'production') {
       console.log(`[ForgotPassword] RESEND_API_KEY not configured. Dev reset link for ${email}: ${resetUrl}`);
-      return NextResponse.json({
-        ...standardResponse,
-        resetUrl,
-      }, { status: 200 });
     }
 
     return NextResponse.json(standardResponse, { status: 200 });

@@ -43,13 +43,13 @@ export const NumberStepperInput = React.forwardRef<HTMLInputElement, NumberStepp
           className={`form-input pr-8 ${className}`}
           {...props}
         />
-        <div className="absolute right-1 top-1 bottom-1 w-6 flex flex-col border-l border-slate-200">
+        <div className="absolute right-1 top-1 bottom-1 w-6 flex flex-col border-l border-[var(--border-color)]">
           <button
             type="button"
             tabIndex={-1}
             onClick={() => handleStep(1)}
             aria-label="Increase value"
-            className="flex-1 flex items-center justify-center text-slate-500 hover:text-[var(--accent-navy)] hover:bg-slate-100 rounded-tr cursor-pointer"
+            className="flex-1 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-tr cursor-pointer transition-colors"
           >
             <ChevronUp size={12} strokeWidth={2.5} />
           </button>
@@ -58,7 +58,7 @@ export const NumberStepperInput = React.forwardRef<HTMLInputElement, NumberStepp
             tabIndex={-1}
             onClick={() => handleStep(-1)}
             aria-label="Decrease value"
-            className="flex-1 flex items-center justify-center text-slate-500 hover:text-[var(--accent-navy)] hover:bg-slate-100 rounded-br border-t border-slate-200 cursor-pointer"
+            className="flex-1 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-br border-t border-[var(--border-color)] cursor-pointer transition-colors"
           >
             <ChevronDown size={12} strokeWidth={2.5} />
           </button>

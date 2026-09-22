@@ -22,6 +22,7 @@ export function SpringCountUp({
   startWhen = true,
 }: CountUpProps) {
   const ref = useRef<HTMLSpanElement>(null);
+  const animatedRef = useRef(false);
   const motionValue = useMotionValue(from);
   const damping = 20 + 40 * (1 / duration);
   const stiffness = 100 * (1 / duration);
@@ -29,10 +30,14 @@ export function SpringCountUp({
   const isInView = useInView(ref as React.RefObject<Element>, { once: true, margin: '0px' });
 
   useEffect(() => {
-    if (isInView && startWhen) {
-      motionValue.set(to);
+    if (isInView && startWhen && !animatedRef.current) {
+      animatedRef.current = true;
+      motionValue.set(from);
+      requestAnimationFrame(() => {
+        motionValue.set(to);
+      });
     }
-  }, [isInView, startWhen, motionValue, to]);
+  }, [isInView, startWhen, motionValue, from, to]);
 
   useEffect(() => {
     const unsubscribe = springValue.on('change', (latest) => {
@@ -45,7 +50,7 @@ export function SpringCountUp({
 
   return (
     <span ref={ref} className={className}>
-      {from}{suffix}
+      {to}{suffix}
     </span>
   );
 }

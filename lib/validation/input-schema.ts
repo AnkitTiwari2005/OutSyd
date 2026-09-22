@@ -71,7 +71,7 @@ export const FullInputBaseSchema = Tier3BaseSchema.extend({
   localRateOverrides  : z.array(z.object({
     materialItemCode: z.string(),
     rate            : z.number().finite().positive(),
-  })).optional(),
+  })).max(50, 'Cannot exceed 50 local rate overrides').optional(),
 });
 
 // Cross-field validation: building footprint vs plot area & ground coverage ratio and floor height

@@ -5,12 +5,30 @@ import { Redis } from '@upstash/redis';
 let redis: Redis | null = null;
 let guestRateLimit: Ratelimit | null = null;
 let authRateLimit: Ratelimit | null = null;
+let hasWarnedMissingConfig = false;
+
+function warnMissingConfigOnce() {
+  if (!hasWarnedMissingConfig) {
+    hasWarnedMissingConfig = true;
+    console.error(
+      '[RateLimit] CRITICAL CONFIGURATION NOTICE: Upstash Redis credentials (UPSTASH_REDIS_REST_URL and/or UPSTASH_REDIS_REST_TOKEN) are missing. Rate limiting is running in UNPROTECTED FAIL-OPEN mode. All requests will be permitted without throttling.',
+    );
+  }
+}
+
+// Startup-time configuration check
+if (typeof process !== 'undefined' && process.env) {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    warnMissingConfigOnce();
+  }
+}
 
 function getLimiters() {
   if (!guestRateLimit) {
     const url = process.env.UPSTASH_REDIS_REST_URL;
     const token = process.env.UPSTASH_REDIS_REST_TOKEN;
     if (!url || !token) {
+      warnMissingConfigOnce();
       return null;
     }
     redis = new Redis({ url, token });
@@ -47,7 +65,10 @@ export async function checkRateLimit(
       reset    : result.reset,
     };
   } catch (error) {
-    console.warn('[RateLimit] Warning: Rate limit check encountered an issue, bypassing gracefully:', error);
+    console.error(
+      '[RateLimit] ERROR: Upstash Redis rate limit check failed, failing open for availability:',
+      error,
+    );
     return { success: true, remaining: 1, reset: Date.now() + 60000 };
   }
 }

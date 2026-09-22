@@ -362,9 +362,12 @@ export default function ResultPage() {
       const id = await ensureEstimateId();
       if (!id) return;
 
-      const endpoint = type === 'pdf' ? `/api/estimate/${id}/report?t=${Date.now()}` : `/api/estimate/${id}/excel?t=${Date.now()}`;
+      const guestQuery = guestToken ? `&guestToken=${encodeURIComponent(guestToken)}` : '';
+      const endpoint = type === 'pdf' ? `/api/estimate/${id}/report?t=${Date.now()}${guestQuery}` : `/api/estimate/${id}/excel?t=${Date.now()}${guestQuery}`;
       const ext = type === 'pdf' ? 'pdf' : 'xlsx';
-      const res = await fetch(endpoint);
+      const res = await fetch(endpoint, {
+        headers: guestToken ? { 'x-guest-token': guestToken } : undefined,
+      });
 
       if (!res.ok) {
         toast.error(`Export failed (${res.status})`);
