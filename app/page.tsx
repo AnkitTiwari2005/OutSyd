@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { HeroArchitecturalCanvas, HeroStyleSwitcher, type ArchitecturalHeroStyle } from '@/components/HeroArchitecturalCanvas';
+import { HeroSkylineBackground } from '@/components/hero-backgrounds/HeroSkylineBackground';
 import {
   ArrowRight, BarChart3, FileText,
 } from 'lucide-react';
@@ -97,42 +97,15 @@ const METHOD_STEPS = [
 ];
 
 export default function HomePage() {
-  const [heroStyle, setHeroStyle] = useState<ArchitecturalHeroStyle>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('outsyd_hero_style') as ArchitecturalHeroStyle;
-        if (saved && ['skyline', 'video'].includes(saved)) {
-          return saved;
-        }
-      } catch {
-        // ignore
-      }
-    }
-    return 'skyline';
-  });
-
-  const handleStyleChange = (style: ArchitecturalHeroStyle) => {
-    setHeroStyle(style);
-    try {
-      localStorage.setItem('outsyd_hero_style', style);
-    } catch {
-      // ignore
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <Navbar />
 
-      {/* ── Compact Hero Section with Interactive Architectural Backgrounds ── */}
-      <section className="relative overflow-hidden border-b border-[var(--border-color)] bg-[var(--bg-primary)] py-8 sm:py-12">
-        <HeroArchitecturalCanvas activeStyle={heroStyle} />
+      {/* ── Compact Hero Section with Parametric Architectural Skyline ── */}
+      <section className="relative overflow-hidden border-b border-[var(--border-color)] bg-[var(--bg-primary)] py-10 sm:py-14">
+        <HeroSkylineBackground />
         <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
-            {/* Interactive 4-Style Switcher Widget */}
-            <div className="flex justify-center mb-4">
-              <HeroStyleSwitcher activeStyle={heroStyle} onStyleChange={handleStyleChange} />
-            </div>
 
             {/* Top Indicator */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-md text-xs font-semibold text-[var(--text-secondary)] mb-4">
