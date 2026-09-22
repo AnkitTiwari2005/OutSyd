@@ -6,8 +6,9 @@ import { db } from '@/lib/db';
 import { projects } from '@/lib/db/schema';
 import { eq, desc, sql } from 'drizzle-orm';
 import Link from 'next/link';
-import { PlusCircle, BarChart3, Clock, LogOut, User, Building2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PlusCircle, ChevronLeft, ChevronRight, LogOut, User } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { DashboardProjects } from './_components/DashboardProjects';
 
 export const metadata = { title: 'Projects Dashboard — OUTSYD' };
 
@@ -45,14 +46,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       <header className="h-16 bg-[var(--bg-card)] border-b border-[var(--border-color)] sticky top-0 z-30">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
           <Link href="/">
-            <Image
-              src="/outsyd-logo.png"
-              alt="OUTSYD"
-              width={105}
-              height={26}
-              className="h-6 w-auto"
-              priority
-            />
+            <Image src="/outsyd-logo.png" alt="OUTSYD" width={105} height={26} className="h-6 w-auto" priority />
           </Link>
 
           <div className="flex items-center gap-4">
@@ -63,12 +57,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
             <ThemeToggle />
 
-            <form
-              action={async () => {
-                'use server';
-                await signOut({ redirectTo: '/login' });
-              }}
-            >
+            <form action={async () => { 'use server'; await signOut({ redirectTo: '/login' }); }}>
               <button
                 type="submit"
                 className="flex items-center gap-1 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--error-text)] transition-colors cursor-pointer"
@@ -98,93 +87,45 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           </Link>
         </div>
 
-        {userProjects.length === 0 ? (
-          <div className="card-standard p-12 text-center bg-[var(--bg-card)] border border-[var(--border-color)]">
-            <div className="w-12 h-12 rounded-lg bg-[var(--accent-navy-subtle)] text-[var(--accent-navy)] flex items-center justify-center mx-auto mb-3">
-              <Building2 size={24} />
-            </div>
-            <h2 className="text-base font-bold text-[var(--accent-navy)] mb-1">No estimates saved yet</h2>
-            <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto mb-5 leading-relaxed">
-              Calculate an estimate for any building and click &quot;Save&quot; on the results page to access it anytime.
+        {/* Animated project cards (client component) */}
+        <DashboardProjects
+          projects={userProjects.map(p => ({ id: p.id, name: p.name, createdAt: p.createdAt }))}
+          emptyState={userProjects.length === 0}
+        />
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && userProjects.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[var(--border-color)] pt-4 mt-6">
+            <p className="text-xs text-[var(--text-muted)]">
+              Showing <span className="font-semibold text-[var(--text-primary)]">{offset + 1}</span> to{' '}
+              <span className="font-semibold text-[var(--text-primary)]">{Math.min(offset + pageSize, totalCount)}</span> of{' '}
+              <span className="font-semibold text-[var(--text-primary)]">{totalCount}</span> estimates
             </p>
-            <Link href="/estimate" className="btn-primary">
-              <PlusCircle size={15} />
-              <span>Start Free Estimate</span>
-            </Link>
-          </div>
-        ) : (
-          <>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {userProjects.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/dashboard/projects/${p.id}`}
-                  className="card-standard p-5 bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-[var(--accent-navy)] transition-all group block"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="w-8 h-8 rounded-md bg-[var(--accent-navy-subtle)] text-[var(--accent-navy)] flex items-center justify-center">
-                      <BarChart3 size={16} />
-                    </div>
-                    <span className="text-[11px] font-bold text-[var(--accent-navy)] group-hover:underline">
-                      View BOQ →
-                    </span>
-                  </div>
-                  <h2 className="font-bold text-sm text-[var(--text-primary)] leading-snug group-hover:text-[var(--accent-navy)] transition-colors">
-                    {p.name}
-                  </h2>
-                  <div className="flex items-center gap-1.5 mt-3 text-xs text-[var(--text-muted)]">
-                    <Clock size={11} />
-                    <span>
-                      Saved {new Date(p.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </span>
-                  </div>
+
+            <div className="flex items-center gap-2">
+              {currentPage > 1 ? (
+                <Link href={`/dashboard?page=${currentPage - 1}`} className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1">
+                  <ChevronLeft size={13} /> Previous
                 </Link>
-              ))}
+              ) : (
+                <span className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1 opacity-50 cursor-not-allowed">
+                  <ChevronLeft size={13} /> Previous
+                </span>
+              )}
+
+              <span className="text-xs text-[var(--text-muted)] px-2 font-mono">{currentPage} / {totalPages}</span>
+
+              {currentPage < totalPages ? (
+                <Link href={`/dashboard?page=${currentPage + 1}`} className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1">
+                  Next <ChevronRight size={13} />
+                </Link>
+              ) : (
+                <span className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1 opacity-50 cursor-not-allowed">
+                  Next <ChevronRight size={13} />
+                </span>
+              )}
             </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[var(--border-color)] pt-4 mt-6">
-                <p className="text-xs text-[var(--text-muted)]">
-                  Showing <span className="font-semibold text-[var(--text-primary)]">{offset + 1}</span> to{' '}
-                  <span className="font-semibold text-[var(--text-primary)]">{Math.min(offset + pageSize, totalCount)}</span> of{' '}
-                  <span className="font-semibold text-[var(--text-primary)]">{totalCount}</span> estimates
-                </p>
-
-                <div className="flex items-center gap-2">
-                  {currentPage > 1 ? (
-                    <Link
-                      href={`/dashboard?page=${currentPage - 1}`}
-                      className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1"
-                    >
-                      <ChevronLeft size={13} /> Previous
-                    </Link>
-                  ) : (
-                    <span className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1 opacity-50 cursor-not-allowed">
-                      <ChevronLeft size={13} /> Previous
-                    </span>
-                  )}
-
-                  <span className="text-xs text-[var(--text-muted)] px-2 font-mono">
-                    {currentPage} / {totalPages}
-                  </span>
-
-                  {currentPage < totalPages ? (
-                    <Link
-                      href={`/dashboard?page=${currentPage + 1}`}
-                      className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1"
-                    >
-                      Next <ChevronRight size={13} />
-                    </Link>
-                  ) : (
-                    <span className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1 opacity-50 cursor-not-allowed">
-                      Next <ChevronRight size={13} />
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-          </>
+          </div>
         )}
       </div>
     </main>

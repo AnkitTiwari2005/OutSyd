@@ -15,6 +15,7 @@ import { ProgressStepper } from './ProgressStepper';
 import { ArrowLeft, ArrowRight, Zap, AlertCircle } from 'lucide-react';
 import { classifyBuilding } from '@/lib/engine/classifier';
 import { resolveAccuracyBandForInput } from '@/lib/engine/cost-calculator';
+import { motion, AnimatePresence } from 'motion/react';
 
 const STEPS = [
   { id: 0, label: 'Basics' },
@@ -37,6 +38,15 @@ export function EstimateFormShell() {
   // URL-driven step navigation (0-indexed internally: 0, 1, 2)
   const stepFromUrl = rawStep ? parseInt(rawStep, 10) - 1 : 0;
   const currentStep = Math.min(Math.max(stepFromUrl, 0), 2);
+
+  // Track direction of navigation for slide animation
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const prevStepRef = useRef(currentStep);
+  useEffect(() => {
+    if (currentStep > prevStepRef.current) setDirection(1);
+    else if (currentStep < prevStepRef.current) setDirection(-1);
+    prevStepRef.current = currentStep;
+  }, [currentStep]);
 
   const { formData, updateFormData, setResult, resetForm, isLoading, setLoading, _hasHydrated } = useEstimateStore();
   const [error, setError] = useState<string | null>(null);
@@ -295,10 +305,22 @@ export function EstimateFormShell() {
           }}
         >
           {/* ── Step Form Content Area ───────────────────────────────────── */}
-          <div className="p-4 sm:p-6 md:p-8">
-            {currentStep === 0 && <Step1Basics />}
-            {currentStep === 1 && <Step2Building />}
-            {currentStep === 2 && <Step4Review onNavigateToStep={handleNavigateToStep} />}
+          <div className="overflow-hidden">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={currentStep}
+                custom={direction}
+                initial={{ opacity: 0, x: direction * 32 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: direction * -32 }}
+                transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                className="p-4 sm:p-6 md:p-8"
+              >
+                {currentStep === 0 && <Step1Basics />}
+                {currentStep === 1 && <Step2Building />}
+                {currentStep === 2 && <Step4Review onNavigateToStep={handleNavigateToStep} />}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Error Notice */}
