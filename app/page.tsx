@@ -101,14 +101,14 @@ export default function HomePage() {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('outsyd_hero_style') as ArchitecturalHeroStyle;
-        if (saved && ['blueprint', 'building3d', 'skyline', 'video'].includes(saved)) {
+        if (saved && ['skyline', 'video'].includes(saved)) {
           return saved;
         }
       } catch {
         // ignore
       }
     }
-    return 'blueprint';
+    return 'skyline';
   });
 
   const handleStyleChange = (style: ArchitecturalHeroStyle) => {
@@ -149,7 +149,7 @@ export default function HomePage() {
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base text-[var(--text-muted)] leading-normal mb-6 max-w-2xl mx-auto font-normal">
+            <p className="text-base text-[var(--text-secondary)] leading-normal mb-6 max-w-2xl mx-auto font-normal">
               Statistically calibrated material quantities, turnkey costs, and contractor-ready schedules across 18 building categories.
             </p>
 

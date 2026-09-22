@@ -42,7 +42,7 @@ export function HeroSkylineBackground() {
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      targetMouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 60;
+      targetMouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 50;
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
@@ -62,15 +62,15 @@ export function HeroSkylineBackground() {
     handleResize();
     window.addEventListener('resize', handleResize, { passive: true });
 
-    // Floating ambient particles
+    // Floating ambient dust motes
     const particles: StarParticle[] = [];
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 35; i++) {
       particles.push({
         x: Math.random(),
         y: Math.random(),
         size: Math.random() * 1.5 + 0.8,
-        alpha: Math.random() * 0.5 + 0.2,
-        speed: Math.random() * 0.0004 + 0.0002,
+        alpha: Math.random() * 0.4 + 0.15,
+        speed: Math.random() * 0.0003 + 0.00015,
       });
     }
 
@@ -88,21 +88,19 @@ export function HeroSkylineBackground() {
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, width, height);
 
-      const baseHorizon = height * 0.82;
+      const baseHorizon = height * 0.86;
 
-      // ── 1. Volumetric Architectural Sky Searchlights ─────────────
-      const lightBeam1Angle = Math.sin(animTime * 0.4) * 0.18 - 0.35;
-      const lightBeam2Angle = Math.cos(animTime * 0.35) * 0.15 + 0.25;
-
+      // ── 1. Volumetric Searchlights (Flanked to Left & Right Wings) ─
+      // Sweeping from behind the flank towers, angled outwards away from center text!
       const drawSearchlight = (originX: number, originY: number, angle: number, beamWidth: number) => {
         const beamLen = height * 0.95;
         const targetX = originX + Math.sin(angle) * beamLen;
         const targetY = originY - Math.cos(angle) * beamLen;
 
         const grad = ctx.createRadialGradient(originX, originY, 10, targetX, targetY, beamLen);
-        const colStart = isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(14, 165, 233, 0.08)';
+        const colStart = isDark ? 'rgba(56, 189, 248, 0.10)' : 'rgba(14, 165, 233, 0.05)';
         grad.addColorStop(0, colStart);
-        grad.addColorStop(0.6, isDark ? 'rgba(245, 158, 11, 0.04)' : 'rgba(217, 119, 6, 0.03)');
+        grad.addColorStop(0.6, isDark ? 'rgba(245, 158, 11, 0.03)' : 'rgba(217, 119, 6, 0.02)');
         grad.addColorStop(1, 'transparent');
 
         ctx.fillStyle = grad;
@@ -114,75 +112,94 @@ export function HeroSkylineBackground() {
         ctx.fill();
       };
 
-      drawSearchlight(width * 0.3 + mouseX * 0.2, baseHorizon - 80, lightBeam1Angle, 85);
-      drawSearchlight(width * 0.7 + mouseX * 0.2, baseHorizon - 100, lightBeam2Angle, 95);
+      // Searchlight 1: on Left Wing sweeping outward
+      const beam1 = -0.32 + Math.sin(animTime * 0.35) * 0.12;
+      drawSearchlight(width * 0.16 + mouseX * 0.15, baseHorizon - 90, beam1, 75);
 
-      // ── 2. Layer 1: Distant Background Skyline Silhouette ─────────
-      const bgOffset = mouseX * 0.15;
-      ctx.fillStyle = isDark ? 'rgba(30, 41, 59, 0.25)' : 'rgba(203, 213, 225, 0.35)';
+      // Searchlight 2: on Right Wing sweeping outward
+      const beam2 = 0.28 + Math.cos(animTime * 0.3) * 0.12;
+      drawSearchlight(width * 0.84 + mouseX * 0.15, baseHorizon - 90, beam2, 85);
+
+      // ── 2. Layer 1: Background Skyline (Golden Canyon Composition) ─
+      // Notice: Tallest buildings are placed on Left Flank (0-28%) and Right Flank (72-100%).
+      // Center (30%-70%) has very low baseline massing to leave headline completely clear!
+      const bgOffset = mouseX * 0.12;
+      ctx.fillStyle = isDark ? 'rgba(30, 41, 59, 0.25)' : 'rgba(30, 58, 95, 0.05)';
 
       const bgBuildings = [
-        { x: -50, w: 90, h: 220 },
-        { x: 50, w: 75, h: 260 },
-        { x: 140, w: 110, h: 320 },
-        { x: 270, w: 85, h: 280 },
-        { x: 375, w: 130, h: 360 }, // Supertall
-        { x: 520, w: 90, h: 250 },
-        { x: 630, w: 120, h: 310 },
-        { x: 770, w: 80, h: 270 },
-        { x: 870, w: 140, h: 350 },
-        { x: 1030, w: 100, h: 290 },
-        { x: 1150, w: 120, h: 240 },
-        { x: 1290, w: 95, h: 270 },
-        { x: 1400, w: 110, h: 330 },
+        // Left Flank (Tall Towers)
+        { normX: -0.04, normW: 0.08, h: 260 },
+        { normX: 0.05, normW: 0.07, h: 320 },
+        { normX: 0.13, normW: 0.09, h: 360 }, // Supertall left
+        { normX: 0.23, normW: 0.06, h: 250 },
+        // Center Clearance Gap (Low baseline only, <= 80px)
+        { normX: 0.32, normW: 0.11, h: 65 },
+        { normX: 0.44, normW: 0.12, h: 55 },
+        { normX: 0.57, normW: 0.12, h: 70 },
+        // Right Flank (Tall Towers)
+        { normX: 0.70, normW: 0.07, h: 260 },
+        { normX: 0.78, normW: 0.09, h: 370 }, // Supertall right
+        { normX: 0.88, normW: 0.08, h: 310 },
+        { normX: 0.97, normW: 0.08, h: 240 },
       ];
 
       bgBuildings.forEach(b => {
-        const screenX = (b.x / 1400) * width + bgOffset;
-        const bWidth = (b.w / 1400) * width;
+        const screenX = b.normX * width + bgOffset;
+        const bWidth = b.normW * width;
         const bHeight = b.h * (height / 600);
         ctx.fillRect(screenX, baseHorizon - bHeight, bWidth, bHeight);
 
-        // Antenna Spire
-        ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.20)' : 'rgba(30, 58, 95, 0.20)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(screenX + bWidth / 2, baseHorizon - bHeight);
-        ctx.lineTo(screenX + bWidth / 2, baseHorizon - bHeight - 35);
-        ctx.stroke();
+        // Antenna Spire on flank towers
+        if (b.h > 150) {
+          ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.25)' : 'rgba(30, 58, 95, 0.15)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(screenX + bWidth / 2, baseHorizon - bHeight);
+          ctx.lineTo(screenX + bWidth / 2, baseHorizon - bHeight - 32);
+          ctx.stroke();
+        }
       });
 
-      // ── 3. Layer 2: Mid-ground Detailed High-Rises with Windows ────
-      const midOffset = mouseX * 0.4;
+      // ── 3. Layer 2: Midground High-Rises (Detailed Architecture) ────
+      const midOffset = mouseX * 0.35;
       const midBuildings = [
-        { x: -30, w: 70, h: 180, type: 'block' },
-        { x: 50, w: 85, h: 290, type: 'spire' },
-        { x: 150, w: 110, h: 240, type: 'stepped' },
-        { x: 280, w: 90, h: 340, type: 'diagrid' }, // Diagrid tower
-        { x: 390, w: 75, h: 280, type: 'twin1' },  // Twin Tower 1
-        { x: 480, w: 75, h: 280, type: 'twin2' },  // Twin Tower 2 (Connected by skybridge)
-        { x: 575, w: 105, h: 260, type: 'block' },
-        { x: 700, w: 90, h: 360, type: 'spire' },  // Iconic Pinnacle
-        { x: 810, w: 120, h: 220, type: 'stepped' },
-        { x: 950, w: 85, h: 300, type: 'diagrid' },
-        { x: 1055, w: 95, h: 270, type: 'block' },
-        { x: 1170, w: 80, h: 320, type: 'spire' },
-        { x: 1270, w: 110, h: 230, type: 'block' },
+        // Left Wing Towers
+        { normX: -0.02, normW: 0.07, h: 220, type: 'block' },
+        { normX: 0.06, normW: 0.08, h: 310, type: 'spire' },
+        { normX: 0.15, normW: 0.09, h: 380, type: 'diagrid' }, // Diagrid landmark
+        { normX: 0.25, normW: 0.06, h: 240, type: 'stepped' },
+        // Center Open Plaza / Low Riverwalk (Keeps text completely unobstructed)
+        { normX: 0.33, normW: 0.09, h: 60, type: 'plinth' },
+        { normX: 0.43, normW: 0.14, h: 45, type: 'plinth' },
+        { normX: 0.58, normW: 0.10, h: 55, type: 'plinth' },
+        // Right Wing Towers
+        { normX: 0.69, normW: 0.06, h: 230, type: 'stepped' },
+        { normX: 0.76, normW: 0.065, h: 320, type: 'twin1' }, // Twin Tower 1
+        { normX: 0.835, normW: 0.065, h: 320, type: 'twin2' }, // Twin Tower 2
+        { normX: 0.91, normW: 0.08, h: 390, type: 'spire' }, // Pinnacle
+        { normX: 1.00, normW: 0.07, h: 210, type: 'block' },
       ];
 
       midBuildings.forEach((b, idx) => {
-        const screenX = (b.x / 1300) * width + midOffset;
-        const bWidth = Math.max((b.w / 1300) * width, 55);
+        const screenX = b.normX * width + midOffset;
+        const bWidth = Math.max(b.normW * width, 45);
         const bHeight = b.h * (height / 580);
         const topY = baseHorizon - bHeight;
 
-        // Building Massing Body
-        ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(226, 232, 240, 0.85)';
-        ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(30, 58, 95, 0.30)';
-        ctx.lineWidth = 1.25;
+        // Visual treatment:
+        // In Dark mode: obsidian slate body + cyan rim lighting
+        // In Light mode: ultra-clean architectural ink sketch (whisper-thin lines, subtle tint)
+        if (isDark) {
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.32)';
+          ctx.lineWidth = 1.25;
+        } else {
+          ctx.fillStyle = 'rgba(248, 250, 252, 0.85)';
+          ctx.strokeStyle = 'rgba(30, 58, 95, 0.20)';
+          ctx.lineWidth = 1;
+        }
 
         if (b.type === 'stepped') {
-          // 3-tier stepped setback
           const t1H = bHeight * 0.45;
           const t2H = bHeight * 0.35;
           const t3H = bHeight * 0.20;
@@ -198,11 +215,11 @@ export function HeroSkylineBackground() {
           ctx.fillRect(screenX, topY, bWidth, bHeight);
           ctx.strokeRect(screenX, topY, bWidth, bHeight);
 
-          // Diagrid bracing lines if type is diagrid
+          // Diagrid trusses on landmark tower
           if (b.type === 'diagrid') {
-            ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.20)' : 'rgba(30, 58, 95, 0.18)';
-            ctx.lineWidth = 1;
-            const numDiags = 4;
+            ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.22)' : 'rgba(30, 58, 95, 0.12)';
+            ctx.lineWidth = 0.85;
+            const numDiags = 5;
             const dh = bHeight / numDiags;
             for (let d = 0; d < numDiags; d++) {
               ctx.beginPath();
@@ -219,20 +236,20 @@ export function HeroSkylineBackground() {
         if (b.type === 'twin1') {
           const nextB = midBuildings[idx + 1];
           if (nextB) {
-            const nextX = (nextB.x / 1300) * width + midOffset;
-            const bridgeY = topY + bHeight * 0.35;
+            const nextX = nextB.normX * width + midOffset;
+            const bridgeY = topY + bHeight * 0.32;
             const bridgeH = 14;
-            ctx.fillStyle = isDark ? 'rgba(30, 41, 59, 0.90)' : 'rgba(203, 213, 225, 0.95)';
+            ctx.fillStyle = isDark ? 'rgba(30, 41, 59, 0.92)' : 'rgba(241, 245, 249, 0.95)';
             ctx.fillRect(screenX + bWidth, bridgeY, nextX - (screenX + bWidth), bridgeH);
             ctx.strokeRect(screenX + bWidth, bridgeY, nextX - (screenX + bWidth), bridgeH);
           }
         }
 
-        // Antenna Spire & Aviation Light
+        // Spire & Blinking Aviation Beacon
         if (b.type === 'spire') {
-          const spireH = 40;
+          const spireH = 42;
           ctx.strokeStyle = isDark ? '#38BDF8' : '#0284C7';
-          ctx.lineWidth = 1.5;
+          ctx.lineWidth = 1.25;
           ctx.beginPath();
           ctx.moveTo(screenX + bWidth / 2, topY);
           ctx.lineTo(screenX + bWidth / 2, topY - spireH);
@@ -246,43 +263,48 @@ export function HeroSkylineBackground() {
           ctx.fill();
         }
 
-        // Lit Windows Grid
-        const cols = 4;
-        const rows = 12;
-        const winW = (bWidth - 12) / cols;
-        const winH = 4;
-        const padX = 3;
-        const padY = 8;
+        // Windows (Rendered only on tall flank buildings, NOT in center!)
+        if (b.h > 150) {
+          const cols = 4;
+          const rows = 12;
+          const winW = (bWidth - 14) / cols;
+          const winH = 3.5;
+          const padX = 3;
+          const padY = 8;
 
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            // Seed-like deterministic window lighting
-            const lit = ((idx * 17 + r * 7 + c * 13) % 10) > 4;
-            if (lit) {
-              const wx = screenX + padX + c * (winW + padX);
-              const wy = topY + 20 + r * (winH + padY);
-              if (wy < baseHorizon - 10) {
-                const isWarm = ((idx + r + c) % 3) === 0;
-                ctx.fillStyle = isWarm
-                  ? (isDark ? 'rgba(245, 158, 11, 0.65)' : 'rgba(217, 119, 6, 0.55)')
-                  : (isDark ? 'rgba(56, 189, 248, 0.55)' : 'rgba(14, 165, 233, 0.45)');
-                ctx.fillRect(wx, wy, winW, winH);
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              const lit = ((idx * 13 + r * 7 + c * 11) % 10) > 4;
+              if (lit) {
+                const wx = screenX + padX + c * (winW + padX);
+                const wy = topY + 22 + r * (winH + padY);
+                if (wy < baseHorizon - 10) {
+                  if (isDark) {
+                    const isWarm = ((idx + r + c) % 3) === 0;
+                    ctx.fillStyle = isWarm ? 'rgba(245, 158, 11, 0.65)' : 'rgba(56, 189, 248, 0.55)';
+                  } else {
+                    // Refined architectural ink & light cyan glazing in light mode
+                    ctx.fillStyle = 'rgba(14, 165, 233, 0.20)';
+                  }
+                  ctx.fillRect(wx, wy, winW, winH);
+                }
               }
             }
           }
         }
       });
 
-      // ── 4. Layer 3: Construction Tower Cranes ─────────────────────
-      const fgOffset = mouseX * 0.65;
+      // ── 4. Layer 3: Construction Tower Cranes (Stationed on Flanks) ──
+      const fgOffset = mouseX * 0.55;
+      // Crane 1 on Left Flank; Crane 2 on Right Flank (Zero obstruction in center!)
       const cranes = [
-        { x: width * 0.22 + fgOffset, baseY: baseHorizon, mastH: 260, jibL: 110, counterJibL: 35 },
-        { x: width * 0.78 + fgOffset, baseY: baseHorizon, mastH: 290, jibL: 130, counterJibL: 40 },
+        { x: width * 0.24 + fgOffset, baseY: baseHorizon, mastH: 280, jibL: 110, counterJibL: 35 },
+        { x: width * 0.74 + fgOffset, baseY: baseHorizon, mastH: 300, jibL: 125, counterJibL: 38 },
       ];
 
       cranes.forEach(crane => {
         const topMastY = crane.baseY - crane.mastH;
-        ctx.strokeStyle = isDark ? '#F59E0B' : '#D97706';
+        ctx.strokeStyle = isDark ? '#F59E0B' : 'rgba(30, 58, 95, 0.45)';
         ctx.lineWidth = 1.25;
 
         // Vertical Lattice Mast
@@ -300,12 +322,12 @@ export function HeroSkylineBackground() {
           ctx.stroke();
         }
 
-        // Slewing Unit / Cab
-        ctx.fillStyle = isDark ? '#F59E0B' : '#D97706';
+        // Slewing Cab
+        ctx.fillStyle = isDark ? '#F59E0B' : 'rgba(30, 58, 95, 0.55)';
         ctx.fillRect(crane.x - 6, topMastY - 8, 12, 8);
 
         // Apex Tower Peak
-        const peakY = topMastY - 24;
+        const peakY = topMastY - 22;
         ctx.beginPath();
         ctx.moveTo(crane.x, peakY);
         ctx.lineTo(crane.x - 5, topMastY - 8);
@@ -326,13 +348,13 @@ export function HeroSkylineBackground() {
         ctx.stroke();
 
         // Counter-weight
-        ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(30, 58, 95, 0.4)';
+        ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(30, 58, 95, 0.3)';
         ctx.fillRect(crane.x - crane.counterJibL, jibY - 2, 8, 10);
 
-        // Trolley & Hoist Cable (Slowly oscillating)
-        const trolleyX = crane.x + crane.jibL * 0.55 + Math.sin(animTime * 0.5) * 20;
-        const cableH = 65 + Math.cos(animTime * 0.7) * 15;
-        ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.6)' : 'rgba(14, 165, 233, 0.6)';
+        // Oscillating Trolley & Hoist Cable
+        const trolleyX = crane.x + crane.jibL * 0.55 + Math.sin(animTime * 0.5) * 18;
+        const cableH = 60 + Math.cos(animTime * 0.7) * 14;
+        ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.6)' : 'rgba(14, 165, 233, 0.5)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(trolleyX, jibY);
@@ -340,10 +362,10 @@ export function HeroSkylineBackground() {
         ctx.stroke();
 
         // Hook Block
-        ctx.fillStyle = isDark ? '#F59E0B' : '#D97706';
+        ctx.fillStyle = isDark ? '#F59E0B' : 'rgba(30, 58, 95, 0.55)';
         ctx.fillRect(trolleyX - 3, jibY + cableH, 6, 6);
 
-        // Crane Peak Blinking Beacon
+        // Blinking Crane Peak Beacon
         const craneBlink = (Math.sin(animTime * 5) + 1) * 0.5;
         ctx.fillStyle = `rgba(239, 68, 68, ${craneBlink * 0.9})`;
         ctx.beginPath();
@@ -351,49 +373,45 @@ export function HeroSkylineBackground() {
         ctx.fill();
       });
 
-      // ── 5. Layer 4: Architectural Cable-Stayed Bridge Spanning Horizon ──
-      const bridgePylonX = width * 0.5 + fgOffset * 0.5;
-      const pylonH = 180;
+      // ── 5. Layer 4: Cable-Stayed Suspension Bridge ─────────────────
+      const bridgePylonX = width * 0.5 + fgOffset * 0.4;
+      const pylonH = 150;
       const pylonTopY = baseHorizon - pylonH;
 
-      // Inverted-Y Bridge Pylon Tower
-      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(30, 58, 95, 0.35)';
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.30)' : 'rgba(30, 58, 95, 0.22)';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(bridgePylonX, pylonTopY);
-      ctx.lineTo(bridgePylonX - 28, baseHorizon);
+      ctx.lineTo(bridgePylonX - 25, baseHorizon);
       ctx.moveTo(bridgePylonX, pylonTopY);
-      ctx.lineTo(bridgePylonX + 28, baseHorizon);
-      // Cross strut
-      ctx.moveTo(bridgePylonX - 16, baseHorizon - 70);
-      ctx.lineTo(bridgePylonX + 16, baseHorizon - 70);
+      ctx.lineTo(bridgePylonX + 25, baseHorizon);
+      ctx.moveTo(bridgePylonX - 14, baseHorizon - 60);
+      ctx.lineTo(bridgePylonX + 14, baseHorizon - 60);
       ctx.stroke();
 
       // Radiating Stay Cables
-      ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.20)' : 'rgba(14, 165, 233, 0.18)';
-      ctx.lineWidth = 0.85;
-      const numCables = 7;
+      ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.16)' : 'rgba(14, 165, 233, 0.14)';
+      ctx.lineWidth = 0.8;
+      const numCables = 6;
       for (let c = 1; c <= numCables; c++) {
-        const anchorDist = c * 38;
+        const anchorDist = c * 35;
         const cableTop = pylonTopY + c * 10;
         ctx.beginPath();
-        // Left fan
         ctx.moveTo(bridgePylonX, cableTop);
-        ctx.lineTo(bridgePylonX - anchorDist, baseHorizon - 10);
-        // Right fan
+        ctx.lineTo(bridgePylonX - anchorDist, baseHorizon - 8);
         ctx.moveTo(bridgePylonX, cableTop);
-        ctx.lineTo(bridgePylonX + anchorDist, baseHorizon - 10);
+        ctx.lineTo(bridgePylonX + anchorDist, baseHorizon - 8);
         ctx.stroke();
       }
 
-      // Horizontal Bridge Deck
-      ctx.fillStyle = isDark ? 'rgba(30, 41, 59, 0.85)' : 'rgba(226, 232, 240, 0.90)';
-      ctx.fillRect(0, baseHorizon - 10, width, 12);
-      ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(30, 58, 95, 0.30)';
+      // Base Promenade Deck
+      ctx.fillStyle = isDark ? 'rgba(30, 41, 59, 0.85)' : 'rgba(241, 245, 249, 0.90)';
+      ctx.fillRect(0, baseHorizon - 8, width, 12);
+      ctx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.30)' : 'rgba(30, 58, 95, 0.15)';
       ctx.lineWidth = 1;
-      ctx.strokeRect(0, baseHorizon - 10, width, 12);
+      ctx.strokeRect(0, baseHorizon - 8, width, 12);
 
-      // ── 6. Ambient Floating Dust / Light Motes ─────────────────────
+      // ── 6. Ambient Light Particles ─────────────────────────────────
       particles.forEach(p => {
         p.y -= p.speed;
         if (p.y < 0) p.y = 1;
@@ -403,8 +421,8 @@ export function HeroSkylineBackground() {
         const pAlpha = p.alpha * (0.6 + Math.sin(animTime + p.x * 10) * 0.4);
 
         ctx.fillStyle = isDark
-          ? `rgba(56, 189, 248, ${pAlpha * 0.6})`
-          : `rgba(14, 165, 233, ${pAlpha * 0.45})`;
+          ? `rgba(56, 189, 248, ${pAlpha * 0.55})`
+          : `rgba(14, 165, 233, ${pAlpha * 0.35})`;
         ctx.beginPath();
         ctx.arc(px, py, p.size, 0, Math.PI * 2);
         ctx.fill();
@@ -426,30 +444,40 @@ export function HeroSkylineBackground() {
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
-      {/* ── Atmospheric Sky Glow ─────────────────────────────────── */}
+      {/* ── Atmospheric Ambient Sky Glow ─────────────────────────── */}
       <div
         className="absolute inset-0 opacity-40 dark:opacity-60 transition-opacity duration-500"
         style={{
-          background: 'radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.08) 0%, rgba(245, 158, 11, 0.04) 50%, transparent 75%)',
+          background: 'radial-gradient(circle at 50% 25%, rgba(56, 189, 248, 0.08) 0%, rgba(245, 158, 11, 0.03) 50%, transparent 75%)',
         }}
       />
 
-      {/* ── Skyline Panorama Canvas ──────────────────────────────── */}
+      {/* ── Flanked Architectural Skyline Canvas ─────────────────── */}
       <canvas
         ref={canvasRef}
-        className="w-full h-full block opacity-75 dark:opacity-85 transition-opacity duration-300"
+        className="w-full h-full block opacity-85 dark:opacity-90 transition-opacity duration-300"
       />
 
-      {/* ── High-Contrast Radial Vignette Mask ───────────────────── */}
-      {/* Ensures center headline, subtitle, and CTA remain 100% razor sharp */}
+      {/* ── High-Clarity Center Text Isolation & Vignette Mask ───── */}
+      {/* Dark Mode: Pure obsidian center backdrop ensures white text is 100% sharp */}
+      {/* Light Mode: Pure luminous white center backdrop eliminates all clutter/murkiness */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 transition-all duration-300"
         style={{
-          background: 'radial-gradient(ellipse at 50% 45%, transparent 20%, var(--bg-primary) 85%)',
+          background: `
+            radial-gradient(ellipse at 50% 38%,
+              var(--bg-primary) 0%,
+              var(--bg-primary) 32%,
+              transparent 75%
+            )
+          `,
+          opacity: 0.88,
         }}
       />
+
+      {/* Edge Blends */}
       <div className="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-[var(--bg-primary)] to-transparent" />
-      <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-[var(--bg-primary)]/80 to-transparent" />
+      <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-[var(--bg-primary)] to-transparent" />
     </div>
   );
 }
