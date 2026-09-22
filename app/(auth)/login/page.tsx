@@ -2,13 +2,12 @@
 import { Logo } from '@/components/Logo';
 import { useState, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, Mail, ArrowLeft, Loader2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -16,20 +15,20 @@ function LoginForm() {
   const [loading, setLoading]   = useState(false);
 
   const redirect = searchParams?.get('redirect');
-  const safeTarget = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard';
+  const safeTarget = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     const res = await signIn('credentials', { email, password, redirect: false });
-    setLoading(false);
     if (res?.error) {
+      setLoading(false);
       setError('Invalid email or password credentials.');
       return;
     }
-    router.refresh();
-    router.push(safeTarget);
+    // Hard navigate to synchronize cookies and refresh server components immediately
+    window.location.href = safeTarget;
   };
 
   return (

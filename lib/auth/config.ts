@@ -2,6 +2,7 @@
 import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig: NextAuthConfig = {
+  trustHost: true,
   pages: {
     signIn: '/login',
     error : '/auth/error',
@@ -11,17 +12,21 @@ export const authConfig: NextAuthConfig = {
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.sub = user.id;
         token.role = (user as { role?: string }).role ?? 'registered';
       }
       return token;
     },
     session({ session, token }) {
       if (token) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        const userId = (token.id || token.sub) as string;
+        if (session.user) {
+          session.user.id = userId;
+          session.user.role = (token.role as string) || 'registered';
+        }
       }
       return session;
     },
   },
-  session: { strategy: 'jwt' },
+  session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
 };

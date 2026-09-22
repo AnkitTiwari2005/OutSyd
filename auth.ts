@@ -1,7 +1,6 @@
-// auth.ts — Auth.js v5 with SQLite DrizzleAdapter
+// auth.ts — Auth.js v5 with stateless JWT sessions
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
@@ -21,8 +20,9 @@ if (!authSecret) {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  trustHost: true,
   secret: authSecret,
-  adapter: DrizzleAdapter(db),
+  session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
   providers: [
     Credentials({
       async authorize(credentials) {
@@ -44,17 +44,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.sub = user.id;
         token.role = (user as { role?: string }).role ?? 'registered';
         return token;
       }
 
       // NF-1: Invalidate existing token if password was changed after token was issued
-      if (token.id) {
+      const userId = (token.id || token.sub) as string | undefined;
+      if (userId) {
         try {
           const [dbUser] = await db
             .select({ passwordChangedAt: users.passwordChangedAt })
             .from(users)
-            .where(eq(users.id, token.id as string))
+            .where(eq(users.id, userId))
             .limit(1);
 
           if (dbUser?.passwordChangedAt) {
@@ -73,11 +75,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     session({ session, token }) {
-      if (!token || !token.id) {
-        return null as unknown as typeof session;
+      if (token) {
+        const userId = (token.id || token.sub) as string;
+        if (session.user) {
+          session.user.id = userId;
+          session.user.role = (token.role as string) || 'registered';
+        }
       }
-      session.user.id = token.id as string;
-      session.user.role = token.role as string;
       return session;
     },
   },

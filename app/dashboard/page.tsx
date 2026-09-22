@@ -18,7 +18,7 @@ interface PageProps {
 
 export default async function DashboardPage({ searchParams }: PageProps) {
   const session = await auth();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) redirect('/login?redirect=/dashboard');
   const userId = (session.user.id ?? '') as string;
 
   const resolvedParams = searchParams ? await searchParams : {};

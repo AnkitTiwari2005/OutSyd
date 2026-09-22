@@ -59,6 +59,10 @@ export function Navbar() {
   }, [mobileOpen]);
 
   const isEstimate = pathname.startsWith('/estimate');
+  const loginHref =
+    pathname && pathname !== '/' && !pathname.startsWith('/login') && !pathname.startsWith('/register')
+      ? `/login?redirect=${encodeURIComponent(pathname)}`
+      : '/login';
 
   return (
     <motion.header
@@ -121,7 +125,7 @@ export function Navbar() {
             </>
           ) : (
             <Link
-              href="/login"
+              href={loginHref}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-md transition-colors"
             >
               Sign In
@@ -217,7 +221,7 @@ export function Navbar() {
                 </button>
               </>
             ) : (
-              <Link href="/login" onClick={() => setMobileOpen(false)}
+              <Link href={loginHref} onClick={() => setMobileOpen(false)}
                 className="block px-3 py-2 text-sm font-medium text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-md">
                 Sign In / Register
               </Link>

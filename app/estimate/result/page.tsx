@@ -406,7 +406,7 @@ export default function ResultPage() {
 
       if (res.status === 401) {
         toast.info('Sign in required to save estimates', {
-          action: { label: 'Sign In', onClick: () => router.push('/login') }
+          action: { label: 'Sign In', onClick: () => router.push('/login?redirect=/estimate/result') }
         });
         setSaveOpen(false);
         return;

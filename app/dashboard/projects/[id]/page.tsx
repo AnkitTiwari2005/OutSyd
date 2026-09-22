@@ -21,10 +21,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session?.user) redirect('/login');
-  const userId = (session.user.id ?? '') as string;
   const { id } = await params;
+  const session = await auth();
+  if (!session?.user) redirect(`/login?redirect=/dashboard/projects/${id}`);
+  const userId = (session.user.id ?? '') as string;
 
   const [project] = await db.select().from(projects)
     .where(and(eq(projects.id, id), eq(projects.userId, userId))).limit(1);

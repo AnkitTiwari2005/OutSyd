@@ -13,7 +13,7 @@ export const metadata = { title: 'Admin — OUTSYD' };
 
 export default async function AdminPage() {
   const session = await auth();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) redirect('/login?redirect=/admin');
   if (session.user.role !== 'admin') redirect('/dashboard');
 
   // Stats

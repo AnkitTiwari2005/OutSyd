@@ -1,21 +1,20 @@
 'use client';
 import { Logo } from '@/components/Logo';
 import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { User, Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 function RegisterForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [form, setForm]       = useState({ name: '', email: '', password: '' });
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
 
   const redirect = searchParams?.get('redirect');
-  const safeTarget = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard';
+  const safeTarget = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,11 +49,12 @@ function RegisterForm() {
       });
 
       if (signInRes?.error) {
-        router.push(redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login');
+        window.location.href = redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login';
         return;
       }
 
-      router.push(safeTarget);
+      // Hard navigate to synchronize cookies and refresh server components immediately
+      window.location.href = safeTarget;
     } catch (err) {
       console.error('Registration fetch error:', err);
       setError('Connection error. Please check your network.');
