@@ -1,7 +1,7 @@
 'use client';
 
 // app/estimate/result/page.tsx — OUTSYD Institutional BOQ Results
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import { useEstimateStore } from '@/stores/estimate-store';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useSyncExternalStore } from 'react';
@@ -455,14 +455,7 @@ export default function ResultPage() {
             </button>
             <div className="w-px h-5 bg-[var(--border-color)]" />
             <Link href="/">
-              <Image
-                src="/outsyd-logo.png"
-                alt="OUTSYD"
-                width={96}
-                height={24}
-                className="h-6 w-auto"
-                priority
-              />
+              <Logo width={96} height={24} className="h-6 w-auto" priority />
             </Link>
           </div>
 

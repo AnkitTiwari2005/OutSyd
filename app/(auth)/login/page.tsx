@@ -1,5 +1,5 @@
 'use client';
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import { useState, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -40,14 +40,7 @@ function LoginForm() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <Link href="/" className="inline-block mb-4">
-            <Image
-              src="/outsyd-logo.png"
-              alt="OUTSYD"
-              width={120}
-              height={30}
-              className="h-7 w-auto mx-auto"
-              priority
-            />
+            <Logo width={120} height={30} className="h-7 w-auto mx-auto" priority />
           </Link>
           <h1 className="text-2xl font-bold text-[var(--accent-navy)]">Account Sign In</h1>
           <p className="mt-1 text-xs text-[var(--text-muted)]">Access your saved construction estimates and projects</p>

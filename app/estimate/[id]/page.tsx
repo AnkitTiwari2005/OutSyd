@@ -2,6 +2,7 @@
 // Shareable, server-rendered estimate result page — works without Zustand store
 // URL: /estimate/:id — accessible by anyone with the link
 import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
@@ -47,7 +48,7 @@ export default async function SharedEstimatePage({ params }: { params: Promise<{
       <div className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between gap-3">
           <Link href="/">
-            <Image src="/outsyd-logo.png" alt="OUTSYD" width={110} height={32} className="h-8 w-auto" />
+            <Logo width={110} height={32} className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-2">
             {/* Client-side share + PDF buttons */}

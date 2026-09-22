@@ -4,7 +4,7 @@
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import { AlertTriangle, ArrowLeft, LogIn } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -40,14 +40,7 @@ function AuthErrorContent() {
     <div className="w-full max-w-md">
       <div className="text-center mb-6">
         <Link href="/" className="inline-block mb-4">
-          <Image
-            src="/outsyd-logo.png"
-            alt="OUTSYD"
-            width={120}
-            height={30}
-            className="h-7 w-auto mx-auto"
-            priority
-          />
+          <Logo width={120} height={30} className="h-7 w-auto mx-auto" priority />
         </Link>
       </div>
 

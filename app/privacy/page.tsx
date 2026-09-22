@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export default function PrivacyPage() {
     <main className="min-h-screen bg-white">
       <nav className="border-b border-slate-100 px-4 py-3">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <Link href="/"><Image src="/outsyd-logo.png" alt="OUTSYD" width={100} height={28} className="h-7 w-auto" /></Link>
+          <Link href="/"><Logo width={100} height={28} className="h-7 w-auto" /></Link>
         </div>
       </nav>
       <div className="max-w-3xl mx-auto px-4 py-16">

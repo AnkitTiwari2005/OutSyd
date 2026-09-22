@@ -501,4 +501,28 @@
   .slide-in-from-top-2 {
     animation-name: slideInFromTop2;
   }
+
+  /* Dual-theme Logo visibility */
+  .logo-light {
+    display: inline-block;
+  }
+  .logo-dark {
+    display: none;
+  }
+
+  :root[data-theme="dark"] .logo-light {
+    display: none !important;
+  }
+  :root[data-theme="dark"] .logo-dark {
+    display: inline-block !important;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .logo-light {
+      display: none !important;
+    }
+    :root:not([data-theme="light"]) .logo-dark {
+      display: inline-block !important;
+    }
+  }
 }

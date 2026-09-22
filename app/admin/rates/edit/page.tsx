@@ -1,6 +1,6 @@
 'use client';
 // app/admin/rates/edit/page.tsx — Regional Rate Editor
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -50,7 +50,7 @@ export default function RateEditorPage() {
           <div className="flex items-center gap-3">
             <Link href="/admin" className="btn-ghost py-1.5 px-2 text-xs"><ArrowLeft size={13} /> Admin</Link>
             <Link href="/">
-              <Image src="/outsyd-logo.png" alt="OUTSYD" width={100} height={28} className="h-7 w-auto" />
+              <Logo width={100} height={28} className="h-7 w-auto" />
             </Link>
           </div>
         </div>

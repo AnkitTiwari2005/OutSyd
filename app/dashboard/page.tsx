@@ -1,11 +1,11 @@
 // app/dashboard/page.tsx — Engineering & Finance Dashboard
-import Image from 'next/image';
 import { auth, signOut } from '@/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { projects } from '@/lib/db/schema';
 import { eq, desc, sql } from 'drizzle-orm';
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 import { PlusCircle, ChevronLeft, ChevronRight, LogOut, User } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DashboardProjects } from './_components/DashboardProjects';
@@ -46,7 +46,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       <header className="h-16 bg-[var(--bg-card)] border-b border-[var(--border-color)] sticky top-0 z-30">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
           <Link href="/">
-            <Image src="/outsyd-logo.png" alt="OUTSYD" width={105} height={26} className="h-6 w-auto" priority />
+            <Logo width={105} height={26} className="h-6 w-auto" priority />
           </Link>
 
           <div className="flex items-center gap-4">

@@ -1,5 +1,5 @@
 // app/dashboard/projects/[id]/page.tsx — Project detail v2
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import { auth } from '@/auth';
 import { redirect, notFound } from 'next/navigation';
 import { db } from '@/lib/db';
@@ -46,7 +46,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <ArrowLeft size={16} />
             </Link>
             <Link href="/">
-              <Image src="/outsyd-logo.png" alt="OUTSYD" width={90} height={26} className="h-6 w-auto object-contain" priority />
+              <Logo width={90} height={26} className="h-6 w-auto" priority />
             </Link>
             <span className="text-slate-300">/</span>
             <span className="text-sm font-semibold text-slate-700 truncate max-w-xs">{project.name}</span>

@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import { toast } from 'sonner';
 import { ArrowLeft, Database, Shield, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { DEFAULT_DATASET } from '@/lib/engine/coefficients';
@@ -104,7 +104,7 @@ export default function NewCoefficientDatasetPage() {
               <ArrowLeft size={13} /> Admin
             </Link>
             <Link href="/">
-              <Image src="/outsyd-logo.png" alt="OUTSYD" width={100} height={28} className="h-7 w-auto" />
+              <Logo width={100} height={28} className="h-7 w-auto" />
             </Link>
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500">

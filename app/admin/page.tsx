@@ -1,5 +1,5 @@
 // app/admin/page.tsx — Admin Panel (admin role required)
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
@@ -30,7 +30,7 @@ export default async function AdminPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/">
-              <Image src="/outsyd-logo.png" alt="OUTSYD" width={110} height={32} className="h-8 w-auto" />
+              <Logo width={110} height={32} className="h-8 w-auto" />
             </Link>
             <span className="badge-orange text-[10px]">Admin</span>
           </div>

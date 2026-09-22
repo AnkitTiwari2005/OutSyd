@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { ArrowRight, Menu, X, Calculator, User, LogOut, Shield } from 'lucide-react';
@@ -70,7 +70,7 @@ export function Navbar() {
         {/* Brand Logo */}
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/outsyd-logo.png" alt="OUTSYD" width={112} height={28} className="h-7 w-auto" priority />
+            <Logo priority />
           </Link>
 
           {/* Nav Links */}

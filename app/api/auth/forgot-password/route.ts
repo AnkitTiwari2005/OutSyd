@@ -96,6 +96,10 @@ export async function POST(req: NextRequest) {
       }
     } else {
       console.log(`[ForgotPassword] RESEND_API_KEY not configured. Dev reset link for ${email}: ${resetUrl}`);
+      return NextResponse.json({
+        ...standardResponse,
+        resetUrl,
+      }, { status: 200 });
     }
 
     return NextResponse.json(standardResponse, { status: 200 });

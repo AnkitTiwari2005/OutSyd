@@ -1,15 +1,16 @@
 'use client';
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Mail, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, CheckCircle2, ArrowRight } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail]     = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
+  const [email, setEmail]         = useState('');
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [resetLink, setResetLink] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +31,9 @@ export default function ForgotPasswordPage() {
         return;
       }
 
+      if (data.resetUrl) {
+        setResetLink(data.resetUrl);
+      }
       setSubmitted(true);
     } catch {
       setError('A network error occurred. Please check your connection and try again.');
@@ -46,14 +50,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <Link href="/" className="inline-block mb-4">
-            <Image
-              src="/outsyd-logo.png"
-              alt="OUTSYD"
-              width={120}
-              height={30}
-              className="h-7 w-auto mx-auto"
-              priority
-            />
+            <Logo width={120} height={30} className="h-7 w-auto mx-auto" priority />
           </Link>
           <h1 className="text-2xl font-bold text-[var(--accent-navy)]">Reset Password</h1>
           <p className="mt-1 text-xs text-[var(--text-muted)]">
@@ -68,17 +65,37 @@ export default function ForgotPasswordPage() {
                 <CheckCircle2 size={24} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[var(--accent-navy)]">Check your inbox</h3>
+                <h3 className="text-sm font-bold text-[var(--accent-navy)]">Password Reset Ready</h3>
                 <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
-                  If an account exists for <span className="font-semibold text-[var(--text-primary)]">{email}</span>, we have sent instructions to reset your password.
+                  Reset instructions prepared for <span className="font-semibold text-[var(--text-primary)]">{email}</span>.
                 </p>
               </div>
-              <div className="p-3 rounded-md bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[11px] text-[var(--text-muted)] text-left">
-                <strong>Note:</strong> Check your spam folder if the email does not arrive within a few minutes. Reset links remain valid for 60 minutes.
-              </div>
+
+              {resetLink ? (
+                <div className="p-3.5 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-muted)] text-left space-y-2.5">
+                  <p className="text-xs font-semibold text-[var(--text-primary)]">
+                    Secure Reset Link:
+                  </p>
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                    Click the button below to immediately set a new password for your account:
+                  </p>
+                  <Link
+                    href={resetLink}
+                    className="btn-primary w-full py-2.5 inline-flex items-center justify-center gap-1.5 text-xs font-semibold"
+                  >
+                    <span>Proceed to Set New Password</span>
+                    <ArrowRight size={14} />
+                  </Link>
+                </div>
+              ) : (
+                <div className="p-3 rounded-md bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[11px] text-[var(--text-muted)] text-left">
+                  <strong>Note:</strong> Check your inbox and spam folder. Reset links remain valid for 60 minutes.
+                </div>
+              )}
+
               <Link
                 href="/login"
-                className="btn-primary w-full py-2.5 inline-flex items-center justify-center text-xs"
+                className="btn-secondary w-full py-2.5 inline-flex items-center justify-center text-xs"
               >
                 Return to Sign In
               </Link>

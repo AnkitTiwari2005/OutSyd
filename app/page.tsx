@@ -1,8 +1,8 @@
 'use client';
 
 // app/page.tsx — OUTSYD Landing Page with ReactBits-style animations
-import Image from 'next/image';
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 import { Navbar } from '@/components/Navbar';
 import { HeroSkylineBackground } from '@/components/hero-backgrounds/HeroSkylineBackground';
 import { BlurText } from '@/components/animations/BlurText';
@@ -398,7 +398,7 @@ export default function HomePage() {
       <footer className="border-t border-[var(--border-color)] bg-[var(--bg-primary)] py-8 text-xs text-[var(--text-muted)]">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Image src="/outsyd-logo.png" alt="OUTSYD" width={90} height={22} className="h-5 w-auto" />
+            <Logo width={90} height={22} className="h-5 w-auto" />
             <span>— Smart Yield-based Design Estimation for India</span>
           </div>
           <div className="flex items-center gap-6">
