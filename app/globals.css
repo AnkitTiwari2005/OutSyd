@@ -525,4 +525,53 @@
       display: inline-block !important;
     }
   }
+
+  /* Shimmer Skeleton for Instant Loading Feedback */
+  @keyframes skeletonShimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--border-subtle);
+    border-radius: 6px;
+  }
+
+  .skeleton::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.4) 20%,
+      rgba(255, 255, 255, 0.7) 60%,
+      rgba(255, 255, 255, 0)
+    );
+    animation: skeletonShimmer 1.4s infinite;
+    content: '';
+  }
+
+  :root[data-theme="dark"] .skeleton {
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  :root[data-theme="dark"] .skeleton::after {
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.04) 20%,
+      rgba(255, 255, 255, 0.09) 60%,
+      rgba(255, 255, 255, 0)
+    );
+  }
 }

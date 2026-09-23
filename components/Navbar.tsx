@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { Logo } from '@/components/Logo';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { ArrowRight, Menu, X, Calculator, User, LogOut, Shield } from 'lucide-react';
+import { ArrowRight, Menu, X, Calculator, User, LogOut, Shield, Loader2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
+import { ProfileDropdown } from '@/components/ProfileDropdown';
+import { startTopProgress } from '@/components/TopProgressBar';
 
 // Animated nav link with sliding underline on hover
 function NavLink({ href, children, isActive }: { href: string; children: React.ReactNode; isActive?: boolean }) {
@@ -37,6 +39,7 @@ function NavLink({ href, children, isActive }: { href: string; children: React.R
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobileSigningOut, setIsMobileSigningOut] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
   const headerRef = useRef<HTMLElement>(null);
@@ -94,38 +97,13 @@ export function Navbar() {
           <ThemeToggle />
 
           {session?.user ? (
-            <>
-              <Link
-                href="/dashboard"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--accent-navy)] hover:bg-[var(--accent-navy-subtle)] rounded-md transition-colors border border-[var(--border-muted)] bg-[var(--bg-card)]"
-              >
-                <User size={13} />
-                <span className="max-w-[120px] truncate">{session.user.name || session.user.email}</span>
-              </Link>
-
-              {session.user.role === 'admin' && (
-                <Link
-                  href="/admin"
-                  className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 border border-orange-200 hover:bg-orange-100 rounded-md transition-colors"
-                >
-                  <Shield size={12} />
-                  <span>Admin</span>
-                </Link>
-              )}
-
-              <button
-                type="button"
-                onClick={() => signOut({ callbackUrl: '/' })}
-                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--error-text)] hover:bg-[var(--error-bg)] rounded-md transition-colors cursor-pointer"
-                title="Sign out"
-              >
-                <LogOut size={13} />
-                <span>Sign out</span>
-              </button>
-            </>
+            <div className="hidden sm:block">
+              <ProfileDropdown session={session} />
+            </div>
           ) : (
             <Link
               href={loginHref}
+              onClick={() => startTopProgress()}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-md transition-colors"
             >
               Sign In
@@ -198,31 +176,91 @@ export function Navbar() {
 
             {session?.user ? (
               <>
-                <div className="px-3 py-2 border-t border-b border-[var(--border-color)] my-1 bg-[var(--bg-secondary)] rounded-md">
-                  <p className="text-xs text-[var(--text-muted)]">Signed in as</p>
-                  <p className="text-sm font-semibold text-[var(--accent-navy)] truncate">{session.user.name || session.user.email}</p>
+                <div className="px-3 py-2.5 border-t border-b border-[var(--border-color)] my-1 bg-[var(--bg-secondary)] rounded-lg">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[var(--accent-navy)] to-slate-800 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                      {(session.user.name || session.user.email || 'U')[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-[var(--text-primary)] truncate">
+                        {session.user.name || session.user.email}
+                      </p>
+                      {session.user.email && (
+                        <p className="text-[10px] text-[var(--text-muted)] truncate">
+                          {session.user.email}
+                        </p>
+                      )}
+                    </div>
+                    {session.user.role === 'admin' ? (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-800 shrink-0">
+                        Admin
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[var(--bg-card)] border border-[var(--border-muted)] text-[var(--text-muted)] shrink-0">
+                        User
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <Link href="/dashboard" onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-md">
-                  <User size={16} />Dashboard
+
+                <Link
+                  href="/dashboard"
+                  onClick={() => {
+                    startTopProgress();
+                    setMobileOpen(false);
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-md transition-colors"
+                >
+                  <User size={16} />
+                  <span>Dashboard &amp; Projects</span>
                 </Link>
+
                 {session.user.role === 'admin' && (
-                  <Link href="/admin" onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-orange-700 hover:bg-orange-50 rounded-md">
-                    <Shield size={16} />Admin Console
+                  <Link
+                    href="/admin"
+                    onClick={() => {
+                      startTopProgress();
+                      setMobileOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-orange-700 hover:bg-orange-50 rounded-md transition-colors"
+                  >
+                    <Shield size={16} />
+                    <span>Admin Console</span>
                   </Link>
                 )}
+
                 <button
                   type="button"
-                  onClick={() => { setMobileOpen(false); signOut({ callbackUrl: '/' }); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--error-text)] hover:bg-[var(--error-bg)] rounded-md transition-colors text-left cursor-pointer"
+                  disabled={isMobileSigningOut}
+                  onClick={async () => {
+                    setIsMobileSigningOut(true);
+                    startTopProgress();
+                    await signOut({ callbackUrl: '/' });
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--error-text)] hover:bg-[var(--error-bg)] rounded-md transition-colors text-left cursor-pointer disabled:opacity-50"
                 >
-                  <LogOut size={16} />Sign out
+                  {isMobileSigningOut ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Signing out…</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogOut size={16} />
+                      <span>Sign out</span>
+                    </>
+                  )}
                 </button>
               </>
             ) : (
-              <Link href={loginHref} onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 text-sm font-medium text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-md">
+              <Link
+                href={loginHref}
+                onClick={() => {
+                  startTopProgress();
+                  setMobileOpen(false);
+                }}
+                className="block px-3 py-2 text-sm font-medium text-[var(--accent-navy)] hover:bg-[var(--bg-secondary)] rounded-md transition-colors"
+              >
                 Sign In / Register
               </Link>
             )}

@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Share2, Download, Save, Loader2 } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 import { useEstimateStore } from '@/stores/estimate-store';
+import { startTopProgress, stopTopProgress } from '@/components/TopProgressBar';
 
 interface Props {
   estimateId : string;
@@ -17,6 +18,7 @@ export function ShareResultClient({ estimateId, grandTotal }: Props) {
   const router = useRouter();
   const { guestToken, estimateId: currentStoreId } = useEstimateStore();
   const [saving, setSaving]   = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [name, setName]       = useState('');
 
@@ -47,18 +49,39 @@ export function ShareResultClient({ estimateId, grandTotal }: Props) {
     }
   };
 
-  const handleDownload = () => {
-    const guestParam = (estimateId === currentStoreId && guestToken) ? `?guestToken=${encodeURIComponent(guestToken)}` : '';
-    const url = `/api/estimate/${estimateId}/report${guestParam}`;
-    const a   = document.createElement('a');
-    a.href    = url;
-    a.download = `OUTSYD-Estimate-${estimateId.slice(0, 8)}.pdf`;
-    a.click();
-    toast.info('Generating PDF…', { description: 'Download will start in a moment.' });
+  const handleDownload = async () => {
+    setPdfLoading(true);
+    startTopProgress();
+    toast.info('Generating PDF…', { description: 'Compiling report and formatting tables.' });
+    try {
+      const guestParam = (estimateId === currentStoreId && guestToken) ? `?guestToken=${encodeURIComponent(guestToken)}` : '';
+      const url = `/api/estimate/${estimateId}/report${guestParam}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        toast.error(`PDF generation failed (${res.status})`);
+        return;
+      }
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `OUTSYD-Estimate-${estimateId.slice(0, 8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+      toast.success('PDF report downloaded!');
+    } catch {
+      toast.error('Could not generate PDF. Please try again.');
+    } finally {
+      setPdfLoading(false);
+      stopTopProgress();
+    }
   };
 
   const handleSave = async () => {
     setSaving(true);
+    startTopProgress();
     try {
       const activeGuestToken = (estimateId === currentStoreId && guestToken) ? guestToken : undefined;
       const res = await fetch(`/api/estimate/${estimateId}/save`, {
@@ -81,15 +104,32 @@ export function ShareResultClient({ estimateId, grandTotal }: Props) {
       toast.error('Could not save estimate. Please try again.');
     } finally {
       setSaving(false);
+      stopTopProgress();
     }
   };
 
   return (
     <>
       <div className="flex items-center gap-2">
-        <button onClick={handleShare}   className="btn-secondary py-2 px-3.5 text-xs"><Share2 size={12} />Share</button>
-        <button onClick={handleDownload} className="btn-secondary py-2 px-3.5 text-xs"><Download size={12} />PDF</button>
-        <button onClick={() => setSaveOpen(true)} className="btn-primary py-2 px-3.5 text-xs"><Save size={12} />Save</button>
+        <button onClick={handleShare} className="btn-secondary py-2 px-3.5 text-xs cursor-pointer active:scale-95"><Share2 size={12} />Share</button>
+        <button
+          onClick={handleDownload}
+          disabled={pdfLoading}
+          className="btn-secondary py-2 px-3.5 text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-95"
+        >
+          {pdfLoading ? (
+            <>
+              <Loader2 size={12} className="animate-spin text-[var(--accent-navy)]" />
+              <span>Generating…</span>
+            </>
+          ) : (
+            <>
+              <Download size={12} />
+              <span>PDF</span>
+            </>
+          )}
+        </button>
+        <button onClick={() => setSaveOpen(true)} className="btn-primary py-2 px-3.5 text-xs cursor-pointer active:scale-95"><Save size={12} />Save</button>
       </div>
 
       {/* Save dialog */}

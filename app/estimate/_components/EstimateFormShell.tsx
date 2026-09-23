@@ -16,6 +16,7 @@ import { ArrowLeft, ArrowRight, Zap, AlertCircle } from 'lucide-react';
 import { classifyBuilding } from '@/lib/engine/classifier';
 import { resolveAccuracyBandForInput } from '@/lib/engine/cost-calculator';
 import { motion, AnimatePresence } from 'motion/react';
+import { startTopProgress } from '@/components/TopProgressBar';
 
 const STEPS = [
   { id: 0, label: 'Basics' },
@@ -223,7 +224,7 @@ export function EstimateFormShell() {
         return;
       }
       setResult(json, json.estimateId, json.guestToken);
-      setLoading(false); // Clear loading state on success path
+      startTopProgress();
       router.push('/estimate/result');
     } catch {
       setError('Connection error. Please check your network and try again.');

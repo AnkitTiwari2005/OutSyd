@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { BarChart3, Clock, PlusCircle, Building2 } from 'lucide-react';
 import { StaggerContainer, StaggerItem, FadeUp } from '@/components/animations/FadeUp';
 import { motion } from 'motion/react';
+import { startTopProgress } from '@/components/TopProgressBar';
 
 interface Project {
   id: string;
@@ -54,7 +55,8 @@ export function DashboardProjects({ projects, emptyState }: DashboardProjectsPro
           >
             <Link
               href={`/dashboard/projects/${p.id}`}
-              className="card-standard p-5 bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-[var(--accent-navy)] transition-colors group block"
+              onClick={() => startTopProgress()}
+              className="card-standard p-5 bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-[var(--accent-navy)] transition-colors group block active:scale-[0.99]"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="w-8 h-8 rounded-md bg-[var(--accent-navy-subtle)] text-[var(--accent-navy)] flex items-center justify-center">

@@ -1,8 +1,10 @@
 // app/layout.tsx — Root layout with logo favicon + Sonner
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { Providers } from '@/components/Providers';
+import { TopProgressBar } from '@/components/TopProgressBar';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -36,6 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-sans antialiased bg-[var(--bg-primary)] text-[var(--text-primary)] min-h-screen">
+        <Suspense fallback={null}>
+          <TopProgressBar />
+        </Suspense>
         <Providers>
           {children}
         </Providers>
