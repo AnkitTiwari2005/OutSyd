@@ -54,6 +54,7 @@ export const Tier2BaseSchema = Tier1BaseSchema.extend({
   parkingLevels   : z.coerce.number().finite().int().min(0).max(10).default(0),
   unitsPerFloor   : optionalNumber(z.number().finite().int().min(1).max(100)),
   seismicZone     : z.enum(['Zone_II', 'Zone_III', 'Zone_IV', 'Zone_V', 'Not_sure']).default('Not_sure'),
+  handoverScope   : z.enum(['Bare_Shell', 'Core_Shell', 'Warm_Shell', 'Fully_Fitted', 'Not_Sure']).default('Not_Sure'),
 });
 
 export const Tier3BaseSchema = Tier2BaseSchema.extend({

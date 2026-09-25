@@ -21,6 +21,7 @@ export type BuildingCategory =
   | 'High_Rise'
   | 'Complex_Specialized';
 export type FloorTier = 'G1_G3' | 'G4_G7' | 'G8_G15' | 'G16_PLUS';
+export type HandoverScope = 'Bare_Shell' | 'Core_Shell' | 'Warm_Shell' | 'Fully_Fitted' | 'Not_Sure';
 
 // ─── Input ─────────────────────────────────────────────────────────────────
 export interface FullInput {
@@ -44,6 +45,7 @@ export interface FullInput {
   parkingLevels?     : number;
   unitsPerFloor?     : number;
   seismicZone?       : SeismicZone;
+  handoverScope?     : HandoverScope;
 
   // Tier 3 (conditional)
   soilBearingCapacity?: number;

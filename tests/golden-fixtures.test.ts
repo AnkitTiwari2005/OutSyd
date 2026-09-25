@@ -232,8 +232,8 @@ describe('PHASE 4: Golden Regression Fixtures & Determinism Certification', () =
     const res = aggregateEstimate(items, input, cls, DEFAULT_DATASET, ri);
 
     assert.equal(res.lineItems.length, 93);
-    assert.equal(res.grandTotalMaterialCost, 67025197.99);
-    assert.equal(res.grandTotalWithLabor, 76376899.88);
+    assert.equal(res.grandTotalMaterialCost, 70067789.03);
+    assert.equal(res.grandTotalWithLabor, 79860184.82);
 
     const cat01to17Sum = res.categoryTotals
       .filter((c) => c.categoryCode !== 'CAT_18')
@@ -244,8 +244,8 @@ describe('PHASE 4: Golden Regression Fixtures & Determinism Certification', () =
 
     assert.ok(baseItem && accelItem);
     assert.equal(baseItem.lineCost, expectedCat18Base);
-    assert.equal(baseItem.lineCost, 1979647.2);
-    assert.equal(accelItem.lineCost, 8484202.28);
+    assert.equal(baseItem.lineCost, 2069512.76);
+    assert.equal(accelItem.lineCost, 8869340.38);
 
     const deliverableKeys = res.lineItems.map(
       (i) => `${i.materialItemCode}::${i.name}::${i.recommendedGrade}`
@@ -253,7 +253,7 @@ describe('PHASE 4: Golden Regression Fixtures & Determinism Certification', () =
     assert.equal(new Set(deliverableKeys).size, deliverableKeys.length);
 
     const hash = crypto.createHash('md5').update(JSON.stringify(res.lineItems)).digest('hex');
-    assert.equal(hash, '377e44d0f700c166f2bf448ee46d9bf7');
+    assert.equal(hash, '6080674b2f6d53696a5340999af3322a');
   });
 
   it('certifies GOLDEN_INDUSTRIAL fixture metrics and calculation invariants', () => {

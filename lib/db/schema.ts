@@ -88,6 +88,7 @@ export const buildingInputs = pgTable('building_inputs', {
   podiumLevels     : integer('podium_levels').default(0),
   facadeType       : text('facade_type').default('Not_sure'),
   fireHvacScope    : text('hvac_scope').default('Not_sure'),
+  handoverScope    : text('handover_scope').default('Not_Sure'),
   structuralDrawingUrl: text('structural_drawing_url'),
   targetTimelineMonths: integer('target_timeline_months'),
   greenCertTarget  : text('green_cert_target'),

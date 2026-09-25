@@ -136,6 +136,7 @@ export async function POST(req: NextRequest) {
         podiumLevels     : bi.podiumLevels     ?? 0,
         facadeType       : bi.facadeType       ?? 'Not_sure',
         fireHvacScope    : bi.fireHvacScope    ?? 'Not_sure',
+        handoverScope    : bi.handoverScope    ?? 'Not_Sure',
         structuralDrawingUrl: bi.structuralDrawingUrl,
         targetTimelineMonths: bi.targetTimelineMonths,
         greenCertTarget  : bi.greenCertTarget,

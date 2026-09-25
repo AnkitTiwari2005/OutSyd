@@ -984,6 +984,100 @@ export function runEstimationEngine(
     addItem('MAT_GREEN_DUAL_FLUSH', rc.bathrooms, 'units', true, 'Water-saving dual-flush valves');
   }
 
+  // ── v2.6.1: Non-Residential Handover Scope — Partition & Door Scaling ─────
+  // Corrects two confirmed engine defects:
+  //   1. Perimeter-based wall dilution for large non-residential floorplates.
+  //   2. Hardcoded non-residential door-count that does not scale with BUA.
+  //
+  // Backward-compatibility guarantee:
+  //   • Commercial: only activates when handoverScope === 'Fully_Fitted'.
+  //     All other values (undefined, Not_Sure, Core_Shell, Bare_Shell, Warm_Shell) → zero delta.
+  //   • Institutional: activates unless handoverScope is explicitly Bare_Shell/Core_Shell.
+  //     Undefined/Not_Sure treated as Fully_Fitted (public facility norm).
+  if (isCommercial || isInstitutional) {
+    const scope = bi.handoverScope;
+
+    let effectiveScopeIsFitted = false;
+    if (isCommercial) {
+      effectiveScopeIsFitted = scope === 'Fully_Fitted';
+    } else if (isInstitutional) {
+      effectiveScopeIsFitted = (scope !== 'Bare_Shell' && scope !== 'Core_Shell');
+    }
+
+    if (effectiveScopeIsFitted) {
+      const floorplate = buaPerFloor;
+      const singleStoreySmall = isInstitutional && numFloors === 1 && floorplate < 3500;
+      const multiStoreySmall = floorplate < 2500;
+
+      if (!singleStoreySmall && !multiStoreySmall) {
+        const activation = Math.min(1.0, (floorplate - 2500) / 1000);
+
+        const partitionDensity =
+          u.includes('hotel')                             ? 0.70 :
+          u.includes('hostel')                            ? 0.40 :
+          u.includes('hospital') || u.includes('clinic')  ? 0.50 :
+          u.includes('school') || u.includes('college')   ? 0.40 :
+          u.includes('court') || u.includes('govt')       ? 0.40 :
+          u.includes('office')                            ? 0.25 :
+          u.includes('showroom') || u.includes('retail')  ? 0.15 : 0.20;
+
+        const addedPartitionSqft = floorplate * numFloors * partitionDensity * activation;
+
+        const sqftPerDoor =
+          u.includes('hotel')                             ? 220 :
+          u.includes('hostel')                            ? 260 :
+          u.includes('hospital')                          ? 380 :
+          u.includes('court') || u.includes('govt')       ? 420 :
+          u.includes('school') || u.includes('college')   ? 450 :
+          u.includes('office')                            ? 500 : 600;
+
+        const floorDoorCap =
+          u.includes('hotel') || u.includes('hostel') ? 40 :
+          u.includes('hospital')                      ? 30 : 20;
+
+        let targetDoorsPerFloor = Math.round(floorplate / sqftPerDoor);
+        targetDoorsPerFloor = Math.min(floorDoorCap, targetDoorsPerFloor);
+        const baseDoorsPerFloor = 6;
+        const addedDoors = Math.max(0, targetDoorsPerFloor - baseDoorsPerFloor) * numFloors * activation;
+
+        if (addedPartitionSqft > 0) {
+          const blockCode26 = useAAC ? 'MAT_MASON_BLOCK' : 'MAT_MASON_BRICK';
+          const addedBlockQty = addedPartitionSqft * (useAAC ? 2.1 : 9.5);
+          const addedMortarQty = (addedBlockQty / 1000) * (useAAC ? 2.2 : 2.0);
+          const addedPlasterSqft = addedPartitionSqft * 2;
+
+          for (const item of items) {
+            if (item.materialItemCode === blockCode26) {
+              const newQty = item.quantity + addedBlockQty;
+              item.quantity = Math.round(newQty * 100) / 100;
+              item.lineCost = Math.round(newQty * item.unitRate);
+            } else if (item.materialItemCode === 'MAT_MASON_CEMENT') {
+              const newQty = item.quantity + addedMortarQty;
+              item.quantity = Math.round(newQty * 100) / 100;
+              item.lineCost = Math.round(newQty * item.unitRate);
+            } else if (item.materialItemCode === 'MAT_PLAST_INT') {
+              const newQty = item.quantity + addedPlasterSqft;
+              item.quantity = Math.round(newQty * 100) / 100;
+              item.lineCost = Math.round(newQty * item.unitRate);
+            }
+          }
+        }
+
+        if (addedDoors > 0) {
+          for (const item of items) {
+            if (item.materialItemCode === 'MAT_DOOR_FLUSH') {
+              const newQty = item.quantity + addedDoors;
+              item.quantity = Math.round(newQty * 100) / 100;
+              item.lineCost = Math.round(newQty * item.unitRate);
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  // ── End v2.6.1 ──────────────────────────────────────────────────────────────
+
   // U-16: Strictly filter out any zero or negative quantity items
   return items.filter(item => item.quantity > 0);
 }

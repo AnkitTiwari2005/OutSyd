@@ -97,6 +97,8 @@ export async function GET(
       inputSummary['Structural System'] = input.structuralSystem.replace(/_/g, ' ');
     if (input.seismicZone && input.seismicZone !== 'Not_sure')
       inputSummary['Seismic Zone'] = input.seismicZone.replace(/_/g, ' ');
+    if (input.handoverScope && input.handoverScope !== 'Not_sure' && input.handoverScope !== 'Not_Sure')
+      inputSummary['Handover Scope'] = input.handoverScope.replace(/_/g, ' ');
     if (input.computedBuaSqft)
       inputSummary['Built-up Area'] = `${input.computedBuaSqft.toLocaleString('en-IN')} sqft`;
   }

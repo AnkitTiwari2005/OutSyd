@@ -353,6 +353,31 @@ export function Step2Building() {
           </div>
         </div>
       </div>
+
+      {/* ── Group 5: Commercial Handover Scope ────────────────────── */}
+      {typology === 'Commercial' && (
+        <div>
+          <div className="flex items-center gap-2 pb-2 mb-4 border-b border-[var(--border-color)]">
+            <h3 className="section-label">5. Commercial Handover Scope</h3>
+          </div>
+          <FormField
+            label="Handover / Delivery Scope"
+            error={errors.handoverScope?.message}
+            hint="Affects internal partition density and fit-out cost"
+          >
+            <div className="flex items-center gap-1.5">
+              <select {...register('handoverScope')} className="form-input cursor-pointer">
+                <option value="Not_Sure">Not sure (defaults to Core &amp; Shell)</option>
+                <option value="Bare_Shell">Bare Shell — Structure only, no MEP, no finishes</option>
+                <option value="Core_Shell">Core &amp; Shell — Structure + MEP backbone, no fit-out</option>
+                <option value="Warm_Shell">Warm Shell — Floors/ceilings/HVAC, no partitions</option>
+                <option value="Fully_Fitted">Fully Fitted — Full interior partitions + finishes</option>
+              </select>
+              <InfoTooltip content="Core &amp; Shell (default) matches CPWD baseline. Fully Fitted adds internal partition walls and doors proportional to floorplate area — use for hospitals, hotels, fitted offices." />
+            </div>
+          </FormField>
+        </div>
+      )}
     </div>
   );
 }

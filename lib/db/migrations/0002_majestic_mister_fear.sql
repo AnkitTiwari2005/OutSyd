@@ -1,0 +1,1 @@
+ALTER TABLE "building_inputs" ADD COLUMN "handover_scope" text DEFAULT 'Not_Sure';

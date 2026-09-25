@@ -20,5 +20,5 @@ export type { WallAnalysisResult, WallMethodDetail } from './wall-analysis';
 export type {
   FullInput, ClassificationResult, CoefficientDataset, EstimateResult,
   EstimateLineItem, CategoryTotal, AccuracyBand, QualityTier, ClassificationTier,
-  BuildingCategory, DerivedDimensions, RoomCounts,
+  BuildingCategory, DerivedDimensions, RoomCounts, HandoverScope,
 } from './types';
