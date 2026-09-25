@@ -313,11 +313,23 @@ function deriveRoomCounts(
     (!u.includes('apartment') && !u.includes('flat') && !u.includes('floor') && !u.includes('condo') && numFloors <= 3 && unitsPerFloor <= 1)
   );
 
+  const totalBuaSqft = buaPerFloor * numFloors;
+  const isMicroBuilding = totalBuaSqft < 3500 || buaPerFloor < 800;
+  const isMicroDensity = isResidential && isMicroBuilding && buaPerFloor < 800;
+
   if (isSingleDwelling) {
+    const stdDoors = isRowHouse ? 6 : doors;
+    const stdBaths = isRowHouse ? 2 : bathrooms;
+    const mainDoors = 1;
+    const stdInternalDoors = Math.max(0, stdDoors - mainDoors - stdBaths);
+    const finalBaths = isMicroDensity ? Math.max(1, Math.round(stdBaths * 0.65)) : stdBaths;
+    const finalInternalDoors = isMicroDensity ? Math.max(0, Math.round(stdInternalDoors * 0.75)) : stdInternalDoors;
+    const finalDoors = isMicroDensity ? (mainDoors + finalBaths + finalInternalDoors) : stdDoors;
+
     return {
-      doors: isRowHouse ? 6 : doors,
+      doors: finalDoors,
       windows: isRowHouse ? 6 : windows,
-      bathrooms: isRowHouse ? 2 : bathrooms,
+      bathrooms: finalBaths,
       kitchens: 1,
       units: 1,
     };
@@ -329,11 +341,22 @@ function deriveRoomCounts(
         ? Math.max(1, Math.min(6, Math.round(buaPerFloor / (u.includes('1bhk') ? 900 : u.includes('2bhk') ? 1600 : 2200))))
         : 1);
 
-  const units = effectiveUnitsPerFloor * numFloors;
+  const units = (isResidential && buaPerFloor < 800)
+    ? Math.max(1, numFloors)
+    : effectiveUnitsPerFloor * numFloors;
+
+  const stdDoors = doors * units;
+  const stdBaths = bathrooms * units;
+  const mainDoors = Math.max(1, units);
+  const stdInternalDoors = Math.max(0, stdDoors - mainDoors - stdBaths);
+  const finalBaths = isMicroDensity ? Math.max(1, Math.round(stdBaths * 0.65)) : stdBaths;
+  const finalInternalDoors = isMicroDensity ? Math.max(0, Math.round(stdInternalDoors * 0.75)) : stdInternalDoors;
+  const finalDoors = isMicroDensity ? (mainDoors + finalBaths + finalInternalDoors) : stdDoors;
+
   return {
-    doors: doors * units,
+    doors: finalDoors,
     windows: windows * units,
-    bathrooms: bathrooms * units,
+    bathrooms: finalBaths,
     kitchens: kitchens * units,
     units,
   };
@@ -447,6 +470,22 @@ export function runEstimationEngine(
     isRowHouse || u.includes('penthouse') ||
     (!u.includes('apartment') && !u.includes('flat') && !u.includes('floor') && !u.includes('condo') && numFloors <= 3 && (bi.unitsPerFloor ?? 1) <= 1)
   );
+
+  const numLifts = bi.numLifts ?? 0;
+  const isMicroBuilding = totalBuaSqft < 3500 || buaPerFloor < 800;
+
+  // P1 — Low-Rise Residential Fire Guard
+  const isLowRiseResidentialFireExempt =
+    bi.typology === 'Residential' &&
+    bi.numFloors < 5 &&
+    bi.heightFt <= 50 &&
+    (isMicroBuilding || totalBuaSqft <= 5000);
+
+  // P2 — Micro-Residential DG Guard
+  const isMicroResidentialDgExempt =
+    bi.typology === 'Residential' &&
+    isMicroBuilding &&
+    numLifts === 0;
 
   const items: EstimateLineItem[] = [];
 
@@ -634,7 +673,7 @@ export function runEstimationEngine(
   addItem(winCode, winSqft, 'sqft');
   addItem('MAT_WIN_HARDWARE', rc.windows, 'sets');
   if (qt === 'Economy' && !isIndustrial) addItem('MAT_GRILLE', winSqft, 'sqft');
-  if (numFloors >= 4 || isInstitutional) {
+  if (!isLowRiseResidentialFireExempt && (numFloors >= 4 || isInstitutional)) {
     const fireExits = Math.max(1, Math.ceil(numFloors / 6));
     addItem('MAT_DOOR_FIRE_RATED', fireExits * 2, 'units', false, 'Fire exit doors');
   }
@@ -665,7 +704,7 @@ export function runEstimationEngine(
 
   // DG Set — common backup for multi-storey, non-residential, or healthcare/hospitals
   const isHealthcare = u.includes('hospital') || u.includes('clinic') || u.includes('medical') || u.includes('pharma');
-  if (numFloors >= 4 || isHealthcare || (!isResidential && totalBuaSqft > 12000)) {
+  if (!isMicroResidentialDgExempt && (numFloors >= 4 || isHealthcare || (!isResidential && totalBuaSqft > 12000))) {
     const kvaPer1000 = isResidential ? (qt === 'Premium' ? 2.5 : 1.8)
                    : isCommercial ? (qt === 'Premium' ? 3.5 : 2.5)
                    : isInstitutional ? 2.2 : 2.5;
@@ -770,7 +809,8 @@ export function runEstimationEngine(
   // ── CAT_11: Modular Kitchen, Joinery & Woodwork ───────────────────────────
   if (isResidential) {
     if (rc.kitchens > 0) {
-      const kitchLft = rc.kitchens * 16;
+      const isMicroDensity = isMicroBuilding && buaPerFloor < 800;
+      const kitchLft = isMicroDensity ? rc.units * 10 : rc.kitchens * 16;
       const kitchCode = qt === 'Economy' ? 'MAT_WOOD_KITCH_ECO' : qt === 'Premium' ? 'MAT_WOOD_KITCH_PREM' : 'MAT_WOOD_KITCH';
       addItem(kitchCode, kitchLft, 'linear ft');
     }
@@ -839,8 +879,6 @@ export function runEstimationEngine(
     }
   }
 
-  const numLifts = bi.numLifts ?? 0;
-  const isMicroBuilding = totalBuaSqft < 3500 || buaPerFloor < 800;
   if (numLifts > 0) {
     const liftCode = numFloors <= 4 ? 'MAT_LIFT_HYDRO' : numFloors <= 12 ? 'MAT_LIFT_4P' : numFloors <= 20 ? 'MAT_LIFT_8P' : 'MAT_LIFT_13P';
     addItem(liftCode, numLifts, 'units', true, 'Passenger lift');
@@ -866,7 +904,7 @@ export function runEstimationEngine(
     }
   }
 
-  const needsFirePumps = (isResidential && numFloors >= 4) ||
+  const needsFirePumps = (!isLowRiseResidentialFireExempt && isResidential && numFloors >= 4) ||
     ((isCommercial || isInstitutional) && (numFloors >= 3 || totalBuaSqft > 12000)) ||
     (isIndustrial && totalBuaSqft > 20000);
 
