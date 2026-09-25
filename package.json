@@ -18,6 +18,10 @@
     "db:seed": "tsx scripts/seed.ts",
     "postinstall": "node scripts/postinstall.mjs"
   },
+  "allowScripts": {
+    "esbuild": true,
+    "unrs-resolver": true
+  },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",
     "@hookform/resolvers": "^5.9.1",
