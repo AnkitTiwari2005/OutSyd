@@ -606,7 +606,10 @@ export function runEstimationEngine(
 
   // ── CAT_06: Doors, Windows & Glazing ──────────────────────────────────────
   const winCode = qt === 'Economy' ? 'MAT_WIN_ALUM' : qt === 'Premium' ? 'MAT_WIN_THERMBREAK' : 'MAT_WIN_UPVC';
-  const winSqft = Math.min(facadeAreaSqft * 0.35, rc.windows * (isInstitutional ? 22 : 15));
+  const isOfficeOrRetail = isCommercial && (u.includes('office') || u.includes('commercial') || u.includes('retail') || u.includes('showroom'));
+  const winSqft = isOfficeOrRetail
+    ? Math.round(facadeAreaSqft * (qt === 'Premium' ? 0.35 : 0.25))
+    : Math.min(facadeAreaSqft * 0.35, rc.windows * (isInstitutional ? 22 : 15));
 
   const mainDoorCount = Math.max(1, rc.units);
   const bathDoorCount = rc.bathrooms;
@@ -837,10 +840,11 @@ export function runEstimationEngine(
   }
 
   const numLifts = bi.numLifts ?? 0;
+  const isMicroBuilding = totalBuaSqft < 3500 || buaPerFloor < 800;
   if (numLifts > 0) {
     const liftCode = numFloors <= 4 ? 'MAT_LIFT_HYDRO' : numFloors <= 12 ? 'MAT_LIFT_4P' : numFloors <= 20 ? 'MAT_LIFT_8P' : 'MAT_LIFT_13P';
     addItem(liftCode, numLifts, 'units', true, 'Passenger lift');
-  } else if (numFloors >= 4 && isResidential) {
+  } else if (numFloors >= 4 && isResidential && !isMicroBuilding) {
     const autoLifts = Math.max(1, Math.floor(numFloors / 6));
     addItem(numFloors <= 12 ? 'MAT_LIFT_4P' : numFloors <= 20 ? 'MAT_LIFT_8P' : 'MAT_LIFT_13P', autoLifts, 'units', true, 'Passenger lift');
   } else if (numFloors >= 3 && (isCommercial || isInstitutional)) {
