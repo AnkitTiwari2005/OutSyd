@@ -13,6 +13,7 @@ import {
 import { formatINR } from '@/lib/utils';
 import type { EstimateResult, CategoryTotal } from '@/lib/engine/types';
 import { BAND_CONFIG, getCategoryColor } from '@/lib/constants';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -37,32 +38,39 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const latest = projectEstimates[0];
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      {/* Top nav */}
-      <nav className="bg-white border-b border-slate-200 px-4 py-3">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
+    <main className="min-h-screen bg-[var(--bg-secondary)] text-[var(--text-primary)]">
+      {/* Top Navbar */}
+      <header className="h-16 bg-[var(--bg-card)] border-b border-[var(--border-color)] sticky top-0 z-30">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="text-slate-400 hover:text-slate-600 transition-colors">
+            <Link
+              href="/dashboard"
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1 rounded-md"
+              title="Back to Dashboard"
+            >
               <ArrowLeft size={16} />
             </Link>
             <Link href="/">
               <Logo width={90} height={26} className="h-6 w-auto" priority />
             </Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-sm font-semibold text-slate-700 truncate max-w-xs">{project.name}</span>
+            <span className="text-[var(--border-muted)]">/</span>
+            <span className="text-sm font-semibold text-[var(--text-primary)] truncate max-w-xs">{project.name}</span>
           </div>
-          <Link href="/estimate" className="btn-primary py-2 px-3.5 text-xs">
-            <PlusCircle size={14} /> New Estimate
-          </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
+            <Link href="/estimate" className="btn-primary py-2 px-3.5 text-xs">
+              <PlusCircle size={14} /> New Estimate
+            </Link>
+          </div>
         </div>
-      </nav>
+      </header>
 
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         {/* Project header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">{project.name}</h1>
-            <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">{project.name}</h1>
+            <p className="text-xs text-[var(--text-muted)] flex items-center gap-1.5 mt-1">
               <Clock size={11} /> Created {new Date(project.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
             </p>
           </div>
@@ -78,10 +86,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           const result = (typeof latest.resultJson === 'string' ? JSON.parse(latest.resultJson) : latest.resultJson) as unknown as EstimateResult;
           const bua = result?.derivedDimensions?.totalBuaSqft ?? 0;
           return (
-            <div className="card-md p-6">
+            <div className="card-standard bg-[var(--bg-card)] border border-[var(--border-color)] p-6 rounded-xl shadow-xs">
               <div className="flex items-center gap-2 mb-4">
                 <BandIcon size={14} className="text-orange-500" aria-hidden />
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Latest Estimate</p>
+                <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Latest Estimate</p>
                 <span className={band.cls}>{band.label}</span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
@@ -92,12 +100,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   { label: 'Regional Index',  value: `${Number(latest.regionalIndexApplied).toFixed(3)}×`, highlight: false },
                 ].map(({ label, value, highlight }) => (
                   <div key={label}>
-                    <p className="text-[11px] text-slate-400 mb-0.5">{label}</p>
-                    <p className={`text-lg font-bold ${highlight ? 'text-orange-600' : 'text-slate-900'}`}>{value}</p>
+                    <p className="text-[11px] text-[var(--text-muted)] mb-0.5">{label}</p>
+                    <p className={`text-lg font-bold ${highlight ? 'text-orange-500' : 'text-[var(--text-primary)]'}`}>{value}</p>
                   </div>
                 ))}
               </div>
-              <div className="flex items-center gap-2 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-2 pt-4 border-t border-[var(--border-color)]">
                 <Link href={`/estimate/${latest.id}`}
                   className="btn-secondary py-2 px-3.5 text-xs">
                   <ExternalLink size={12} /> View Full Report
@@ -114,15 +122,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
         {/* All estimates list */}
         <div>
-          <h2 className="text-sm font-semibold text-slate-600 mb-3">
+          <h2 className="text-sm font-semibold text-[var(--text-secondary)] mb-3">
             All Estimates
-            <span className="ml-2 text-slate-300 font-normal">({projectEstimates.length})</span>
+            <span className="ml-2 text-[var(--text-subtle)] font-normal">({projectEstimates.length})</span>
           </h2>
 
           {projectEstimates.length === 0 ? (
-            <div className="card text-center py-16">
-              <TrendingUp size={28} className="text-slate-200 mx-auto mb-3" aria-hidden />
-              <p className="text-slate-400 text-sm">No estimates yet for this project.</p>
+            <div className="card-standard bg-[var(--bg-card)] border border-[var(--border-color)] text-center py-16 rounded-xl">
+              <TrendingUp size={28} className="text-[var(--text-subtle)] mx-auto mb-3" aria-hidden />
+              <p className="text-[var(--text-muted)] text-sm">No estimates yet for this project.</p>
               <Link href="/estimate" className="btn-primary mt-4 inline-flex">
                 <PlusCircle size={14} /> Run First Estimate
               </Link>
@@ -136,11 +144,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   ? JSON.parse(est.resultJson) : est.resultJson) as unknown as EstimateResult;
 
                 return (
-                  <div key={est.id} className="card p-5">
+                  <div key={est.id} className="card-standard bg-[var(--bg-card)] border border-[var(--border-color)] p-5 rounded-xl shadow-xs">
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold text-slate-700">
+                          <span className="text-sm font-semibold text-[var(--text-primary)]">
                             Estimate #{projectEstimates.length - i}
                           </span>
                           <span className={band.cls}>
@@ -152,7 +160,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                        <p className="text-[11px] text-[var(--text-muted)] mt-1 flex items-center gap-1">
                           <Clock size={10} aria-hidden />
                           {new Date(est.createdAt).toLocaleString('en-IN', {
                             day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
@@ -177,9 +185,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                         { label: 'BUA',          value: `${(resultData?.derivedDimensions?.totalBuaSqft ?? 0).toLocaleString('en-IN')} sqft` },
                         { label: 'Region ×',     value: `${Number(est.regionalIndexApplied).toFixed(3)}` },
                       ].map(({ label, value }) => (
-                        <div key={label} className="bg-slate-50 rounded-xl p-2.5">
-                          <p className="text-[10px] text-slate-400">{label}</p>
-                          <p className="text-xs font-bold text-slate-800 mt-0.5">{value}</p>
+                        <div key={label} className="bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-xl p-2.5">
+                          <p className="text-[10px] text-[var(--text-muted)]">{label}</p>
+                          <p className="text-xs font-bold text-[var(--text-primary)] mt-0.5">{value}</p>
                         </div>
                       ))}
                     </div>
@@ -187,7 +195,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     {/* Category bar */}
                     {resultData?.categoryTotals && (
                       <div>
-                        <p className="text-[10px] text-slate-400 mb-1.5">Category distribution</p>
+                        <p className="text-[10px] text-[var(--text-muted)] mb-1.5">Category distribution</p>
                         <div className="flex h-1.5 rounded-full overflow-hidden gap-px">
                           {resultData.categoryTotals
                             .filter((c: CategoryTotal) => c.subtotal > 0)

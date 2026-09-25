@@ -8,6 +8,7 @@ import { desc, count } from 'drizzle-orm';
 import Link from 'next/link';
 import { Shield, Database, MapPin, BarChart3, Users, TrendingUp, Info } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export const metadata = { title: 'Admin — OUTSYD' };
 
@@ -24,23 +25,24 @@ export default async function AdminPage() {
   const recentEstimates  = await db.select().from(estimates).orderBy(desc(estimates.createdAt)).limit(15);
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-[var(--bg-secondary)] text-[var(--text-primary)]">
       {/* Nav */}
-      <nav className="bg-white border-b border-slate-200 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <header className="h-16 bg-[var(--bg-card)] border-b border-[var(--border-color)] sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/">
-              <Logo width={110} height={32} className="h-8 w-auto" />
+              <Logo width={105} height={28} className="h-7 w-auto" priority />
             </Link>
             <span className="badge-orange text-[10px]">Admin</span>
           </div>
-          <div className="flex items-center gap-3 text-xs text-slate-500">
+          <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
             <Shield size={14} className="text-orange-500" />
-            {session.user.name ?? session.user.email}
+            <span className="hidden sm:inline">{session.user.name ?? session.user.email}</span>
+            <ThemeToggle />
             <Link href="/dashboard" className="btn-ghost py-1.5 px-3 text-xs">← Dashboard</Link>
           </div>
         </div>
-      </nav>
+      </header>
 
       <div className="max-w-6xl mx-auto px-4 py-10 space-y-8">
         <h1 className="text-2xl font-bold" style={{ color: '#1e2d4e' }}>Admin Panel</h1>

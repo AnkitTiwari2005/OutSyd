@@ -12,6 +12,7 @@ import { formatINR, formatINRFull, estimateTimeline, computeLabourBreakdown, com
 import { Gauge, Info, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { ShareResultClient } from './_components/ShareResultClient';
 import { getCategoryColor, BAND_CONFIG, PHASE_COLORS } from '@/lib/constants';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import type { EstimateResult, CategoryTotal, EstimateLineItem } from '@/lib/engine/types';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -43,20 +44,21 @@ export default async function SharedEstimatePage({ params }: { params: Promise<{
   const alternatives = computeAlternatives(estimate.grandTotalMaterialCost ?? 0, input?.qualityTier ?? 'Standard');
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-[var(--bg-secondary)] text-[var(--text-primary)]">
       {/* Top bar */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div className="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between gap-3">
+      <header className="h-16 bg-[var(--bg-card)] border-b border-[var(--border-color)] sticky top-0 z-30">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-3">
           <Link href="/">
-            <Logo width={110} height={32} className="h-8 w-auto" />
+            <Logo width={105} height={28} className="h-7 w-auto" priority />
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Client-side share + PDF buttons */}
             <ShareResultClient estimateId={id} grandTotal={estimate.grandTotalMaterialCost ?? 0} />
-            <Link href="/estimate" className="btn-primary py-2 px-4 text-xs">+ New Estimate</Link>
+            <ThemeToggle />
+            <Link href="/estimate" className="btn-primary py-2 px-3.5 text-xs">+ New Estimate</Link>
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-5">
         {/* Shared badge */}
