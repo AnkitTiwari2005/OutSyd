@@ -1,3 +1,2 @@
-// scripts/seed.ts — uses raw SQLite (same as init-db.ts, kept for npm run db:seed)
-// Just delegates to init-db.ts logic
-import './init-db';
+// scripts/seed.ts — Seeds PostgreSQL database using setup-supabase
+import './setup-supabase';

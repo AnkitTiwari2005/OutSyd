@@ -478,10 +478,11 @@ export default function ResultPage() {
             <button
               type="button"
               onClick={() => setSaveOpen(true)}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--accent-navy)] bg-[var(--bg-card)] border border-[var(--border-muted)] rounded-md hover:bg-[var(--bg-secondary)] cursor-pointer"
+              title="Save Estimate Project"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-[var(--accent-navy)] bg-[var(--bg-card)] border border-[var(--border-muted)] rounded-md hover:bg-[var(--bg-secondary)] cursor-pointer"
             >
               <Save size={13} />
-              <span>Save</span>
+              <span className="hidden sm:inline">Save</span>
             </button>
 
             {/* Excel (.xlsx) */}

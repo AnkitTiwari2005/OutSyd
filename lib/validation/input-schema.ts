@@ -37,13 +37,14 @@ const optionalUrl = z.preprocess((val) => {
   if (typeof val === 'string') {
     const trimmed = val.trim();
     if (trimmed === '') return undefined;
-    if (!/^https?:\/\//i.test(trimmed)) {
+    if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//i.test(trimmed)) {
       return `https://${trimmed}`;
     }
     return trimmed;
   }
   return val;
-}, z.string().url('Must be a valid URL (e.g. https://drive.google.com/...)').optional());
+}, z.string().url('Must be a valid URL (e.g. https://drive.google.com/...)').regex(/^https?:\/\//i, 'Only HTTP/HTTPS URLs are allowed').optional());
+
 
 export const Tier2BaseSchema = Tier1BaseSchema.extend({
   structuralSystem: z.enum(['RCC_Frame', 'Load_bearing', 'Steel', 'Shear_Wall', 'Not_sure']).default('Not_sure'),
@@ -83,6 +84,7 @@ const validateBuildingConstraints = (
     heightFt?: number;
     numFloors?: number;
     typology?: string;
+    buildingUse?: string;
   },
   ctx: z.RefinementCtx
 ) => {
@@ -115,6 +117,18 @@ const validateBuildingConstraints = (
       });
     }
   }
+
+  // Cross-field validation: buildingUse must be valid for typology
+  if (data.typology && data.buildingUse) {
+    const validUses = BUILDING_USE_OPTIONS[data.typology];
+    if (validUses && !validUses.includes(data.buildingUse)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid building use "${data.buildingUse}" for typology "${data.typology}". Allowed uses: ${validUses.join(', ')}`,
+        path: ['buildingUse'],
+      });
+    }
+  }
 };
 
 export const Tier1Schema = Tier1BaseSchema.superRefine(validateBuildingConstraints);
@@ -138,7 +152,7 @@ export const STEP_SCHEMAS = [
 
 // Building use options per typology
 export const BUILDING_USE_OPTIONS: Record<string, string[]> = {
-  Residential  : ['Studio', '1BHK', '2BHK', '3BHK', '4BHK', 'Duplex', 'Villa', 'Row House'],
+  Residential  : ['Studio', '1BHK', '2BHK', '3BHK', '4BHK', 'Duplex', 'Villa', 'Row House', 'Independent House', 'Independent House / Villa'],
   Commercial   : ['Retail Shop', 'Office', 'Mall / Showroom', 'Hotel', 'Service Apartment'],
   Institutional: ['School', 'College', 'Hospital', 'Clinic', 'Hostel', 'Community Hall'],
   Industrial   : ['Warehouse', 'Factory', 'Workshop', 'Cold Storage', 'IT Park'],

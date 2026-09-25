@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
 
   // Always return identical success message to prevent user enumeration
   const standardResponse = {
+    success: true,
     message: 'If an account exists with this email, you will receive password reset instructions.',
   };
 
