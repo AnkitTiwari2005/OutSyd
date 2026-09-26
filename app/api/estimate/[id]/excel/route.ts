@@ -97,8 +97,26 @@ export async function GET(
       inputSummary['Structural System'] = input.structuralSystem.replace(/_/g, ' ');
     if (input.seismicZone && input.seismicZone !== 'Not_sure')
       inputSummary['Seismic Zone'] = input.seismicZone.replace(/_/g, ' ');
-    if (input.foundationType && input.foundationType !== 'Not_sure')
-      inputSummary['Foundation Type'] = input.foundationType.replace(/_/g, ' ');
+
+    // Resolve effective Handover Scope for summary display (v2.6.1 specification)
+    let effectiveHandoverScope: string | undefined;
+    if (input.typology === 'Commercial') {
+      const scope = (input.handoverScope && input.handoverScope !== 'Not_Sure' && input.handoverScope !== 'Not_sure')
+        ? input.handoverScope
+        : 'Core_Shell';
+      effectiveHandoverScope = scope.replace(/_/g, ' ');
+    } else if (input.typology === 'Institutional') {
+      const scope = (input.handoverScope === 'Bare_Shell' || input.handoverScope === 'Core_Shell' || input.handoverScope === 'Warm_Shell')
+        ? input.handoverScope
+        : 'Fully_Fitted';
+      effectiveHandoverScope = scope.replace(/_/g, ' ');
+    } else if (input.handoverScope && input.handoverScope !== 'Not_Sure' && input.handoverScope !== 'Not_sure') {
+      effectiveHandoverScope = input.handoverScope.replace(/_/g, ' ');
+    }
+
+    if (effectiveHandoverScope) {
+      inputSummary['Handover Scope'] = effectiveHandoverScope;
+    }
     if (input.computedBuaSqft)
       inputSummary['Built-up Area'] = `${input.computedBuaSqft.toLocaleString('en-IN')} sqft`;
   }
